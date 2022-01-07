@@ -198,10 +198,6 @@
             grid-column: 1 / -1;
         }
 
-        .acs-input {
-            margin-bottom: 0;
-        }
-
         .half-input {
             width: 50%;
         }
@@ -221,11 +217,11 @@
     <div id="vue" class="main-section-body" data-role="main">
         <ui-tabs>
             <ui-tab disabled>
-                <div slot="header" style="color:black;">Brett Adams' Dangerous Admin Configuration Service</div>
+                <div slot="header" style="color:black;">Brett Adams' Dangerous REST Config Manager</div>
             </ui-tab>
             <ui-tab id="home" title="Home" selected>
                 <h1>Welcome</h1>
-                <p>This app is under active development. Only the "Config" and "Add Server" tabs are currently enabled.</p>
+                <p>This app is under active development.</p>
                 <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badacs/issues">GitHub</a></p>
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
@@ -300,6 +296,7 @@
                     :invalid="addserver_host !== ''" :error="addserver_host_error"></ui-textbox>
                 <ui-textbox label="Auth Token" v-model="addserver_auth" :invalid="addserver_auth !== ''"
                     :error="addserver_auth_error"></ui-textbox>
+                <ui-checkbox label="Private" v-model="addserver_private"></ui-checkbox>
                 <ui-button @click="AddServer">Submit</button>
             </ui-tab>
         </ui-tabs>
@@ -374,6 +371,7 @@
                 addserver_host_error: "",
                 addserver_auth: "",
                 addserver_auth_error: "",
+                addserver_private: False,
                 valid_line: RegExp('^[^#=]+=[^=]+$'),
                 DEFAULT_APP_CONTEXT: DEFAULT_APP_CONTEXT,
                 SYSTEM_APP_CONTEXT: SYSTEM_APP_CONTEXT,
