@@ -152,8 +152,7 @@ class req(PersistentServerConnectionApplication):
                 output = json.loads(resConfig)['entry']
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
-                logger.error(f"Adding new server {form['server']} threw error {e}")
-                return {'payload': json.dumps(str("Adding new server {form['server']} threw error {e}"), separators=(',', ':')), 'status': 400}
+                return self.errorhandle(f"Adding new server {form['server']} threw error {e}")
 
         # HELPER - Get Server Context
         if 'server' in form:
