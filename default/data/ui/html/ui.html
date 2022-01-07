@@ -468,10 +468,11 @@
                 // Add Server Tab
                 //
                 AddServer(){
-                    this.Request('addserver',{server:this.addserver_host,token:this.addserver_auth}).then(resp => {
+                    this.Request('addserver',{server:this.addserver_host, token:this.addserver_auth, private:this.addserver_private}).then(resp => {
                         console.log(resp)
                         this.addserver_host = ""
                         this.addserver_auth = ""
+                        this.addserver_private = False
                         //return this.TabConfig() // Can likely do this locally
                     })
                 },
