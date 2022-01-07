@@ -83,7 +83,7 @@ class req(PersistentServerConnectionApplication):
 
     def errorhandle(self, message, status=400):
         logger.error(message)
-        return {'payload': message, separators=(',', ':')), 'status': status}
+        return {'payload': message, 'status': status}
 
     def handle(self, in_string):
         global cached_servers, cached_defaults
