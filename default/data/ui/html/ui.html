@@ -453,9 +453,9 @@
                     console.timeEnd('conf_columns_ready')
                     return output
                 },
-                acs_servers_options(){
+                /*acs_servers_options(){
                     return Object.keys(this.config).filter(s => this.config[s].acs)
-                },
+                },*/
                 conf_servers_active(){
                     return this.Afus(this.conf_columns.slice(0,this.conf_setting_columns).map(c => c.server).filter(s => this.conf_servers.hasOwnProperty(s)))
                 },
@@ -488,12 +488,7 @@
                 // Config Tab
                 //
                 ConfGetColumnConfig(){
-                    this.conf_loading = 1
-                    this.Request('getservers').then(resp => {
-                        console.log(resp)
-                        this.$set(this,'conf_servers',resp)
-                        this.conf_loading = 0
-                    })
+                    
                 },
                 ConfChangeValue(c,f,a,s,x){
                     //form['file'] and form['server'] and form['stanza'] and form['attr'] and form['value']
@@ -838,8 +833,13 @@
                     console.log(conf_hide)
                     this.$set(this, 'conf_hide', conf_hide)
                 }
-                this.Request('config').then(resp => {
+                /*this.Request('config').then(resp => {
                     this.$set(this,'config',resp)
+                })*/
+                this.conf_loading = 1
+                this.Request('getservers').then(resp => {
+                    this.$set(this,'conf_servers',resp)
+                    this.conf_loading = 0
                 })
             },
             watch: {
