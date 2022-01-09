@@ -810,6 +810,7 @@
                         if (resp.status == 200){
                             return resp.json()
                         } else {
+                            console.warn(resp.status, resp.text())
                             return Promise.reject({ cause: resp.status, message: resp.text()})
                         }
                     })
