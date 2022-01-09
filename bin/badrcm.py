@@ -151,7 +151,7 @@ class req(PersistentServerConnectionApplication):
                 return self.errorhandle(f"Connection to new server '{form['server']}' failed with error '{e}'")
 
             # Add Server
-            user_context = "nobody" if form['shared'] else self.USER
+            user_context = "nobody" if form['shared'] == "true" else self.USER
             logger.info(f"Adding {form['server']} for user {user_context}")
             try:
                 _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
