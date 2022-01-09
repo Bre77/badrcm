@@ -478,7 +478,7 @@
                 AddServer(){
                     this.Request('addserver',{server:this.addserver_host, token:this.addserver_auth, shared:this.addserver_shared})
                     .catch(e => {
-                        print(e)
+                        console.log(e)
                         this.addserver_host_error = e.message
                     })
                     .then(resp => {
