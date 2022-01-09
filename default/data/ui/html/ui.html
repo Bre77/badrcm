@@ -232,6 +232,13 @@
                         <td>{{server}}</td><td>{{details.port}}</td><td>{{details.verify}}</td><td></td><td></td>
                     </tr>
                 </div>
+                <h3>Add Server</h3>
+                <ui-textbox label="Hostname" placeholder="sh.splunkcloud.com" v-model="addserver_host"
+                    :invalid="addserver_host !== ''" :error="addserver_host_error"></ui-textbox>
+                <ui-textbox label="Auth Token" v-model="addserver_auth" :invalid="addserver_auth !== ''"
+                    :error="addserver_auth_error"></ui-textbox>
+                <ui-checkbox label="Private" v-model="addserver_private"></ui-checkbox>
+                <ui-button @click="AddServer">Submit</button>
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
                 <!-- Conf Page Settings -->
@@ -299,14 +306,6 @@
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
                     Do you want to confirm this?
                 </ui-confirm>
-            </ui-tab>
-            <ui-tab id="adds" title="Add Server">
-                <ui-textbox label="Hostname" placeholder="sh.splunkcloud.com" v-model="addserver_host"
-                    :invalid="addserver_host !== ''" :error="addserver_host_error"></ui-textbox>
-                <ui-textbox label="Auth Token" v-model="addserver_auth" :invalid="addserver_auth !== ''"
-                    :error="addserver_auth_error"></ui-textbox>
-                <ui-checkbox label="Private" v-model="addserver_private"></ui-checkbox>
-                <ui-button @click="AddServer">Submit</button>
             </ui-tab>
         </ui-tabs>
     </div>
