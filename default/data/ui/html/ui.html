@@ -804,9 +804,15 @@
                     })
                     .catch(e => {
                         console.warn(e)
-                        return Promise.reject({ cause: 'host', message: e.message });
+                        return Promise.reject({ cause: 'local', message: e.message });
                     })
-                    .then(resp => resp.json())
+                    .then(resp => {
+                        if (resp.status == 200){
+                            return resp.json()
+                        } else {
+                            return Promise.reject({ cause: resp.status, message: resp.text()})
+                        }
+                    })
                     .catch(e => {
                         console.warn(e)
                         return Promise.reject({ cause: 'parse', message: e.message });
