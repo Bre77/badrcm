@@ -806,6 +806,7 @@
                         return Promise.reject({ cause: 'local', message: e.message });
                     })
                     .then(resp => {
+                        console.log(resp.status)
                         if (resp.status == 200){
                             return resp.json()
                         } else {
