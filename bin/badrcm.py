@@ -7,7 +7,7 @@ import logging
 APP_NAME = "badrcm"
 ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority', 'sourcetype', 'termFrequencyWeightedDist']
 
-logger = logging.getLogger('splunk.appserver.badrcm.req')
+logger = logging.getLogger(f"splunk.appserver.{APP_NAME}.req")
 
 # Cached data
 cached_servers = {}
