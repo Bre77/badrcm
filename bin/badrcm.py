@@ -146,7 +146,7 @@ class req(PersistentServerConnectionApplication):
 
             # Test server
             try:
-                _, res = simpleRequest(f"{form['server']}:8089/services", sessionKey=form['token'], raiseAllErrors=True
+                _, res = simpleRequest(f"{form['server']}:8089/services", sessionKey=form['token'], raiseAllErrors=True)
             except Exception as e:
                 return self.errorhandle(f"Connection to new server {form['server']} failed with error {e}")
 
