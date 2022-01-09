@@ -75,7 +75,7 @@ class req(PersistentServerConnectionApplication):
         return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
 
     def gettoken(self, server):
-            _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, method='GET', raiseAllErrors=True)
+            _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, method='GET', raiseAllErrors=True)
             return json.loads(resPasswords)['entry'][0]['content']['clear_password']
 
     def errorhandle(self, message, status=400):
