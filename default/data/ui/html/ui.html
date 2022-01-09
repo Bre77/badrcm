@@ -226,10 +226,10 @@
                 <h3>Remote Servers</h3>
                 <table>
                     <tr>
-                        <th>Server</th><th>Port</th><th>Verify SSL</th><th>Sharing</th><th>Working</th>
+                        <th>Server</th><th>Port</th><th>Verify SSL</th><th>Apps</th><th>Users</th>
                     </tr>
-                    <tr v-for="details,server in config">
-                        <td>{{server}}</td><td>{{details.port}}</td><td>{{details.verify}}</td><td></td><td></td>
+                    <tr v-for="details,server in conf_servers">
+                        <td>{{server}}</td><td>{{details.port}}</td><td>{{details.verify}}</td><td>{{details.apps.length}}</td><td>{{details.users.length}}</td>
                     </tr>
                 </table>
                 <h3>Add Server</h3>
