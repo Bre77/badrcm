@@ -809,9 +809,9 @@
                         if (resp.status == 200){
                             return resp.json()
                         } else {
-                            const e = await resp.text()
+                            const message = await resp.text()
                             console.warn(resp.status, e)
-                            return Promise.reject({ cause: resp.status, message: e})
+                            return Promise.reject({ cause: resp.status, message: message})
                         }
                     })
                     .catch(e => {
