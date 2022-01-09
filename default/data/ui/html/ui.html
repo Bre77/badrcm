@@ -809,7 +809,7 @@
                         if (resp.status == 200){
                             return resp.json()
                         } else {
-                            const e = resp.text()
+                            const e = await resp.text()
                             console.warn(resp.status, e)
                             return Promise.reject({ cause: resp.status, message: e})
                         }
