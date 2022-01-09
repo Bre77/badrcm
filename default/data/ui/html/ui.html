@@ -225,10 +225,10 @@
                 <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badacs/issues">GitHub</a></p>
                 <table>
                     <th>
-                        <td>Server</td><td>Sharing</td><td>Working</td>
+                        <td>Server</td><td>Port</td><td>Verify SSL</td><td>Sharing</td><td>Working</td>
                     </th>
-                    <tr v-for="server in config">
-                        <td>{{server}}</td><td>Sharing</td><td>Working</td>
+                    <tr v-for="details,server in config">
+                        <td>{{server}}</td><td>{{details.port}}</td><td>{{details.verify}}</td><td></td><td></td>
                     </tr>
                 </div>
             </ui-tab>
