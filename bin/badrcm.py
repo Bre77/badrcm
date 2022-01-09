@@ -41,7 +41,7 @@ class req(PersistentServerConnectionApplication):
         
         return output
 
-    def handleConf(self,configs):
+    def handleConf(self,configs,server):
         try:
             serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{form['file']}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
             defaults = {}
@@ -50,7 +50,7 @@ class req(PersistentServerConnectionApplication):
         except Exception:
             defaults = {}
 
-        defaults = {}
+        cached_defaults[server] = defaults
         output = {}
 
         for stanza in configs:
@@ -185,7 +185,7 @@ class req(PersistentServerConnectionApplication):
                     return {'payload': "Missing '{x}' parameter", 'status': 400}
             serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             configs = json.loads(resConfig)['entry']
-            return self.handleConf(configs)
+            return self.handleConf(configs,form['server'])
         
         # Change a config and process the response
         if form['a'] == "setconf":
@@ -197,7 +197,7 @@ class req(PersistentServerConnectionApplication):
             serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, method='POST', raiseAllErrors=True, postargs=postargs)
             configs = json.loads(resConfig)['entry']
 
-            return self.handleConf(configs)
+            return self.handleConf(configs,form['server'])
 
         if form['a'] == "getfiles":
             if 'server' not in form:
