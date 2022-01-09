@@ -159,6 +159,7 @@ class req(PersistentServerConnectionApplication):
             
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
+                cached_servers[form['server']] = output 
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
                 return self.errorhandle(f"Getting data from new server '{form['server']}' threw error '{e}'")
