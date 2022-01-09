@@ -487,8 +487,7 @@
                         this.addserver_auth = ""
                         this.addserver_shared = true
                         //return this.TabConfig() // Can likely do this locally
-                    })
-                    .catch(e => {
+                    }, e => {
                         console.log(e)
                         this.addserver_host_error = e.message
                     })
