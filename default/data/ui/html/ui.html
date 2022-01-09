@@ -850,7 +850,7 @@
                     this.$set(this,'conf_servers',resp)
                 }).catch(e => {
                     console.error("FATAL ERROR, Failed to get servers")
-                }).then({
+                }).then(x => {
                     this.conf_loading = 0
                 })
             },
