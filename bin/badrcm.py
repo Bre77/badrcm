@@ -38,7 +38,7 @@ class req(PersistentServerConnectionApplication):
         try:
             _, resUsers = simpleRequest(f"{uri}/services/authentication/users?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             users = [{"name": x['name'], "realname": x['content'].get('realname'), "defaultApp":x['content'].get('defaultApp')} for x in json.loads(resUsers)['entry']]
-        except Exception:
+        except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/users threw error {e}")
         
         return {
