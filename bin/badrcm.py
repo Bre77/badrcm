@@ -145,7 +145,7 @@ class req(PersistentServerConnectionApplication):
                 if x not in form:
                     logger.warn(f"Request to 'addserver' was missing '{x}' parameter")
                     return {'payload': "Missing '{x}' parameter", 'status': 400}
-            user_context = self.USER if form['private'] else "nobody"
+            user_context = "nobody" if form['shared'] else self.USER
             try:
                 _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=AUTHTOKEN, postargs={'name': form['server'], 'password': form['token']}, method='POST', raiseAllErrors=True)
                 _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
