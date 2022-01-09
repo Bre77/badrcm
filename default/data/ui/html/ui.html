@@ -794,7 +794,6 @@
                     console.log(form.toString())
                     return fetch(`/${window.$C.LOCALE}/splunkd/__raw/services/badrcm?output_mode=json`, {
                         method: 'POST',
-                        //redirect: 'follow',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'X-Requested-With': 'XMLHttpRequest',
