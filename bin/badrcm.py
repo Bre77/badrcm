@@ -42,15 +42,18 @@ class req(PersistentServerConnectionApplication):
         return output
 
     def handleConf(self,configs,server):
-        try:
-            serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{form['file']}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
-            defaults = {}
-            for default in json.loads(resDefault)['entry']:
-                defaults[default['name']] = self.fixval(default['content'])
-        except Exception:
-            defaults = {}
-
-        cached_defaults[server] = defaults
+        if cached_defaults[server]:
+            try:
+                serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{form['file']}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
+                defaults = {}
+                for default in json.loads(resDefault)['entry']:
+                    defaults[default['name']] = self.fixval(default['content'])
+                cached_defaults[server] = defaults
+            except Exception:
+                defaults = {}
+        else:
+            defaults = cached_defaults[server]
+        
         output = {}
 
         for stanza in configs:
