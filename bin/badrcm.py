@@ -18,7 +18,6 @@ cached_defaults = {}
 class req(PersistentServerConnectionApplication):
     def __init__(self, command_line, command_arg):
         PersistentServerConnectionApplication.__init__(self)
-        self.loop = asyncio.get_event_loop()
 
     def fixval(self,value):
         if type(value) is str:
