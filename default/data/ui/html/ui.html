@@ -2,7 +2,7 @@
 
 <head>
     <title>BADRCM</title>
-    <link href="{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/keen-ui.min.css" rel="stylesheet" type="text/css" />   
+    <link href="{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/keen-ui.min.css" rel="stylesheet" type="text/css" />   
     <!--<script src="{{SPLUNKWEB_URL_PREFIX}}/i18ncatalog?autoload=1"></script>
     <script src="{{SPLUNKWEB_URL_PREFIX}}/static/build/simplexml/index.js"></script>
     -->
@@ -31,7 +31,7 @@
             font-weight: 400;
             src: local('Material Icons'),
                 local('MaterialIcons-Regular'),
-                url({{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/material-icons.woff2) format('woff2');
+                url({{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/material-icons.woff2) format('woff2');
         }
         .material-icons {
             font-family: 'Material Icons';
@@ -222,7 +222,7 @@
             <ui-tab id="home" title="Home" selected>
                 <h1>Welcome</h1>
                 <p>This app is under active development.</p>
-                <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badacs/issues">GitHub</a></p>
+                <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badrcm/issues">GitHub</a></p>
                 <h3>Remote Servers</h3>
                 <table>
                     <tr>
@@ -320,8 +320,8 @@
         function i18n_register(catalog) {return}
     </script>
     <script src="{{SPLUNKWEB_URL_PREFIX}}/config?autoload=1" crossorigin="use-credentials"></script>
-    <script src="{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/vue.js"></script>
-    <script src="{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/keen-ui.js"></script>
+    <script src="{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/vue.js"></script>
+    <script src="{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/keen-ui.js"></script>
     <script>
         const CSRF = /splunkweb_csrf_token_\d+=(\d+)/.exec(document.cookie)[1]
         const DEFAULT_APP_CONTEXT = {name:'-', label:"All"}
@@ -329,19 +329,19 @@
         const DEFAULT_USER_CONTEXT = {name:'nobody', realname:"Nobody"}
         const SHOW_OPTIONS = ['All','Different','Missing']
         const CONF_COLUMNS_MAX = 8
-        const CONF_FILES = ['props', 'inputs', 'outputs', 'transforms', 'app', 'server', 'authentication', 'authorize', 'badacs', 'collections', 'commands', 'datamodels', 'eventtypes', 'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
+        const CONF_FILES = ['props', 'inputs', 'outputs', 'transforms', 'app', 'server', 'authentication', 'authorize', 'badacs', 'badrcm', 'collections', 'commands', 'datamodels', 'eventtypes', 'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
         const SHARING_ICON = {
-            'global':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/earth.svg',
-            'app':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/application-array-outline.svg',
-            'user':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/account-circle.svg',
-            'system':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/cog.svg'
+            'global':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/earth.svg',
+            'app':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/application-array-outline.svg',
+            'user':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/account-circle.svg',
+            'system':'{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/cog.svg'
         }
         const DELIM = "\0"
 
         function imgError(image){
             console.log(image)
             image.onerror = "";
-            image.src = "{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/appIcon.png";
+            image.src = "{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/appIcon.png";
             return true;
         }
 
@@ -400,7 +400,7 @@
                 conf_setting_apps_names(){
                     // Get array of selected apps and persist it to localStorage.
                     let names = Object.values(this.conf_setting_apps).map(a => a.name)
-                    localStorage.setItem('badacs_conf_setting_apps', names.join(DELIM))
+                    localStorage.setItem('badrcm_conf_setting_apps', names.join(DELIM))
                     return names
                 },
                 conf_apps(){
@@ -699,7 +699,7 @@
                     
                     image.parentNode.removeChild(image)
                     /*image.onerror = "";
-                    image.src = "{{SPLUNKWEB_URL_PREFIX}}/static/app/badacs/appIcon.png";*/
+                    image.src = "{{SPLUNKWEB_URL_PREFIX}}/static/app/badrcm/appIcon.png";*/
                     return true;
                 },
                 ConfCheckColumnOptions(c){
@@ -758,7 +758,7 @@
                 },
                 ConfShowHide(key){
                     this.$set(this.conf_hide,key,!this.conf_hide[key])
-                    localStorage.setItem('badacs_conf_hide', Object.entries(this.conf_hide).filter(x => x[1]).map(x => x[0]).join(DELIM))
+                    localStorage.setItem('badrcm_conf_hide', Object.entries(this.conf_hide).filter(x => x[1]).map(x => x[0]).join(DELIM))
                 },
                 ConfChangeTick(key){
                     console.time(`ConfChangeTick ${key}`)
@@ -792,7 +792,7 @@
                         form.append(x, data[x]) //encodeURIComponent
                     }
                     console.log(form.toString())
-                    return fetch(`/${window.$C.LOCALE}/splunkd/__raw/services/badacs?output_mode=json`, {
+                    return fetch(`/${window.$C.LOCALE}/splunkd/__raw/services/badrcm?output_mode=json`, {
                         method: 'POST',
                         //redirect: 'follow',
                         headers: {
@@ -822,20 +822,20 @@
                 },
             },
             mounted() {
-                if(localStorage.badacs_conf_setting_files){
-                    this.$set(this, 'conf_setting_files', localStorage.getItem('badacs_conf_setting_files').split(DELIM))
+                if(localStorage.badrcm_conf_setting_files){
+                    this.$set(this, 'conf_setting_files', localStorage.getItem('badrcm_conf_setting_files').split(DELIM))
                 }
-                if(localStorage.badacs_conf_setting_apps){
-                    this.$set(this, 'conf_setting_apps', localStorage.getItem('badacs_conf_setting_apps').split(DELIM))
+                if(localStorage.badrcm_conf_setting_apps){
+                    this.$set(this, 'conf_setting_apps', localStorage.getItem('badrcm_conf_setting_apps').split(DELIM))
                 }
-                /*if(localStorage.badacs_conf_setting_show){
-                    this.$set(this, 'conf_setting_show', localStorage.getItem('badacs_conf_setting_show'))
+                /*if(localStorage.badrcm_conf_setting_show){
+                    this.$set(this, 'conf_setting_show', localStorage.getItem('badrcm_conf_setting_show'))
                 }*/
-                if(localStorage.badacs_conf_setting_columns_option){
-                    this.$set(this, 'conf_setting_columns_option', localStorage.getItem('badacs_conf_setting_columns_option'))
+                if(localStorage.badrcm_conf_setting_columns_option){
+                    this.$set(this, 'conf_setting_columns_option', localStorage.getItem('badrcm_conf_setting_columns_option'))
                 }
-                if(localStorage.badacs_conf_hide){
-                    let conf_hide = localStorage.getItem('badacs_conf_hide').split(DELIM).reduce((a,b)=>{
+                if(localStorage.badrcm_conf_hide){
+                    let conf_hide = localStorage.getItem('badrcm_conf_hide').split(DELIM).reduce((a,b)=>{
                         a[b] = true
                         return a
                     },{})
@@ -856,17 +856,17 @@
             },
             watch: {
                 conf_setting_files(next,prev){
-                    if(next.length) localStorage.setItem('badacs_conf_setting_files', next.join(DELIM))
+                    if(next.length) localStorage.setItem('badrcm_conf_setting_files', next.join(DELIM))
                 },
                 conf_setting_show(next,prev){
-                    localStorage.setItem('badacs_conf_setting_show', next)
+                    localStorage.setItem('badrcm_conf_setting_show', next)
                 },
                 conf_setting_columns_option(next,prev){
-                    localStorage.setItem('badacs_conf_setting_columns_option', next)
+                    localStorage.setItem('badrcm_conf_setting_columns_option', next)
                 },
                 /*conf_hide(next,prev){
-                    console.log('badacs_conf_hide',next)
-                    if(next) localStorage.setItem('badacs_conf_hide', Object.entries(next).filter(x => x[1]).map(x => x[0]).join(DELIM))
+                    console.log('badrcm_conf_hide',next)
+                    if(next) localStorage.setItem('badrcm_conf_hide', Object.entries(next).filter(x => x[1]).map(x => x[0]).join(DELIM))
                 }*/
             }
         })
