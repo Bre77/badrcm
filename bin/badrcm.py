@@ -1,10 +1,8 @@
 from splunk.persistconn.application import PersistentServerConnectionApplication
 from splunk.clilib.cli_common import getMergedConf
 from splunk.rest import simpleRequest
-from splunk.clilib.bundle_paths import make_splunkhome_path
 import json
 import logging
-import sys
 
 APP_NAME = "badrcm"
 ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority', 'sourcetype', 'termFrequencyWeightedDist']
