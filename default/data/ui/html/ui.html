@@ -231,7 +231,7 @@
                     <tr v-for="details,server in config">
                         <td>{{server}}</td><td>{{details.port}}</td><td>{{details.verify}}</td><td></td><td></td>
                     </tr>
-                </div>
+                </table>
                 <h3>Add Server</h3>
                 <ui-textbox label="Hostname" placeholder="sh.splunkcloud.com" v-model="addserver_host"
                     :invalid="addserver_host !== ''" :error="addserver_host_error"></ui-textbox>
