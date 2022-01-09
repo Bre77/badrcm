@@ -480,7 +480,7 @@
                 // Add Server Tab
                 //
                 AddServer(){
-                    this.Request('addserver',{server:this.addserver_host, token:this.addserver_auth, shared:this.addserver_shared})
+                    this.Request('addserver',{server:this.addserver_host, token:this.addserver_auth, shared:Number(this.addserver_shared)})
                     .then(resp => {
                         console.log(resp)
                         this.$set(this.conf_servers,this.addserver_host,resp)
