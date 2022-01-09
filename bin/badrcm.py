@@ -128,11 +128,12 @@ class req(PersistentServerConnectionApplication):
             output = {
                 args['server']['hostname']: self.getserver(self.LOCAL_URI,self.AUTHTOKEN) 
             }
-            for host in getMergedConf(APP_NAME):
+            config = getMergedConf(APP_NAME)
+            for host in config:
                 if host == "default":
                     continue
                 token = self.gettoken(host)
-                output[host] = self.getserver(f"https://{host}:8089",token)
+                output[host] = {**self.getserver(f"https://{host}:8089",token),**config[host]}
             cached_servers = output
             return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
 
