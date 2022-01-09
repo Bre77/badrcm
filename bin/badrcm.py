@@ -141,7 +141,7 @@ class req(PersistentServerConnectionApplication):
 
         # Add a new server and get its base metadata
         if form['a'] == "addserver":
-            for x in ['server','token']: # Check required parameters
+            for x in ['server','token','shared']: # Check required parameters
                 if x not in form:
                     logger.warn(f"Request to 'addserver' was missing '{x}' parameter")
                     return {'payload': "Missing '{x}' parameter", 'status': 400}
