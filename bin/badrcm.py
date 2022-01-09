@@ -145,8 +145,8 @@ class req(PersistentServerConnectionApplication):
                     return {'payload': "Missing '{x}' parameter", 'status': 400}
             user_context = "nobody" if form['shared'] else self.USER
             try:
-                _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=AUTHTOKEN, postargs={'name': form['server'], 'password': form['token']}, method='POST', raiseAllErrors=True)
-                _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
+                _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'name': form['server'], 'password': form['token']}, method='POST', raiseAllErrors=True)
+                _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
                 output = json.loads(resConfig)['entry']
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
@@ -157,7 +157,7 @@ class req(PersistentServerConnectionApplication):
             # Validate "server"
             if form['server'] in [args['server']['hostname'],"local"]:
                 uri = self.LOCAL_URI
-                token = AUTHTOKEN
+                token = self.AUTHTOKEN
             else:
                 uri = f"https://{form['server']}:8089"
                 token = self.gettoken(form['server'])
