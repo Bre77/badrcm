@@ -812,7 +812,7 @@
                             return resp.text().then(message => {
                                 console.warn(resp.status, e)
                                 return Promise.reject({ cause: resp.status, message: message})
-                            }
+                            })
                         }
                     })
                     .catch(e => {
