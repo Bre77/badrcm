@@ -45,14 +45,15 @@ class req(PersistentServerConnectionApplication):
         
         return output
 
-    def handleConf(self,configs,server):
-        if !cached_defaults[server]:
+    def handleConf(self,configs,server,f):
+        dkey = f"{server}/{f}"
+        if dkey not in cached_defaults:
             try:
-                serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{form['file']}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
+                serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{f}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
                 defaults = {}
                 for default in json.loads(resDefault)['entry']:
                     defaults[default['name']] = self.fixval(default['content'])
-                cached_defaults[server] = defaults
+                cached_defaults[dkey] = defaults
             except Exception:
                 defaults = {}
         else:
@@ -187,7 +188,7 @@ class req(PersistentServerConnectionApplication):
                     return {'payload': "Missing '{x}' parameter", 'status': 400}
             serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             configs = json.loads(resConfig)['entry']
-            return self.handleConf(configs,form['server'])
+            return self.handleConf(configs,form['server'],form['file'])
         
         # Change a config and process the response
         if form['a'] == "setconf":
@@ -199,7 +200,7 @@ class req(PersistentServerConnectionApplication):
             serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, method='POST', raiseAllErrors=True, postargs=postargs)
             configs = json.loads(resConfig)['entry']
 
-            return self.handleConf(configs,form['server'])
+            return self.handleConf(configs,form['server'],form['file'])
 
         if form['a'] == "getfiles":
             if 'server' not in form:
