@@ -15,7 +15,6 @@ ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority
 logger = logging.getLogger(f"splunk.appserver.{APP_NAME}.req")
 
 # Cached data
-cached_servers = {}
 cached_defaults = {}
 
 class req(PersistentServerConnectionApplication):
@@ -47,7 +46,7 @@ class req(PersistentServerConnectionApplication):
         return output
 
     def handleConf(self,configs,server):
-        if cached_defaults[server]:
+        if !cached_defaults[server]:
             try:
                 serverResponse, resDefault = simpleRequest(f"{uri}/services/properties/{form['file']}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
                 defaults = {}
@@ -89,7 +88,7 @@ class req(PersistentServerConnectionApplication):
         return {'payload': message, 'status': status}
 
     def handle(self, in_string):
-        global cached_servers, cached_defaults
+        global cached_defaults
         #try:
         args = json.loads(in_string)
 
@@ -137,11 +136,7 @@ class req(PersistentServerConnectionApplication):
                     continue
                 token = self.gettoken(host)
                 output[host] = {**self.getserver(f"https://{host}:8089",token),**config[host]}
-            cached_servers = output
             return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
-
-        if form['a'] == "getcachedservers":
-            return {'payload': json.dumps(cached_servers, separators=(',', ':')), 'status': 200}
 
         # Add a new server and get its base metadata
         if form['a'] == "addserver":
@@ -167,7 +162,6 @@ class req(PersistentServerConnectionApplication):
             
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
-                cached_servers[form['server']] = output 
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
                 return self.errorhandle(f"Getting data from new server '{form['server']}' threw error '{e}'")
