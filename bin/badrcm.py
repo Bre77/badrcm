@@ -57,7 +57,7 @@ class req(PersistentServerConnectionApplication):
             except Exception:
                 defaults = {}
         else:
-            defaults = cached_defaults[server]
+            defaults = cached_defaults[dkey]
         
         output = {}
 
