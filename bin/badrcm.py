@@ -42,6 +42,12 @@ class req(PersistentServerConnectionApplication):
             output["users"] = [{"name": x['name'], "realname": x['content'].get('realname'), "defaultApp":x['content'].get('defaultApp')} for x in json.loads(resUsers)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/users threw error {e}")
+
+        try:
+            _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            output["files"] = [f['name'] for f in json.loads(resConfig)['entry']]
+        except Exception as e:
+            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
         
         return output
 
@@ -57,6 +63,7 @@ class req(PersistentServerConnectionApplication):
             except Exception:
                 defaults = {}
         else:
+            logger.info(f"Using cached defaults for {uri} {file}")
             defaults = cached_defaults[dkey]
         
         output = {}
@@ -84,9 +91,9 @@ class req(PersistentServerConnectionApplication):
         _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, method='GET', raiseAllErrors=True)
         return json.loads(resPasswords)['entry'][0]['content']['clear_password']
 
-    def errorhandle(self, message, status=400):
-        logger.error(message)
-        return {'payload': message, 'status': status}
+    def errorhandle(self, message, error="", status=400):
+        logger.error(f"app={APP_NAME} user={self.USER} status={status} message=\"{message}\" error=\"{error}\"")
+        return {'payload': json.dumps({'message':message, 'error':str(error)}, separators=(',', ':')), 'status': status}
 
     def handle(self, in_string):
         global cached_defaults
@@ -111,7 +118,7 @@ class req(PersistentServerConnectionApplication):
 
         # Helpful crash for debugging
         if form['a'] == "crash":
-            raise("restart")
+            raise(Exception
 
         # Dump the args
         if form['a'] == "args":
