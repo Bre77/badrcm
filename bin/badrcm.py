@@ -57,7 +57,7 @@ class req(PersistentServerConnectionApplication):
         try:
             _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             for role in json.loads(resRoles)['entry']:
-                all_roles[role.name] = role['imported_roles']
+                all_roles[role.name] = role['content']['imported_roles']
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
