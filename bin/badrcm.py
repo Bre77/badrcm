@@ -56,7 +56,7 @@ class req(PersistentServerConnectionApplication):
         all_roles = {}
         try:
             _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            for (role in json.loads(resConfig)['entry']):
+            for role in json.loads(resConfig)['entry']:
                 all_roles[role.name] = role.imported_roles
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
@@ -76,7 +76,7 @@ class req(PersistentServerConnectionApplication):
         return output
 
     def rolerecursive(self,all_roles,new_roles,my_roles=[]):
-        for (role in new_roles):
+        for role in new_roles:
             if role not in my_roles:
                 my_roles.append(new_role)
                 my_roles.extend(self.rolerecursive(all_roles,all_roles[role],my_roles))
