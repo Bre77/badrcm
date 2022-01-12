@@ -31,25 +31,53 @@ class req(PersistentServerConnectionApplication):
 
     def getserver(self,uri,token):
         output = {}
+        # Get all enabled Apps
         try:
             _, resApps = simpleRequest(f"{uri}/services/apps/local?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             output["apps"] = [{"name": x['name'], "label":x['content'].get('label'), "visable":x['content'].get('visible'), "details":x['content'].get('details'), "version":x['content'].get('version')} for x in json.loads(resApps)['entry'] if not x['content']['disabled']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
+        # Get all Users
         try:
             _, resUsers = simpleRequest(f"{uri}/services/authentication/users?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             output["users"] = [{"name": x['name'], "realname": x['content'].get('realname'), "defaultApp":x['content'].get('defaultApp')} for x in json.loads(resUsers)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/users threw error {e}")
 
+        # Get all Conf file names
         try:
             _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             output["files"] = [f['name'] for f in json.loads(resConfig)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+
+        # Get all roles and their imported roles
+        all_roles = {}
+        try:
+            _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            for (role in json.loads(resConfig)['entry']):
+                all_roles[role.name] = role.imported_roles
+        except Exception as e:
+            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+
+        # Get current context and resolve imported roles
+        try:
+            _, resContext = simpleRequest(f"{uri}/services/properties?output_mode=json&count=1", sessionKey=token, method='GET', raiseAllErrors=True)
+            rights = json.loads(resConfig)['entry'][0]
+            output["rights"] = {'username':rights['content']['username'], 'realname':rights['content']['realname'], 'roles':self.rolerecursive(all_roles,rights['content']['roles'])}
+        except Exception as e:
+            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
         
         return output
+
+    def rolerecursive(self,all_roles,new_roles,my_roles=[]):
+        for (role in new_roles):
+            if role not in my_roles:
+                my_roles.append(new_role)
+                my_roles.extend(self.rolerecursive(all_roles,all_roles[role],my_roles))
+        return my_roles
+
 
     def handleConf(self,configs,uri,token,conf):
         dkey = uri+conf
@@ -75,8 +103,10 @@ class req(PersistentServerConnectionApplication):
             output[app][stanza['name']] = {
                 'acl':{
                     'can_write':stanza['acl']['can_write'],
+                    'modifiable':stanza['acl']['modifiable'],
                     'owner':stanza['acl']['owner'],
-                    'sharing':stanza['acl']['sharing']
+                    'sharing':stanza['acl']['sharing'],
+                    'roles':stanza['acl']['perms']['write']
                 },
                 'attr':{}
             } #'id':stanza['id'],
