@@ -68,7 +68,8 @@ class req(PersistentServerConnectionApplication):
             output["rights"] = {
                 'username': rights['content']['username'],
                 'realname': rights['content']['realname'],
-                'roles': self.rolerecursive(all_roles,rights['content']['roles'])}
+                'roles': self.rolerecursive(all_roles,rights['content']['roles'])
+            }
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
         
