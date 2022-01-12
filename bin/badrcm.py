@@ -157,7 +157,7 @@ class req(PersistentServerConnectionApplication):
             try:
                 simpleRequest(f"https://{form['server']}:8089/services", sessionKey=form['token'], raiseAllErrors=True)
             except Exception as e:
-                return self.errorhandle(f"Connection to new server '{form['server']}' failed",e)
+                return self.errorhandle(f"Connection to new server '{form['server']}' failed", e)
 
             # Add Server
             user_context = "nobody" if form['shared'] == "true" else self.USER
@@ -172,7 +172,7 @@ class req(PersistentServerConnectionApplication):
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
-                return self.errorhandle(f"Getting data from new server '{form['server']}' failed",e)
+                return self.errorhandle(f"Getting data from new server '{form['server']}' failed", e)
 
         # HELPER - Get Server Context
         if 'server' in form:
