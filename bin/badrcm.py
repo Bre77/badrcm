@@ -48,7 +48,7 @@ class req(PersistentServerConnectionApplication):
         # Get all Conf file names
         try:
             _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            output["files"] = [f['name'] for f in json.loads(resConfig)['entry']]
+            output["files"] = [f['name'] for f in json.loads(resFiles)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
@@ -56,7 +56,7 @@ class req(PersistentServerConnectionApplication):
         all_roles = {}
         try:
             _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            for role in json.loads(resConfig)['entry']:
+            for role in json.loads(resRoles)['entry']:
                 all_roles[role.name] = role.imported_roles
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
