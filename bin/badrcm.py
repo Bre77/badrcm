@@ -65,7 +65,10 @@ class req(PersistentServerConnectionApplication):
         try:
             _, resContext = simpleRequest(f"{uri}/services/properties?output_mode=json&count=1", sessionKey=token, method='GET', raiseAllErrors=True)
             rights = json.loads(resConfig)['entry'][0]
-            output["rights"] = {'username':rights['content']['username'], 'realname':rights['content']['realname'], 'roles':self.rolerecursive(all_roles,rights['content']['roles'])}
+            output["rights"] = {
+                'username': rights['content']['username'],
+                'realname': rights['content']['realname'],
+                'roles': self.rolerecursive(all_roles,rights['content']['roles'])}
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
         
@@ -77,7 +80,6 @@ class req(PersistentServerConnectionApplication):
                 my_roles.append(new_role)
                 my_roles.extend(self.rolerecursive(all_roles,all_roles[role],my_roles))
         return my_roles
-
 
     def handleConf(self,configs,uri,token,conf):
         dkey = uri+conf
