@@ -157,7 +157,7 @@ class req(PersistentServerConnectionApplication):
             try:
                 simpleRequest(f"https://{form['server']}:8089/services", sessionKey=form['token'], raiseAllErrors=True)
             except Exception as e:
-                return self.errorhandle(f"Connection to new server '{form['server']}' failed with error '{e}'")
+                return self.errorhandle(f"Connection to new server '{form['server']}' failed",e)
 
             # Add Server
             user_context = "nobody" if form['shared'] == "true" else self.USER
@@ -166,13 +166,13 @@ class req(PersistentServerConnectionApplication):
                 _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
                 _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'name': form['server'], 'password': form['token']}, method='POST', raiseAllErrors=True)
             except Exception as e:
-                return self.errorhandle(f"Adding new server '{form['server']}' threw error '{e}'")    
+                return self.errorhandle(f"Adding new server '{form['server']}' failed",e)    
             
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
-                return self.errorhandle(f"Getting data from new server '{form['server']}' threw error '{e}'")
+                return self.errorhandle(f"Getting data from new server '{form['server']}' failed",e)
 
         # HELPER - Get Server Context
         if 'server' in form:
