@@ -51,11 +51,11 @@ class req(PersistentServerConnectionApplication):
         
         return output
 
-    def handleConf(self,configs,uri,token,file):
-        dkey = uri+file
+    def handleConf(self,configs,uri,token,conf):
+        dkey = uri+conf
         if dkey not in cached_defaults:
             try:
-                _, resDefault = simpleRequest(f"{uri}/services/properties/{file}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
+                _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
                 defaults = {}
                 for default in json.loads(resDefault)['entry']:
                     defaults[default['name']] = self.fixval(default['content'])
@@ -63,7 +63,7 @@ class req(PersistentServerConnectionApplication):
             except Exception:
                 defaults = {}
         else:
-            logger.info(f"Using cached defaults for {uri} {file}")
+            logger.info(f"Using cached defaults for {uri} {conf}")
             defaults = cached_defaults[dkey]
         
         output = {}
@@ -184,41 +184,32 @@ class req(PersistentServerConnectionApplication):
                 uri = f"https://{form['server']}:8089"
                 token = self.gettoken(form['server'])
         else:
-            logger.warn("Request was missing 'server' parameter")
-            return {'payload': "Missing 'server' parameter", 'status': 400}
+            return self.errorhandle("Missing 'server' parameter")
 
         # Get config of a single server
         if form['a'] == "getconf":
             for x in ['server','file','user','app']: # Check required parameters
                 if x not in form:
-                    logger.warn(f"Request to 'getconf' was missing '{x}' parameter")
-                    return {'payload': "Missing '{x}' parameter", 'status': 400}
-            serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            configs = json.loads(resConfig)['entry']
-            return self.handleConf(configs,uri,token,form['file'])
+                    return self.errorhandle("Missing '{x}' parameter")
+            try:
+                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+                configs = json.loads(content)['entry']
+                return self.handleConf(configs,uri,token,form['file'])
+            except Exception as e:
+                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,resp.status)
         
         # Change a config and process the response
         if form['a'] == "setconf":
             for x in ['server','file','stanza','attr','value']: # Check required parameters
                 if x not in form:
-                    logger.warn(f"Request to 'setconf' was missing '{x}' parameter")
-                    return {'payload': "Missing '{x}' parameter", 'status': 400}
+                    return self.errorhandle("Missing '{x}' parameter")
             postargs = {form['attr']: form['value']}
-            serverResponse, resConfig = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, method='POST', raiseAllErrors=True, postargs=postargs)
-            configs = json.loads(resConfig)['entry']
-
-            return self.handleConf(configs,uri,token,form['file'])
-
-        if form['a'] == "getfiles":
-            if 'server' not in form:
-                logger.warn(f"Request to 'getfiles' was missing 'server' parameter")
-                return {'payload': "Missing 'server' parameter", 'status': 400}
             try:
-                serverResponse, resConfig = simpleRequest(f"{uri}/services/properties?output_mode=json", sessionKey=token, method='GET', raiseAllErrors=True)
-                output = [f['name'] for f in json.loads(resConfig)['entry']]
-                return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
+                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, method='POST', raiseAllErrors=True, postargs=postargs)
+                configs = json.loads(content)['entry']
+                return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
-                logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+                return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,resp.status)
 
         return {'payload': "No Action Requested", 'status': 400}
         #except Exception as ex:
