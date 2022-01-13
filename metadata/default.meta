@@ -2,7 +2,7 @@
 # Application-level permissions
 
 []
-access = read : [ admin ], write : [ admin ]
+access = read : [ badrcm ], write : [ badrcm ]
 
 ### EVENT TYPES
 
