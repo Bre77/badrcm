@@ -59,11 +59,11 @@ class req(PersistentServerConnectionApplication):
             for role in json.loads(resRoles)['entry']:
                 all_roles[role['name']] = role['content']['imported_roles']
         except Exception as e:
-            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+            logger.error(f"Request to {uri}/services/authorization/roles threw error {e}")
 
         # Get current context and resolve imported roles
         try:
-            _, resContext = simpleRequest(f"{uri}/services/properties?output_mode=json&count=1", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resContext = simpleRequest(f"{uri}/services/authentication/current-context?output_mode=json&count=1", sessionKey=token, method='GET', raiseAllErrors=True)
             rights = json.loads(resContext)['entry'][0]
             output["rights"] = {
                 'username': rights['content']['username'],
@@ -71,7 +71,7 @@ class req(PersistentServerConnectionApplication):
                 'roles': self.rolerecursive(all_roles,rights['content']['roles'])
             }
         except Exception as e:
-            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+            logger.error(f"Request to {uri}/services/authentication/current-context threw error {e}")
         
         return output
 
