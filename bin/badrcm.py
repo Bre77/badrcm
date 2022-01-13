@@ -21,7 +21,7 @@ class req(PersistentServerConnectionApplication):
     def __init__(self, command_line, command_arg):
         PersistentServerConnectionApplication.__init__(self)
 
-    def fixval(self,value):
+    def fixbool(self,value):
         if type(value) is str:
             if value.lower() == "true": #in ["true","1"]:
                 return True
@@ -29,7 +29,7 @@ class req(PersistentServerConnectionApplication):
                 return False
         return value
 
-    def normval(self,value):
+    def makebool(self,value):
         if type(value) is str:
             if value.lower() in ["true","1"]:
                 return True
@@ -107,7 +107,7 @@ class req(PersistentServerConnectionApplication):
                 _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, raiseAllErrors=False)
                 defaults = {}
                 for default in json.loads(resDefault)['entry']:
-                    defaults[default['name']] = self.normval(default['content'])
+                    defaults[default['name']] = self.fixbool(default['content'])
                 cached_defaults[dkey] = defaults
             except Exception:
                 defaults = {}
@@ -131,8 +131,12 @@ class req(PersistentServerConnectionApplication):
                 'attr':{}
             } #'id':stanza['id'],
             for attr in stanza['content']:
-                value = self.fixval(stanza['content'][attr])
-                if attr in ATTR_BLACKLIST or (attr in defaults and self.normval(value) == defaults[attr]):
+                value = stanza['content'][attr]
+                if type(defaults[attr])==bool:
+                    value = self.makebool(value)
+                else:
+                    value = self.fixbool(value)
+                if attr in ATTR_BLACKLIST or (attr in defaults and value == defaults[attr]):
                     continue
                 output[app][stanza['name']]['attr'][attr] = value
         return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
