@@ -47,11 +47,8 @@
         </div>
     </header>
     <div id="vue">
-        <ui-confirm ref="disclaimer" title="Add Config" @confirm="localStorage.setItem('badacs_disclaimer',true)" @deny="history.back()">
-            <ui-select has-search :options="conf_setting_files_options" v-model="conf_add_file">File</ui-select>
-            <ui-textbox v-model="conf_add_app">App</ui-textbox>
-            <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
-            <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badacs_disclaimer',true)" @deny="history.back()">
+            I know what I am doing. I promise.
         </ui-confirm>
         <ui-tabs>
             <ui-tab disabled>
