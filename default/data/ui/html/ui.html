@@ -125,7 +125,7 @@
                                 <span title="The user who owns this stanza">Owner: <b>{{col.owner}}</b></span>
                                 <span v-if="!col.can_write">Missing write capability</span>
                                 <span v-if="!col.authorized">Requires {{col.roles.join(' or ')}} role</span>
-                                <span v-if="!col.safe">Contact Splunk Support to change</span>
+                                <span v-if="!col.safe">Contact Splunk Cloud Support to change</span>
                             </div>
                             <template v-for="attr,x of conf_model[f].apps[a].stanzas[s].attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
