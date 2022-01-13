@@ -47,7 +47,7 @@
         </div>
     </header>
     <div id="vue">
-        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badacs_disclaimer',true)" @deny="window.open('/')">
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badacs_disclaimer',true)" @deny="window.open('/','_self')">
             I know what I am doing. I promise.
         </ui-confirm>
         <ui-tabs>
