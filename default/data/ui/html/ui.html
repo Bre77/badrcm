@@ -74,7 +74,7 @@
                 <h3>Add Server</h3>
                 <ui-textbox label="Hostname" placeholder="stack.splunkcloud.com" v-model="addserver_host" :error="addserver_host_error"></ui-textbox>
                 <ui-textbox label="Auth Token" v-model="addserver_auth" :error="addserver_auth_error"></ui-textbox>
-                <ui-checkbox label="Shared" v-model="addserver_shared"></ui-checkbox>
+                <ui-checkbox label="Shared" v-model="addserver_shared" disabled></ui-checkbox>
                 <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)">Submit</button>
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
@@ -117,8 +117,8 @@
                                 <span class="material-icons" :title="'Sharing: '+col.sharing">{{SHARING_ICON[col.sharing]}}</span>
                                 <span title="The user who owns this stanza">Owner: <b>{{col.owner}}</b></span>
                                 <span :title="col.can_write ? 'Have write capability' : 'Missing write capability'">Write: <span class="material-icons">{{CHECK_ICON[col.can_write]}}</span></span>
-                                <span :title="col.modifiable ? 'Is modifiable' : 'Is not modifiable'">Modify: <span class="material-icons">{{CHECK_ICON[col.modifiable]}}</span>
-                                <span :title="col.authorized ? 'Role has write permission' : `Need role ${col.roles.join(', ')}`"></span>Role: <span class="material-icons">{{CHECK_ICON[col.authorized]}}</span></span>
+                                <span :title="col.modifiable ? 'Is modifiable' : 'Is not modifiable'">Modify: <span class="material-icons">{{CHECK_ICON[col.modifiable]}}</span></span>
+                                <span :title="col.authorized ? 'Role has write permission' : `Need role ${col.roles.join(', ')}`">Role: <span class="material-icons">{{CHECK_ICON[col.authorized]}}</span></span>
                             </div>
                             <template v-for="attr,x of conf_model[f].apps[a].stanzas[s].attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
