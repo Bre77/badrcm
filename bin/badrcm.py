@@ -132,7 +132,7 @@ class req(PersistentServerConnectionApplication):
             } #'id':stanza['id'],
             for attr in stanza['content']:
                 value = stanza['content'][attr]
-                if type(defaults[attr])==bool:
+                if type(defaults[attr])==bool: #If the default was "true" or "false", assume the value should also be boolean
                     value = self.makebool(value)
                 else:
                     value = self.fixbool(value)
