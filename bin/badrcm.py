@@ -246,7 +246,7 @@ class req(PersistentServerConnectionApplication):
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             try:
-                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')}?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
                 configs = json.loads(content)['entry']
                 return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
@@ -259,7 +259,7 @@ class req(PersistentServerConnectionApplication):
                     return self.errorhandle("Missing '{x}' parameter")
             postargs = {form['attr']: form['value']}
             try:
-                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, method='POST', raiseAllErrors=True, postargs=postargs)
+                resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}?output_mode=json", sessionKey=token, postargs=postargs,  raiseAllErrors=True,)
                 configs = json.loads(content)['entry']
                 return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
