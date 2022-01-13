@@ -23,9 +23,9 @@ class req(PersistentServerConnectionApplication):
 
     def fixval(self,value):
         if type(value) is str:
-            if value.lower() == "true" #in ["true","1"]:
+            if value.lower() == "true": #in ["true","1"]:
                 return True
-            if value.lower() == "false" #in ["false","0"]:
+            if value.lower() == "false": #in ["false","0"]:
                 return False
         return value
 
