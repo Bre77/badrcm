@@ -72,23 +72,23 @@
                 <!-- Conf Model -->
                 <template v-for="file,f of conf_model">
                     <!-- File -->
-                    <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[file.key]?1:0]" :icon="BTNICO[conf_hide[file.key]?1:0]" @click="ConfShowHide(file.key)"></ui-icon-button>
+                    <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[file.key]]" :icon="BTNICO[conf_hide[file.key]]" @click="ConfShowHide(file.key)"></ui-icon-button>
                     <ui-checkbox class="conf-file-left" v-model="conf_tick[file.key]" @change="ConfChangeTick(file.key)">{{f}}.conf</ui-checkbox>
                     <template v-for="app,a of conf_model[f].apps" v-if="!conf_hide[file.key] && (conf_setting_apps.length == 0 || conf_setting_apps_names.includes(a))">
                         <!-- App -->
-                        <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[app.key]?1:0]" :icon="BTNICO[conf_hide[app.key]?1:0]" @click="ConfShowHide(app.key)"></ui-icon-button>
+                        <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[app.key]]" :icon="BTNICO[conf_hide[app.key]]" @click="ConfShowHide(app.key)"></ui-icon-button>
                         <ui-checkbox class="conf-app-left" v-model="conf_tick[app.key]" :title="a" @change="ConfChangeTick(app.key)">{{app.label || a}} <img class="conf-sub-image" :src="`${SPLUNKD_PATH}/${a}/static/appIcon.png`" @error="ConfFixImage"/></ui-checkbox>
                         <!-- App Detail -->
                         <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}"><a v-if="app.url" :href="app.url" target="_blank">{{col}}</a v-if="app.url"></div>
                         <template v-for="stanza,s of conf_model[f].apps[a].stanzas" v-if="!conf_hide[app.key]">
                             <!-- Stanza -->
-                            <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[stanza.key]?1:0]" :icon="BTNICO[conf_hide[stanza.key]?1:0]" @click="ConfShowHide(stanza.key)"></ui-icon-button>
+                            <ui-icon-button class="conf-hide" color="green" size="mini" :type="BTNTYP[conf_hide[stanza.key]]" :icon="BTNICO[conf_hide[stanza.key]]" @click="ConfShowHide(stanza.key)"></ui-icon-button>
                             <ui-checkbox class="conf-stanza-left" v-model="conf_tick[stanza.key]" @change="ConfChangeTick(stanza.key)">[{{s}}]</ui-checkbox>
                             <!-- Stanza Details -->
                             <div v-for="col,c of conf_model[f].apps[a].stanzas[s].cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
-                                <!--<img :src="SHARING_ICON[col.sharing]" :title="'Sharing: '+col.sharing">
-                                <span class="conf-sub-text" :title="Access Controls"><span class="material-icons">{{SHARING_ICON[col.sharing]}}</span> Owner: {{col.owner}} Write: <span class="material-icons">{{ICONS[col.can_write]}}</span> Modify: <span class="material-icons">{{ICONS[col.modifiable]}}</span> Authorized: <span class="material-icons">{{ICONS[col.authorized]}}</span></span>
-                            --></div>
+                                <!--<img :src="SHARING_ICON[col.sharing]" :title="'Sharing: '+col.sharing"><span class="conf-sub-text" :title="Access Controls"></span>-->
+                                <span class="material-icons">{{SHARING_ICON[col.sharing]}}</span> Owner: {{col.owner}} Write: <span class="material-icons">{{ICONS[col.can_write]}}</span> Modify: <span class="material-icons">{{ICONS[col.modifiable]}}</span> Authorized: <span class="material-icons">{{ICONS[col.authorized]}}</span>
+                            </div>
                             <template v-for="attr,x of conf_model[f].apps[a].stanzas[s].attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
                                 <ui-checkbox :class="{'conf-attr-left':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" v-model="conf_tick[attr.key]" @change="ConfChangeTick(attr.key)">{{x}}</ui-checkbox>
