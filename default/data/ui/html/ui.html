@@ -56,7 +56,7 @@
                 <p>This app is under active development.</p>
                 <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badrcm/issues">GitHub</a></p>
                 <h3>Remote Servers</h3>
-                <table v-if="conf_servers">
+                <table v-if="Object.keys(conf_servers)">
                     <tr>
                         <th>Server</th><th>Port</th><th>Verify SSL</th><th>Username</th><th>Roles</th><th>Apps</th><th>Users</th><th>Files</th>
                     </tr>
