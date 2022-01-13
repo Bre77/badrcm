@@ -85,7 +85,7 @@
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
                 <!-- Conf Page Settings -->
-                <ui-select class="settings col1-2 row1" multiple has-search :options="conf_files" v-model="conf_setting_files" @dropdown-close="ConfChangeOptions()">Config Files</ui-select>
+                <ui-select class="settings col1-2 row1" multiple has-search :options="conf_files" v-model="conf_files_options" @dropdown-close="ConfChangeOptions()">Config Files</ui-select>
                 <ui-select class="settings col1-2 row2" multiple has-search :options="conf_setting_apps_options" v-model="conf_setting_apps" :keys="{label: conf_app_label}" :loading="conf_loading > 0" placeholder="All Apps">Apps</ui-select>
                 <ui-select class="settings col1-2 row3" :options="conf_setting_show_options" v-model="conf_setting_show">Show</ui-select>
                 <ui-select class="settings col1-2 row4" :options="conf_setting_columns_options" v-model="conf_setting_columns_option" @change="ConfModelUpdate()">Columns</ui-select>
@@ -143,7 +143,7 @@
                 <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" @deny="" v-if="context">
                 </ui-confirm>
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="">
-                    <ui-select has-search :options="conf_setting_files_options" v-model="conf_add_file">File</ui-select>
+                    <ui-select has-search :options="conf_files_options" v-model="conf_add_file">File</ui-select>
                     <ui-textbox v-model="conf_add_app">App</ui-textbox>
                     <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
                     <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
