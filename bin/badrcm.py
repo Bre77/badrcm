@@ -65,7 +65,7 @@ class req(PersistentServerConnectionApplication):
         # Get all roles and their imported roles
         all_roles = {}
         try:
-            _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
             for role in json.loads(resRoles)['entry']:
                 all_roles[role['name']] = role['content']['imported_roles']
         except Exception as e:
@@ -73,7 +73,7 @@ class req(PersistentServerConnectionApplication):
 
         # Get current context and resolve imported roles
         try:
-            _, resContext = simpleRequest(f"{uri}/services/authentication/current-context?output_mode=json&count=1", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resContext = simpleRequest(f"{uri}/services/authentication/current-context?output_mode=json&count=1", sessionKey=token, raiseAllErrors=True)
             rights = json.loads(resContext)['entry'][0]
             output["rights"] = {
                 'username': rights['content']['username'],
