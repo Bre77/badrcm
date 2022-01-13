@@ -250,8 +250,7 @@ class req(PersistentServerConnectionApplication):
                 configs = json.loads(content)['entry']
                 return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
-                status = resp.status if resp.status>=400 else 400
-                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,status)
+                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e)
         
         # Change a config and process the response
         if form['a'] == "setconf":
