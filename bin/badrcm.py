@@ -30,18 +30,28 @@ class req(PersistentServerConnectionApplication):
         return value
 
     def getserver(self,uri,token):
-        output = {}
+        def output = {}
         # Get all enabled Apps
         try:
             _, resApps = simpleRequest(f"{uri}/services/apps/local?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            output["apps"] = [{"name": x['name'], "label":x['content'].get('label'), "visable":x['content'].get('visible'), "details":x['content'].get('details'), "version":x['content'].get('version')} for x in json.loads(resApps)['entry'] if not x['content']['disabled']]
+            output["apps"] = [{
+                "name": x['name'],
+                "label":x['content'].get('label'),
+                "visable":x['content'].get('visible'),
+                "details":x['content'].get('details'),
+                "version":x['content'].get('version')
+            } for x in json.loads(resApps)['entry'] if not x['content']['disabled']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
         # Get all Users
         try:
             _, resUsers = simpleRequest(f"{uri}/services/authentication/users?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
-            output["users"] = [{"name": x['name'], "realname": x['content'].get('realname'), "defaultApp":x['content'].get('defaultApp')} for x in json.loads(resUsers)['entry']]
+            output["users"] = [{
+                "name": x['name'],
+                "realname": x['content'].get('realname'),
+                "defaultApp":x['content'].get('defaultApp')
+            } for x in json.loads(resUsers)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/users threw error {e}")
 
@@ -53,7 +63,7 @@ class req(PersistentServerConnectionApplication):
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
         # Get all roles and their imported roles
-        all_roles = {}
+        def all_roles = {}
         try:
             _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             for role in json.loads(resRoles)['entry']:
@@ -76,8 +86,7 @@ class req(PersistentServerConnectionApplication):
         return output
 
     def rolerecursive(self,all_roles,new_roles,my_roles=[]):
-        for role in new_roles:
-            if role not in my_roles:
+        for role in new_roles if role not in my_roles:
                 my_roles.append(role)
                 my_roles = self.rolerecursive(all_roles,all_roles[role],my_roles)
         return my_roles
