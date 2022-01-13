@@ -78,7 +78,7 @@ class req(PersistentServerConnectionApplication):
             output["rights"] = {
                 'username': rights['content']['username'],
                 'realname': rights['content']['realname'],
-                'roles': self.rolerecursive(all_roles,rights['content']['roles'])
+                'roles': self.rolerecursive(all_roles,rights['content']['roles'],[])
             }
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/current-context threw error {e}")
@@ -86,8 +86,6 @@ class req(PersistentServerConnectionApplication):
         return output
 
     def rolerecursive(self,all_roles,new_roles,my_roles):
-        if not my_roles:
-            my_roles = []
         for role in new_roles:
             if role not in my_roles:
                 my_roles.append(role)
