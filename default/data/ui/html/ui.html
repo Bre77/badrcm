@@ -37,6 +37,8 @@
                         <td>{{details.verify}}</td>
                         <td v-if="details.apps">{{details.apps.length}}</td><td v-else>X</td>
                         <td v-if="details.users">{{details.users.length}}</td><td v-else>X</td>
+                        <td v-if="details.rights">{{details.rights.username}}</td><td v-else>X</td>
+                        <td v-if="details.rights">{{details.rights.roles.join(', ')}}</td><td v-else>X</td>
                     </tr>
                 </table>
                 <h3>Add Server</h3>
