@@ -96,7 +96,7 @@ class req(PersistentServerConnectionApplication):
         dkey = uri+conf
         if dkey not in cached_defaults:
             try:
-                _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=False)
+                _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, raiseAllErrors=False)
                 defaults = {}
                 for default in json.loads(resDefault)['entry']:
                     defaults[default['name']] = self.fixval(default['content'])
@@ -131,7 +131,7 @@ class req(PersistentServerConnectionApplication):
         return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
 
     def gettoken(self, server):
-        _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, method='GET', raiseAllErrors=True)
+        _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, raiseAllErrors=True)
         return json.loads(resPasswords)['entry'][0]['content']['clear_password']
 
     def errorhandle(self, message, error="", status=400):
@@ -206,8 +206,8 @@ class req(PersistentServerConnectionApplication):
             user_context = "nobody" if form['shared'] == "true" else self.USER
             logger.info(f"Adding {form['server']} for user {user_context}")
             try:
-                _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, method='POST', raiseAllErrors=True)
-                _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, method='POST', raiseAllErrors=True)
+                _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
+                _, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
             except Exception as e:
                 return self.errorhandle(f"Adding new server '{form['server']}' failed", e)    
             
