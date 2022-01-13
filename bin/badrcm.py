@@ -132,12 +132,15 @@ class req(PersistentServerConnectionApplication):
             } #'id':stanza['id'],
             for attr in stanza['content']:
                 value = stanza['content'][attr]
-                if type(defaults[attr])==bool: #If the default was "true" or "false", assume the value should also be boolean
-                    value = self.makebool(value)
-                else:
-                    value = self.fixbool(value)
-                if attr in ATTR_BLACKLIST or (attr in defaults and value == defaults[attr]):
+                if attr in ATTR_BLACKLIST:
                     continue
+                value = self.fixbool(value)
+                if attr in defaults:
+                    if type(defaults[attr])==bool: #If the default was "true" or "false", assume the value should also be boolean
+                        value = self.makebool(value)
+                    if value == defaults[attr]:
+                        continue
+                
                 output[app][stanza['name']]['attr'][attr] = value
         return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
 
