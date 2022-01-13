@@ -78,7 +78,7 @@ class req(PersistentServerConnectionApplication):
     def rolerecursive(self,all_roles,new_roles,my_roles=[]):
         for role in new_roles:
             if role not in my_roles:
-                my_roles.append(new_role)
+                my_roles.append(role)
                 my_roles.extend(self.rolerecursive(all_roles,all_roles[role],my_roles))
         return my_roles
 
