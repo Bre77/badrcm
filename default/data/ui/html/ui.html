@@ -86,7 +86,7 @@
                             <!-- Stanza Details -->
                             <div v-for="col,c of conf_model[f].apps[a].stanzas[s].cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
                                 <img :src="SHARING_ICON[col.sharing]" :title="'Sharing: '+col.sharing">
-                                <span class="conf-sub-text" :title="Access Controls"> Owner: {{col.owner}} </span>
+                                <span class="conf-sub-text" :title="Access Controls"> Owner: {{col.owner}} Write: {{TICK[col.can_write]}} Modify: {{TICK[col.modifiable]}} Authorized: {{TICK[col.authorized]}}</span>
                             </div>
                             <template v-for="attr,x of conf_model[f].apps[a].stanzas[s].attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
