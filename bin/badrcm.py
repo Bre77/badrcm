@@ -68,7 +68,7 @@ class req(PersistentServerConnectionApplication):
             _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
             output["files"] = [f['name'] for f in json.loads(resFiles)['entry']]
         except Exception as e:
-            logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+            logger.error(f"Request to {uri}/services/properties threw error {e}")
 
         # Get all roles and their imported roles
         all_roles = {}
@@ -250,7 +250,8 @@ class req(PersistentServerConnectionApplication):
                 configs = json.loads(content)['entry']
                 return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
-                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,resp.status)
+                status = (resp.status>400) ? resp.status : 400
+                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,status)
         
         # Change a config and process the response
         if form['a'] == "setconf":
