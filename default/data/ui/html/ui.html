@@ -47,7 +47,7 @@
         </div>
     </header>
     <div id="vue">
-        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')">
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirmButtonText="Agree" denyButtonText="Disagree">
             I know what I am doing. I promise.
         </ui-confirm>
         <ui-tabs>
