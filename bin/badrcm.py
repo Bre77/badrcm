@@ -33,7 +33,7 @@ class req(PersistentServerConnectionApplication):
         output = {}
         # Get all enabled Apps
         try:
-            _, resApps = simpleRequest(f"{uri}/services/apps/local?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resApps = simpleRequest(f"{uri}/services/apps/local?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
             output["apps"] = [{
                 "name": x['name'],
                 "label":x['content'].get('label'),
@@ -46,7 +46,7 @@ class req(PersistentServerConnectionApplication):
 
         # Get all Users
         try:
-            _, resUsers = simpleRequest(f"{uri}/services/authentication/users?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resUsers = simpleRequest(f"{uri}/services/authentication/users?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
             output["users"] = [{
                 "name": x['name'],
                 "realname": x['content'].get('realname'),
@@ -57,7 +57,7 @@ class req(PersistentServerConnectionApplication):
 
         # Get all Conf file names
         try:
-            _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
+            _, resFiles = simpleRequest(f"{uri}/services/properties?output_mode=json&count=0", sessionKey=token, raiseAllErrors=True)
             output["files"] = [f['name'] for f in json.loads(resFiles)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
