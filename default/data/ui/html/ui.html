@@ -56,7 +56,8 @@
                 <p>This app is under active development.</p>
                 <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badrcm/issues">GitHub</a></p>
                 <h3>Remote Servers</h3>
-                <table v-if="Object.keys(conf_servers)">
+                <ui-progress-circular v-if="startup" :size="48" :stroke="8" ></ui-progress-circular>
+                <table v-else>
                     <tr>
                         <th>Server</th><th>Port</th><th>Verify SSL</th><th>Username</th><th>Roles</th><th>Apps</th><th>Users</th><th>Files</th>
                     </tr>
@@ -71,14 +72,14 @@
                         <td v-if="details.files">{{details.files.length}}</td><td v-else>X</td>
                     </tr>
                 </table>
-                <ui-progress-circular v-else :size="48" :stroke="8" ></ui-progress-circular>
+                
                 <h3>Add Server</h3>
                 <ui-textbox label="Hostname" placeholder="stack.splunkcloud.com" v-model="addserver_host" :error="addserver_host_error"></ui-textbox>
                 <ui-textbox label="Auth Token" v-model="addserver_auth" :error="addserver_auth_error"></ui-textbox>
                 <ui-checkbox label="Shared" v-model="addserver_shared" disabled></ui-checkbox>
                 <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)">Submit</button>
             </ui-tab>
-            <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}" :disabled="!Object.keys(conf_servers)">
+            <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}" :disabled="startup">
                 <!-- Conf Page Settings -->
                 <ui-select class="settings col1-2 row1" multiple has-search :options="conf_setting_files_options" v-model="conf_setting_files" @dropdown-close="ConfChangeOptions()">Config Files</ui-select>
                 <ui-select class="settings col1-2 row2" multiple has-search :options="conf_setting_apps_options" v-model="conf_setting_apps" :keys="{label: conf_app_label}" :loading="conf_loading > 0" placeholder="All Apps">Apps</ui-select>
