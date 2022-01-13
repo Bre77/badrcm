@@ -116,7 +116,6 @@ class req(PersistentServerConnectionApplication):
             output[app][stanza['name']] = {
                 'acl':{
                     'can_write':stanza['acl']['can_write'],
-                    'modifiable':stanza['acl']['modifiable'],
                     'owner':stanza['acl']['owner'],
                     'sharing':stanza['acl']['sharing'],
                     'roles':stanza['acl']['perms']['write']
