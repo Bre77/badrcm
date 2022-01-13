@@ -123,8 +123,8 @@
                             <div v-for="col,c of conf_model[f].apps[a].stanzas[s].cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
                                 <span class="material-icons" :title="'Sharing: '+col.sharing">{{SHARING_ICON[col.sharing]}}</span>
                                 <span title="The user who owns this stanza">Owner: <b>{{col.owner}}</b></span>
-                                <span v-if="!col.can_write">Missing write capability</span>
                                 <span v-if="!col.safe">Contact Splunk Cloud Support to change</span>
+                                <span v-else-if="!col.can_write">Missing write capability</span>
                                 <span v-else-if="!col.authorized">Requires {{col.roles.join(' or ')}} role</span>
                                 
                             </div>
