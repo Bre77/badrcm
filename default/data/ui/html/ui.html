@@ -47,6 +47,12 @@
         </div>
     </header>
     <div id="vue">
+        <ui-confirm ref="disclaimer" title="Add Config" @confirm="localStorage.setItem('badacs_disclaimer',true)" @deny="history.back()">
+            <ui-select has-search :options="conf_setting_files_options" v-model="conf_add_file">File</ui-select>
+            <ui-textbox v-model="conf_add_app">App</ui-textbox>
+            <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
+            <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
+        </ui-confirm>
         <ui-tabs>
             <ui-tab disabled>
                 <div slot="header" style="color:black;">Brett Adams' Dangerous REST Config Manager</div>
@@ -55,6 +61,8 @@
                 <h1>Welcome</h1>
                 <p>This app is under active development.</p>
                 <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badrcm/issues">GitHub</a></p>
+                <h3>Disclaimer</h3>
+                <p>You have agreed that you know what you are doing by using this app. If you break Splunk Cloud, its not Splunk's fault.</p>
                 <h3>Remote Servers</h3>
                 <ui-progress-circular v-if="startup" :size="48" :stroke="8" ></ui-progress-circular>
                 <table v-else>
