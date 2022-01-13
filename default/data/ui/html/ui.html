@@ -29,16 +29,16 @@
                 <h3>Remote Servers</h3>
                 <table>
                     <tr>
-                        <th>Server</th><th>Port</th><th>Verify SSL</th><th>Apps</th><th>Users</th>
+                        <th>Server</th><th>Port</th><th>Verify SSL</th><th>Username</th><th>Roles</th><th>Apps</th><th>Users</th>
                     </tr>
                     <tr v-for="details,server in conf_servers">
                         <td>{{server}}</td>
                         <td>{{details.port}}</td>
                         <td>{{details.verify}}</td>
-                        <td v-if="details.apps">{{details.apps.length}}</td><td v-else>X</td>
-                        <td v-if="details.users">{{details.users.length}}</td><td v-else>X</td>
                         <td v-if="details.rights">{{details.rights.username}}</td><td v-else>X</td>
                         <td v-if="details.rights">{{details.rights.roles.join(', ')}}</td><td v-else>X</td>
+                        <td v-if="details.apps">{{details.apps.length}}</td><td v-else>X</td>
+                        <td v-if="details.users">{{details.users.length}}</td><td v-else>X</td>
                     </tr>
                 </table>
                 <h3>Add Server</h3>
