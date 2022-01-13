@@ -78,7 +78,7 @@
                 <ui-checkbox label="Shared" v-model="addserver_shared" disabled></ui-checkbox>
                 <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)">Submit</button>
             </ui-tab>
-            <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}" :disabled="!conf_servers">
+            <ui-tab id="conf" class="grid" title="Config" @select="ConfGetColumnConfig()" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}" :disabled="!Object.keys(conf_servers)">
                 <!-- Conf Page Settings -->
                 <ui-select class="settings col1-2 row1" multiple has-search :options="conf_setting_files_options" v-model="conf_setting_files" @dropdown-close="ConfChangeOptions()">Config Files</ui-select>
                 <ui-select class="settings col1-2 row2" multiple has-search :options="conf_setting_apps_options" v-model="conf_setting_apps" :keys="{label: conf_app_label}" :loading="conf_loading > 0" placeholder="All Apps">Apps</ui-select>
