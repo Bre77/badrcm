@@ -47,7 +47,7 @@
         </div>
     </header>
     <div id="vue">
-        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirmButtonText="Agree" denyButtonText="Disagree" autofocus="deny-button">
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirm-button-text="Agree" deny-button-text="Disagree" autofocus="deny-button">
             I know what I am doing. I understand that changes using this tool can break my Splunk Deployment, and Splunk is not responsible for anything I break. Splunk Cloud support does not support this tool, and may not easily be able to fix my mistakes.
         </ui-confirm>
         <ui-tabs>
