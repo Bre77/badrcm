@@ -30,7 +30,7 @@ class req(PersistentServerConnectionApplication):
         return value
 
     def getserver(self,uri,token):
-        def output = {}
+        output = {}
         # Get all enabled Apps
         try:
             _, resApps = simpleRequest(f"{uri}/services/apps/local?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
@@ -63,7 +63,7 @@ class req(PersistentServerConnectionApplication):
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
 
         # Get all roles and their imported roles
-        def all_roles = {}
+        all_roles = {}
         try:
             _, resRoles = simpleRequest(f"{uri}/services/authorization/roles?output_mode=json&count=0", sessionKey=token, method='GET', raiseAllErrors=True)
             for role in json.loads(resRoles)['entry']:
