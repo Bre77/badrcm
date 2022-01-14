@@ -220,9 +220,9 @@ class req(PersistentServerConnectionApplication):
             # Config
             if form['server'] not in config:
                 try:
-                    _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
+                    resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
                 except Exception as e:
-                    return self.errorhandle(f"Adding new server '{form['server']}' failed", e)    
+                    return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
             
             # Password Storage
             try:
@@ -230,17 +230,17 @@ class req(PersistentServerConnectionApplication):
             except Exception as e:
                 if resp.status == 409:
                     try:
-                        _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']}, raiseAllErrors=True)
+                        resp, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']}, raiseAllErrors=True)
                     except Exception as e:
-                        return self.errorhandle(f"Updating token for server '{form['server']}' failed", e)
+                        return self.errorhandle(f"Updating token for server '{form['server']}' failed", e, resp.status)
                 else:
-                    return self.errorhandle(f"Adding token for server '{form['server']}' failed", e)    
+                    return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, resp.status)    
             
             # Password ACL
             try:
-                _, resACL = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
+                resp, resACL = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
             except Exception as e:
-                return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e)    
+                return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e, resp.status)    
 
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
@@ -271,7 +271,7 @@ class req(PersistentServerConnectionApplication):
                 configs = json.loads(content)['entry']
                 return self.handleConf(configs,uri,token,form['file'])
             except Exception as e:
-                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e)
+                return self.errorhandle(f"GET request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,resp.status)
         
         # Change a config and process the response
         if form['a'] == "setconf":
