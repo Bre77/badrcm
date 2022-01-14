@@ -224,7 +224,7 @@ class req(PersistentServerConnectionApplication):
                 if resp.status not in [200,201,409]:
                     return self.errorhandle(f"Adding new server '{form['server']}' failed", resp.reason, resp.status)
             except Exception as e:
-                return self.errorhandle(f"Adding new server '{form['server']}' failed", e)
+                return self.errorhandle(f"POST request to {self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME} failed", e)
                         
             
             # Password Storage
@@ -237,15 +237,15 @@ class req(PersistentServerConnectionApplication):
                     if resp.status not in [200,201]:
                         return self.errorhandle(f"Updating token for server '{form['server']}' failed", resp.reason, resp.status) 
             except Exception as e:
-                return self.errorhandle(f"Adding token for server '{form['server']}' failed", e)  
+                return self.errorhandle(f"POST request to {self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords failed", e)  
             
             # Password ACL
             try:
                 resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing})
                 if resp.status not in [200,201]:
-                    return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", resp.reason, resp.status) 
+                    return self.errorhandle(f"Setting ACL sharing to {sharing} for token of '{form['server']}' failed", resp.reason, resp.status) 
             except Exception as e:
-                return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e)    
+                return self.errorhandle(f"POST request to {self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A/acl failed", e)    
 
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
