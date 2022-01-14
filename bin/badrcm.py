@@ -291,6 +291,6 @@ class req(PersistentServerConnectionApplication):
             except Exception as e:
                 return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form.get('stanza','')} failed",e,resp.status)
 
-        return self.errorhandle("No Action Requested")
+        return self.errorhandle("No action requested")
         #except Exception as ex:
         #    return {'payload': json.dumps(ex), 'status': 500}
