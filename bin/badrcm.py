@@ -304,13 +304,18 @@ class req(PersistentServerConnectionApplication):
                     continue
                 if task.length == 3: #Stanza
                     [app,conf,stanza] = task
-                     
-                    resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}?output_mode=json", sessionKey=token, postargs={'name':stanza},  raiseAllErrors=True)
-                    continue
+                    try:
+                        resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}?output_mode=json", sessionKey=token, postargs={'name':stanza}, raiseAllErrors=True)
+                        continue
+                    except Exception as e:
+                        return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf} failed",e)
                 if task.length == 4: #Attributes
                     [app,conf,stanza,attr] = task
-                    resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}?output_mode=json", sessionKey=token, postargs=attr,  raiseAllErrors=True)
-                    continue
+                    try:
+                        resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}?output_mode=json", sessionKey=token, postargs=attr, raiseAllErrors=True)
+                        continue
+                    except Exception as e:
+                        return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
                 
                     
 
