@@ -117,7 +117,7 @@ class req(PersistentServerConnectionApplication):
                     'can_write':stanza['acl']['can_write'],
                     'owner':stanza['acl']['owner'],
                     'sharing':stanza['acl']['sharing'],
-                    'roles':stanza['acl']['perms']['write']
+                    'roles':stanza['acl']['perms']['write'] if stanza['acl']['perms'] else []
                 },
                 'attr':{}
             }
