@@ -48,6 +48,7 @@ class req(PersistentServerConnectionApplication):
             } for x in json.loads(resApps)['entry'] if not x['content']['disabled']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/apps/local threw error {e}")
+            output["apps"] = []
 
         # Get all Users
         try:
@@ -59,6 +60,7 @@ class req(PersistentServerConnectionApplication):
             } for x in json.loads(resUsers)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/users threw error {e}")
+            output["users"] = []
 
         # Get all Conf file names
         try:
@@ -66,6 +68,7 @@ class req(PersistentServerConnectionApplication):
             output["files"] = [f['name'] for f in json.loads(resFiles)['entry']]
         except Exception as e:
             logger.error(f"Request to {uri}/services/properties threw error {e}")
+            output["files"] = []
 
         # Get all roles and their imported roles
         all_roles = {}
@@ -87,6 +90,7 @@ class req(PersistentServerConnectionApplication):
             }
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/current-context threw error {e}")
+            output["rights"] = {}
         
         return output
 
