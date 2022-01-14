@@ -241,7 +241,7 @@ class req(PersistentServerConnectionApplication):
             
             # Password ACL
             try:
-                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing})
+                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'owner': self.USER,'sharing': sharing})
                 if resp.status not in [200,201]:
                     return self.errorhandle(f"Setting ACL sharing to {sharing} for token of '{form['server']}' failed", resp.reason, resp.status) 
             except Exception as e:
