@@ -117,7 +117,7 @@
                         <!-- App Detail -->
                         <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
                             <a v-if="app.url" :href="app.url" target="_blank">{{col.label}}</a v-if="app.url">
-                            <template v-if="col.version"> ({{col.version}})</template>
+                            <span v-if="col.version"> ({{col.version}})</span>
                         </div>
                         <template v-for="stanza,s of conf_model[f].apps[a].stanzas" v-if="!conf_hide[app.key]">
                             <!-- Stanza -->
