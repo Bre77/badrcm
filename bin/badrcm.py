@@ -103,7 +103,6 @@ class req(PersistentServerConnectionApplication):
             _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, raiseAllErrors=False)
             for default in json.loads(resDefault)['entry']:
                 defaults[default['name']] = self.fixbool(default['content'])
-            cached_defaults[dkey] = defaults
         except Exception as e:
             logger.error(f"Request to {uri}/services/properties/{conf}/default threw error {e}")
         
