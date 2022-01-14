@@ -115,7 +115,7 @@
                         <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[app.key]?'primary':'secondary'" :icon="conf_hide[app.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(app.key)"></ui-icon-button>
                         <ui-checkbox class="conf-app-left" v-model="conf_tick[app.key]" :title="a" @change="ConfChangeTick(app.key)">{{a}}<img class="conf-sub-image" :src="`${SPLUNKD_PATH}/${a}/static/appIcon.png`" @error="ConfFixImage"/></ui-checkbox>
                         <!-- App Detail -->
-                        <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}"><a v-if="app.url" :href="app.url" target="_blank">{{col}} {{conf_apps[a].version[c.server]}}</a v-if="app.url"></div>
+                        <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}"><a v-if="app.url" :href="app.url" target="_blank">{{conf_apps[a].label[c.server]}} {{conf_apps[a].version[c.server]}}</a v-if="app.url"></div>
                         <template v-for="stanza,s of conf_model[f].apps[a].stanzas" v-if="!conf_hide[app.key]">
                             <!-- Stanza -->
                             <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[stanza.key]?'primary':'secondary'" :icon="conf_hide[stanza.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(stanza.key)"></ui-icon-button>
