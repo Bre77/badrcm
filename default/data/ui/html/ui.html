@@ -81,7 +81,7 @@
                 <ui-textbox label="Hostname" placeholder="stack.splunkcloud.com" v-model="addserver_host" :error="addserver_host_error"></ui-textbox>
                 <ui-textbox label="Auth Token" v-model="addserver_auth" :error="addserver_auth_error"></ui-textbox>
                 <ui-checkbox label="Shared" v-model="addserver_shared"></ui-checkbox>
-                <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)">Submit</button>
+                <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)" :loading="addserver_loading">Submit</button>
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
                 <!-- Conf Page Settings -->
