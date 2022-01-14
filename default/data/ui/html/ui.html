@@ -85,8 +85,8 @@
             </ui-tab>
             <ui-tab id="conf" class="grid" title="Config" :style="{'grid-template-columns': `24px 1fr repeat(${this.conf_setting_columns}, 1fr)`}">
                 <!-- Conf Page Settings -->
-                <ui-select class="settings col1-2 row1" multiple has-search :options="conf_setting_files_options" v-model="conf_setting_files" @dropdown-close="ConfChangeOptions()">Config Files</ui-select>
-                <ui-select class="settings col1-2 row2" multiple has-search :options="conf_setting_apps_options" v-model="conf_setting_apps" :keys="{label: conf_app_label}" :loading="conf_loading > 0" placeholder="All Apps">Apps</ui-select>
+                <ui-select class="settings col1-2 row1" multiple has-search :options="conf_setting_files_options" v-model="conf_setting_files" @dropdown-close="ConfChangeFiles(); ConfChangeOptions()">Config Files</ui-select>
+                <ui-select class="settings col1-2 row2" multiple has-search :options="conf_setting_apps_options" v-model="conf_setting_apps" :keys="{label: conf_app_label}" :loading="conf_loading > 0" placeholder="All Apps" @dropdown-close="ConfChangeApps">Apps</ui-select>
                 <ui-select class="settings col1-2 row3" :options="conf_setting_show_options" v-model="conf_setting_show">Show</ui-select>
                 <ui-select class="settings col1-2 row4" :options="conf_setting_columns_options" v-model="conf_setting_columns_option" @change="ConfModelUpdate()">Columns</ui-select>
                 <div class="loading col1-2 row5"><ui-progress-linear  v-show="conf_loading"></ui-progress-linear></div>
