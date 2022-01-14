@@ -103,7 +103,7 @@
                         <ui-icon-button icon="backspace" color="red" tooltip="Remove Stanza" :disabled="true || !c.server" @click="context=c;$refs.remove.open()"></ui-icon-button>
                         <ui-icon-button icon="refresh" color="default" tooltip="Refresh" :disabled="!c.server" @click="ConfChangeOptions(c,true)" :loading="c.loading > 0"></ui-icon-button>
                     </div>
-                    <div class="loading row5" :style="{'grid-column':i+3}"><ui-progress-linear v-show="c.loading"></ui-progress-linear></div>
+                    <div class="loading row5" :style="{'grid-column':i+3}"><ui-progress-linear v-show="c.loading > 0"></ui-progress-linear></div>
                 </template>
                 <!-- Conf Model -->
                 <template v-for="file,f of conf_model">
