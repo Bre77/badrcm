@@ -14,9 +14,6 @@ ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority
 
 logger = logging.getLogger(f"splunk.appserver.{APP_NAME}.req")
 
-# Cached data
-cached_defaults = {}
-
 class req(PersistentServerConnectionApplication):
     def __init__(self, command_line, command_arg):
         PersistentServerConnectionApplication.__init__(self)
@@ -101,19 +98,14 @@ class req(PersistentServerConnectionApplication):
         return my_roles
 
     def handleConf(self,configs,uri,token,conf):
-        dkey = uri+conf
-        if dkey not in cached_defaults:
-            try:
-                _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, raiseAllErrors=False)
-                defaults = {}
-                for default in json.loads(resDefault)['entry']:
-                    defaults[default['name']] = self.fixbool(default['content'])
-                cached_defaults[dkey] = defaults
-            except Exception:
-                defaults = {}
-        else:
-            logger.info(f"Using cached defaults for {uri} {conf}")
-            defaults = cached_defaults[dkey]
+        defaults = {}
+        try:
+            _, resDefault = simpleRequest(f"{uri}/services/properties/{conf}/default?output_mode=json&count=0", sessionKey=token, raiseAllErrors=False)
+            for default in json.loads(resDefault)['entry']:
+                defaults[default['name']] = self.fixbool(default['content'])
+            cached_defaults[dkey] = defaults
+        except Exception:
+            pass
         
         output = {}
 
@@ -136,7 +128,7 @@ class req(PersistentServerConnectionApplication):
                     continue
                 value = self.fixbool(value)
                 if attr in defaults:
-                    if type(defaults[attr])==bool: #If the default was "true" or "false", assume the value should also be boolean
+                    if type(defaults[attr]) is bool: #If the default was "true" or "false", assume the value should also be boolean
                         value = self.makebool(value)
                     if value == defaults[attr]:
                         continue
