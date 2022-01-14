@@ -213,14 +213,18 @@ class req(PersistentServerConnectionApplication):
 
             # Add Server
             user_context = "nobody" if form['shared'] == "true" else self.USER
+            sharing = "app" if form['shared'] == "true" else "user"
             logger.info(f"Adding {form['server']} for user {user_context}")
 
             config = getMergedConf(APP_NAME)
+            # Config
             if form['server'] not in config:
                 try:
                     _, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
                 except Exception as e:
                     return self.errorhandle(f"Adding new server '{form['server']}' failed", e)    
+            
+            # Password Storage
             try:
                 resp, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
             except Exception as e:
@@ -231,11 +235,18 @@ class req(PersistentServerConnectionApplication):
                         return self.errorhandle(f"Updating token for server '{form['server']}' failed", e) 
                 return self.errorhandle(f"Adding token for server '{form['server']}' failed", e)    
             
+            # Password ACL
+            try:
+                _, resACL = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
+            except Exception as e:
+                return self.errorhandle(f"Adding new server '{form['server']}' failed", e)    
+
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
                 return {'payload': json.dumps(output, separators=(',', ':')), 'status': 200}
             except Exception as e:
                 return self.errorhandle(f"Getting data from new server '{form['server']}' failed", e)
+           
 
         # HELPER - Get Server Context
         if 'server' in form:
