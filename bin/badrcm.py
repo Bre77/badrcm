@@ -222,9 +222,8 @@ class req(PersistentServerConnectionApplication):
             try:
                 resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
             except Exception as e:
-                if resp.status == 409:
-                    pass
-                return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
+                if resp.status != 409:
+                    return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
             
             # Password Storage
             try:
