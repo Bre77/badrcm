@@ -218,13 +218,13 @@ class req(PersistentServerConnectionApplication):
             sharing = "app" if form['shared'] == "true" else "user"
             logger.info(f"Adding {form['server']} for user {user_context}")
 
-            config = getMergedConf(APP_NAME)
             # Config
-            if not config[form['server']]:
-                try:
-                    resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
-                except Exception as e:
-                    return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
+            try:
+                resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
+            except Exception as e:
+                if resp.status == 409:
+                    pass
+                return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
             
             # Password Storage
             try:
