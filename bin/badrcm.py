@@ -104,7 +104,8 @@ class req(PersistentServerConnectionApplication):
             for default in json.loads(resDefault)['entry']:
                 defaults[default['name']] = self.fixbool(default['content'])
             cached_defaults[dkey] = defaults
-        except Exception:
+        except Exception as e:
+            logger.error(f"Request to {uri}/services/properties/{conf}/default threw error {e}")
             pass
         
         output = {}
