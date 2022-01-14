@@ -97,7 +97,7 @@
                     <ui-select has-search class="settings row3" :style="{'grid-column':i+3}" :options="conf_servers.hasOwnProperty(c.server) ? [DEFAULT_USER_CONTEXT, ...conf_servers[c.server].users] : [DEFAULT_USER_CONTEXT]" v-model="c.user" :disabled="!conf_servers.hasOwnProperty(c.server)" :keys="{label: conf_user_label}" @change="ConfChangeOptions(c)">User Context</ui-select>
                     <div class="settings row4 ui-button-group" :style="{'grid-column':i+3}">
                         <ui-icon-button icon="content_copy" color="primary" tooltip="Copy Selected" :disabled="!c.server" @click="conf_copy_col=c"></ui-icon-button>
-                        <ui-icon-button icon="content_paste" color="primary" tooltip="Paste Selected" :disabled="!c.server || conf_copy_col==c" @click="conf_paste_col=c;$refs.copy.open()"></ui-icon-button>
+                        <ui-icon-button icon="content_paste" color="primary" tooltip="Paste Selected" :disabled="!c.server || !conf_copy_col || conf_copy_col==c" @click="conf_paste_col=c;$refs.copy.open()"></ui-icon-button>
                         <ui-icon-button icon="post_add" color="green" tooltip="Add Config" :disabled="true || !c.server" @click="context=c;$refs.add.open()"></ui-icon-button>
                         <ui-icon-button icon="drive_file_move" color="orange" tooltip="Move Stanza" :disabled="true || !c.server" @click="context=c;$refs.move.open()"></ui-icon-button>
                         <ui-icon-button icon="backspace" color="red" tooltip="Remove Stanza" :disabled="true || !c.server" @click="context=c;$refs.remove.open()"></ui-icon-button>
