@@ -4,10 +4,10 @@ from splunk.rest import simpleRequest
 import json
 import logging
 
-#import sys, os
-#sys.path.append(os.path.join(os.environ['SPLUNK_HOME'],'etc','apps','SA-VSCode','bin'))
-#import splunk_debug as dbg
-#dbg.enable_debugging(timeout=25)
+import sys, os
+sys.path.append(os.path.join(os.environ['SPLUNK_HOME'],'etc','apps','SA-VSCode','bin'))
+import splunk_debug as dbg
+dbg.enable_debugging(timeout=25)
 
 APP_NAME = "badrcm"
 ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority', 'termFrequencyWeightedDist'] #, 'sourcetype', 
