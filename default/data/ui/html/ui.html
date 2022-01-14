@@ -101,7 +101,7 @@
                         <ui-icon-button icon="post_add" color="green" tooltip="Add Config" :disabled="true || !c.server" @click="context=c;$refs.add.open()"></ui-icon-button>
                         <ui-icon-button icon="drive_file_move" color="orange" tooltip="Move Stanza" :disabled="true || !c.server" @click="context=c;$refs.move.open()"></ui-icon-button>
                         <ui-icon-button icon="backspace" color="red" tooltip="Remove Stanza" :disabled="true || !c.server" @click="context=c;$refs.remove.open()"></ui-icon-button>
-                        <ui-icon-button icon="refresh" tooltip="Refresh" :disabled="!c.server" @click="ConfChangeOptions(c,true)" :loading="c.loading"></ui-icon-button>
+                        <ui-icon-button icon="refresh" tooltip="Refresh" @click="ConfChangeOptions(c,true)" :loading="c.loading"></ui-icon-button>
                     </div>
                     <div class="loading row5" :style="{'grid-column':i+3}"><ui-progress-linear v-show="c.loading"></ui-progress-linear></div>
                 </template>
