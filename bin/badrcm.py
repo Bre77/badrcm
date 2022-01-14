@@ -218,8 +218,6 @@ class req(PersistentServerConnectionApplication):
             sharing = "app" if form['shared'] == "true" else "user"
             logger.info(f"Adding {form['server']} for user {user_context}")
 
-            
-
             # Config
             try:
                 resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']})
