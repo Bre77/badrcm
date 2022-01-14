@@ -143,7 +143,7 @@ class req(PersistentServerConnectionApplication):
         _, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, raiseAllErrors=True)
         return json.loads(resPasswords)['entry'][0]['content']['clear_password']
 
-    def errorhandle(self, message, error="", status=400):
+    def errorhandle(self, message, error="", status=0):
         logger.error(f"app={APP_NAME} user={self.USER} status={status} message=\"{message}\" error=\"{error}\"")
         if status < 400:
             status = 400
