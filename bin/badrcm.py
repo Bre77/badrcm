@@ -10,7 +10,7 @@ import logging
 #dbg.enable_debugging(timeout=25)
 
 APP_NAME = "badrcm"
-ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'termFrequencyWeightedDist'] #'priority', 'sourcetype', 
+ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority', 'termFrequencyWeightedDist'] #, 'sourcetype', 
 
 logger = logging.getLogger(f"splunk.appserver.{APP_NAME}.req")
 
