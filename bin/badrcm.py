@@ -229,13 +229,13 @@ class req(PersistentServerConnectionApplication):
             try:
                 resp, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
             except Exception as e:
-                if resp.status == 409:
+                if resp.status != 409:
+                    return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, resp.status)  
+                else:
                     try:
                         resp, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']}, raiseAllErrors=True)
                     except Exception as e:
                         return self.errorhandle(f"Updating token for server '{form['server']}' failed", e, resp.status)
-                else:
-                    return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, resp.status)    
             
             # Password ACL
             try:
