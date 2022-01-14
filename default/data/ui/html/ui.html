@@ -47,11 +47,11 @@
         </div>
     </header>
     <div id="vue">
-        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirm-button-text="Agree" deny-button-text="Disagree" dismiss-on="">
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirm-button-text="I Agree" deny-button-text="I Disagree" dismiss-on="">
             <p>This application give you access to read, write, and modify Splunk configuration to the fullest extent of your account and the authentication tokens it's configured with using the REST API.</p>
             <p>Changes can result in serious issues such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should understand the implications.</p>
             <p>Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to make major changes in Splunk Cloud.</p>
-            <p><a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a></p>
+            <p>This application is offered under the Splunk general terms for third party applications avaliable at <a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a></p>
             <p>By default all users with the admin or sc_admin role on this Search Head have access to this application, it's tokens, and the level of access they grant. All actions with the relevant username are logged in the _internal index.</p>
         </ui-confirm>
         <ui-tabs>
@@ -66,7 +66,7 @@
                 <p>This application give you access to read, write, and modify Splunk configuration to the fullest extent of your account and the authentication tokens it's configured with using the REST API.</p>
                 <p>Changes can result in serious issues such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should understand the implications.</p>
                 <p>Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to make major changes in Splunk Cloud.</p>
-                <p><a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a></p>
+                <p>This application is offered under the Splunk general terms for third party applications avaliable at <a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a></p>
                 <p>By default all users with the admin or sc_admin role on this Search Head have access to this application, it's tokens, and the level of access they grant. All actions with the relevant username are logged in the _internal index.</p>
                 <h3>Remote Servers</h3>
                 <ui-progress-circular v-if="startup" :size="48" :stroke="8" ></ui-progress-circular>
