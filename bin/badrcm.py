@@ -239,7 +239,7 @@ class req(PersistentServerConnectionApplication):
             try:
                 _, resACL = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
             except Exception as e:
-                return self.errorhandle(f"Adding new server '{form['server']}' failed", e)    
+                return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e)    
 
             try:
                 output = self.getserver(f"https://{form['server']}:8089",form['token'])
