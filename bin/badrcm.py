@@ -222,14 +222,14 @@ class req(PersistentServerConnectionApplication):
             try:
                 resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
             except Exception as e:
-                if resp.status != 409:
+                if not resp or resp.status != 409:
                     return self.errorhandle(f"Adding new server '{form['server']}' failed", e, resp.status)    
             
             # Password Storage
             try:
                 resp, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
             except Exception as e:
-                if resp.status != 409:
+                if not resp or resp.status != 409:
                     return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, resp.status)  
                 else:
                     try:
