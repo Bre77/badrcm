@@ -10,7 +10,7 @@ import logging
 #dbg.enable_debugging(timeout=25)
 
 APP_NAME = "badrcm"
-ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'priority', 'sourcetype', 'termFrequencyWeightedDist']
+ATTR_BLACKLIST = ['eai:acl', 'eai:appName', 'eai:userName', 'maxDist', 'termFrequencyWeightedDist'] #'priority', 'sourcetype', 
 
 logger = logging.getLogger(f"splunk.appserver.{APP_NAME}.req")
 
@@ -106,7 +106,6 @@ class req(PersistentServerConnectionApplication):
             cached_defaults[dkey] = defaults
         except Exception as e:
             logger.error(f"Request to {uri}/services/properties/{conf}/default threw error {e}")
-            pass
         
         output = {}
 
@@ -122,7 +121,7 @@ class req(PersistentServerConnectionApplication):
                     'roles':stanza['acl']['perms']['write']
                 },
                 'attr':{}
-            } #'id':stanza['id'],
+            }
             for attr in stanza['content']:
                 value = stanza['content'][attr]
                 if attr in ATTR_BLACKLIST:
