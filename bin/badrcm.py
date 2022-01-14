@@ -90,7 +90,7 @@ class req(PersistentServerConnectionApplication):
             }
         except Exception as e:
             logger.error(f"Request to {uri}/services/authentication/current-context threw error {e}")
-            output["rights"] = {'username':"ERROR",'roles':[]}
+            output["rights"] = {'username':"FAILED",'roles':[]}
         
         return output
 
