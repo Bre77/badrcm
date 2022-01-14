@@ -116,7 +116,7 @@
                         <ui-checkbox class="conf-app-left" v-model="conf_tick[app.key]" :title="a" @change="ConfChangeTick(app.key)">{{a}} <img class="conf-sub-image" :src="`${SPLUNKD_PATH}/${a}/static/appIcon.png`" @error="ConfFixImage"/></ui-checkbox>
                         <!-- App Detail -->
                         <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
-                            <a v-if="app.url" :href="app.url" target="_blank" :title="col.label">{{col.label}}</a><span v-else>{{col.label}}</span>
+                            <a v-if="app.url" :href="app.url" target="_blank" :title="col.label">{{col.label}}</a><span v-else :title="col.label">{{col.label}}</span>
                             <span v-if="col.version" :title="`Version ${col.version}`"> ({{col.version}})</span>
                         </div>
                         <template v-for="stanza,s of conf_model[f].apps[a].stanzas" v-if="!conf_hide[app.key]">
