@@ -235,7 +235,7 @@ class req(PersistentServerConnectionApplication):
                 if resp.status not in [200,201,409]:
                     return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, resp.status) 
                 if resp.status == 409:
-                    resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']})
+                    resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']})
                     if resp.status not in [200,201]:
                         return self.errorhandle(f"Updating token for server '{form['server']}' failed", e, resp.status) 
             except Exception as e:
@@ -243,7 +243,7 @@ class req(PersistentServerConnectionApplication):
             
             # Password ACL
             try:
-                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing})
+                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{form['server']}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing})
                 if resp.status not in [200,201]:
                     return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e, resp.status) 
             except Exception as e:
