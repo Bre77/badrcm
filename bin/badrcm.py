@@ -220,7 +220,7 @@ class req(PersistentServerConnectionApplication):
 
             # Config
             try:
-                resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
+                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
             except Exception as e:
                 status = resp.status if resp else 400
                 if status != 409:
@@ -228,21 +228,21 @@ class req(PersistentServerConnectionApplication):
             
             # Password Storage
             try:
-                resp, resPassword = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
+                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/storage/passwords", sessionKey=self.AUTHTOKEN, postargs={'realm': APP_NAME, 'name': form['server'], 'password': form['token']}, raiseAllErrors=True)
             except Exception as e:
                 status = resp.status if resp else 400
                 if status != 409:
                     return self.errorhandle(f"Adding token for server '{form['server']}' failed", e, status)  
                 else:
                     try:
-                        resp, resPasswords = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']}, raiseAllErrors=True)
+                        resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A?output_mode=json&count=1", sessionKey=self.AUTHTOKEN, postargs={'password': form['token']}, raiseAllErrors=True)
                     except Exception as e:
                         status = resp.status if resp else 400
                         return self.errorhandle(f"Updating token for server '{form['server']}' failed", e, status)
             
             # Password ACL
             try:
-                resp, resACL = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
+                resp, _ = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{self.USER}/{APP_NAME}/storage/passwords/{APP_NAME}%3A{server}%3A/acl?output_mode=json", sessionKey=self.AUTHTOKEN, postargs={'sharing': sharing}, raiseAllErrors=True)
             except Exception as e:
                 status = resp.status if resp else 400
                 return self.errorhandle(f"Setting ACL for token of '{form['server']}' failed", e, status)    
