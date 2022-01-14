@@ -144,7 +144,7 @@
                         </template>
                     </template>
                 </template>
-                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" @deny="" v-if="context">
+                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" @deny="conf_copy_col=''" v-if="context">
                     {{ConfGetSelected(conf_copy_col)}}
                 </ui-confirm>
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="">
