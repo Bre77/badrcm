@@ -220,7 +220,7 @@ class req(PersistentServerConnectionApplication):
 
             config = getMergedConf(APP_NAME)
             # Config
-            if config[form['server']]:
+            if not config[form['server']]:
                 try:
                     resp, resConfig = simpleRequest(f"{self.LOCAL_URI}/servicesNS/{user_context}/{APP_NAME}/configs/conf-{APP_NAME}", sessionKey=self.AUTHTOKEN, postargs={'name': form['server']}, raiseAllErrors=True)
                 except Exception as e:
