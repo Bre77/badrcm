@@ -159,7 +159,7 @@
                     <template v-if="conf_add_col">
                         <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col.server].files)" v-model="conf_add_file">File</ui-select>
                         <ui-select has-search :options="conf_servers[conf_add_col.server].apps.map(a=>a.name)" v-model="conf_add_app">App</ui-select>
-                        <div class="flex"><ui-textbox class="grow" v-model="conf_add_stanza">New Stanza</ui-textbox><ui-select class="grow" has-search v-if="conf_add_file && conf_add_app" v-model="conf_add_stanza" :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])">Existing Stanza</ui-select></div>
+                        <div class="flex"><ui-textbox class="grow" v-model="conf_add_stanza">New Stanza</ui-textbox><ui-select class="grow" v-if="conf_add_file && conf_add_app" has-search :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])" v-model="conf_add_stanza">Existing Stanza</ui-select></div>
                         Attributes
                         <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]" placeholder="attribute = value" :invalid="!VALID_ATTR.test(attr)" @change="ConfAddLine(x)"></ui-textbox>
                     </template>
