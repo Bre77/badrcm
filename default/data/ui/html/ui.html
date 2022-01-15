@@ -927,7 +927,7 @@ const vue = new Vue({
                 tasks.push([this.conf_add_app,this.conf_add_file,this.conf_add_stanza])
             }
             let attrs = {}
-            for (const line in this.conf_add_attrs){
+            for (const line of this.conf_add_attrs){
                 if (!this.VALID_ATTR.test(line)){
                     console.warn(`Skipping line ${line}`)
                     continue
