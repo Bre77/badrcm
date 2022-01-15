@@ -162,7 +162,7 @@
                         <div class="flex"><ui-textbox class="compact" v-model="conf_add_stanza">Stanza</ui-textbox><ui-select v-if="conf_add_file && conf_add_app" v-model="conf_add_stanza" :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])">Stanza</ui-select></div>
                         Attributes
                         <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]" placeholder="attribute = value" :invalid="!VALID_ATTR.test(attr)"></ui-textbox>
-                        <ui-icon-button icon="add" @click="conf_add_attrs.push('')"></ui-icon-button>
+                        <ui-icon-button icon="add" color="green" @click="conf_add_attrs.push('')"></ui-icon-button>
                     </template>
                 </ui-confirm>
                 <ui-confirm ref="move" title="Move Selected Stanza" @confirm="ConfMove" @deny="">
