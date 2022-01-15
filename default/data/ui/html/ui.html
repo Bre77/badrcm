@@ -932,7 +932,7 @@ const vue = new Vue({
                     console.warn(`Skipping line ${line}`)
                     continue
                 }
-                let [attr,value] = line.split("=")
+                const [attr,value] = line.split("=")
                 attrs[attr.trim()] = value.trim()
             }
             tasks.push([this.conf_add_app,this.conf_add_file,this.conf_add_stanza,attrs])
