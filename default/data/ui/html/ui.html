@@ -928,8 +928,8 @@ const vue = new Vue({
             }
             let attrs = {}
             for (const line in this.conf_add_attrs){
-                let z = line.split("=").map(x=>x.trim())
-                attrs[z[0]] = z[1]
+                let [attr,value] = line.split("=")
+                attrs[attr.trim()] = value.trim()
             }
             tasks.push([this.conf_add_app,this.conf_add_file,this.conf_add_stanza,this.conf])
             const options = {
