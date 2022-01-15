@@ -106,7 +106,7 @@
                     <div class="settings row4 ui-button-group" :style="{'grid-column':i+3}">
                         <ui-icon-button icon="content_copy" color="primary" tooltip="Copy Selected" :disabled="!c.server" @click="conf_copy_col=c"></ui-icon-button>
                         <ui-icon-button icon="content_paste" color="primary" tooltip="Paste Selected" :disabled="!c.server || !conf_copy_col || conf_copy_col==c" @click="conf_paste_col=c;$refs.copy.open()"></ui-icon-button>
-                        <ui-icon-button icon="post_add" color="green" tooltip="Add Config" :disabled="!c.server" @click="conf_action_col=c;$refs.add.open()"></ui-icon-button>
+                        <ui-icon-button icon="post_add" color="green" tooltip="Add Config" :disabled="!c.server" @click="conf_add_col=c;$refs.add.open()"></ui-icon-button>
                         <ui-icon-button icon="drive_file_move" color="orange" tooltip="Move Stanza" :disabled="true || !c.server" @click="conf_action_col=c;$refs.move.open()"></ui-icon-button>
                         <ui-icon-button icon="backspace" color="red" tooltip="Remove Stanza" :disabled="true || !c.server" @click="conf_action_col=c;$refs.remove.open()"></ui-icon-button>
                         <ui-icon-button icon="refresh" color="default" tooltip="Refresh" :disabled="!c.server" @click="ConfChangeOptions(c,true)" :loading="c.loading > 0"></ui-icon-button>
@@ -156,7 +156,7 @@
                     <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
                 </ui-confirm>
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="">
-                    <ui-select has-search :options="conf_servers[conf_action_col].files" v-model="conf_add_file">File</ui-select>
+                    <ui-select has-search :options="conf_servers[conf_add_col].files" v-model="conf_add_file">File</ui-select>
                     <ui-textbox v-model="conf_add_app">App</ui-textbox>
                     <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
                     <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
