@@ -320,6 +320,7 @@ class req(PersistentServerConnectionApplication):
                         continue
                     except Exception as e:
                         return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
+            return {'payload': 'true', 'status': 200}
                 
                     
 
