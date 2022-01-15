@@ -301,6 +301,7 @@ class req(PersistentServerConnectionApplication):
                 
                 if task.length == 1: #App
                     [app] = task
+                    resp, content = simpleRequest(f"{uri}/services/apps/local?output_mode=json", sessionKey=token, postargs=app, raiseAllErrors=True)
                     continue
                 if task.length == 3: #Stanza
                     [app,conf,stanza] = task
