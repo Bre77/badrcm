@@ -160,7 +160,8 @@
                         <ui-select class="compact" has-search :options="Options(conf_setting_files,conf_servers[conf_add_col.server].files)" v-model="conf_add_file">File</ui-select>
                         <ui-select class="compact" has-search v-model="conf_add_app" :options="conf_servers[conf_add_col.server].apps.map(a=>a.name)">App</ui-select>
                         <div class="flex"><ui-textbox class="compact" v-model="conf_add_stanza">Stanza</ui-textbox><ui-select v-if="conf_add_file && conf_add_app" v-model="conf_add_stanza" :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])">Stanza</ui-select></div>
-                        <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
+                        Attributes
+                        <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]" placeholder="attribute = value" valid="VALID_LINE"></ui-textbox>
                         <ui-icon-button icon="add" @click="conf_add_attrs.push('')"></ui-icon-button>
                     </template>
                 </ui-confirm>
