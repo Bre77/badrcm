@@ -155,7 +155,7 @@
                 <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" :close-on-confirm="false" :loading="conf_copy_loading">
                     <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
                 </ui-confirm>
-                <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="" v-if="conf_add_col" :close-on-confirm="false" :loading="conf_add_loading">
+                <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" v-if="conf_add_col" :close-on-confirm="false" :loading="conf_add_loading">
                     <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col].files)" v-model="conf_add_file">File</ui-select>
                     <ui-select v-model="conf_add_app" :options="Options(conf_add_app_option,conf_servers[conf_add_col].apps.map(a=>a.name))" @query-change="conf_add_app_option">App</ui-textbox>
                     <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
