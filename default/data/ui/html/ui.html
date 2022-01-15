@@ -161,6 +161,7 @@
                         <ui-select class="compact" has-search v-model="conf_add_app" :options="Options(conf_add_app_option,conf_servers[conf_add_col.server].apps.map(a=>a.name))" @query-change="conf_add_app_option">App</ui-select>
                         <div class="flex"><ui-textbox class="compact" v-model="conf_add_stanza">Stanza</ui-textbox><ui-select v-if="conf_add_file && conf_add_app" v-model="conf_add_stanza" :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])">Stanza</ui-select></div>
                         <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
+                        <ui-icon-button icon="add" @click="conf_add_attrs.push('')"></ui-icon-button>
                     </template>
                 </ui-confirm>
                 <ui-confirm ref="move" title="Move Selected Stanza" @confirm="ConfMove" @deny="">
