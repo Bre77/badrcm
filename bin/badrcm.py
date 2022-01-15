@@ -301,7 +301,10 @@ class req(PersistentServerConnectionApplication):
                 
                 if task.length == 1: #App
                     [app] = task
-                    resp, content = simpleRequest(f"{uri}/services/apps/local?output_mode=json", sessionKey=token, postargs=json.loads(app), raiseAllErrors=True)
+                    try:
+                        resp, content = simpleRequest(f"{uri}/services/apps/local?output_mode=json", sessionKey=token, postargs=json.loads(app), raiseAllErrors=True)
+                    except Exception as e:
+                        return self.errorhandle(f"POST request to {uri}/services/apps/local failed",e)
                     continue
                 if task.length == 3: #Stanza
                     [app,conf,stanza] = task
