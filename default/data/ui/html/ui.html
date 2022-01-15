@@ -152,7 +152,7 @@
                         </template>
                     </template>
                 </template>
-                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" :close-on-confirm="false">
+                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" :close-on-confirm="false" :loading="conf_copy_loading">
                     <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
                 </ui-confirm>
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="">
