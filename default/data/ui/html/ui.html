@@ -928,7 +928,7 @@ const vue = new Vue({
             }
             let attrs = {}
             for (const line in this.conf_add_attrs){
-                if (!this.VALID_ATTR.text(line)){
+                if (!this.VALID_ATTR.test(line)){
                     console.warn(`Skipping line ${line}`)
                     continue
                 }
