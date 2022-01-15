@@ -190,7 +190,7 @@ class req(PersistentServerConnectionApplication):
         # Get metadata for all configured servers
         if form['a'] == "getservers":
             output = {
-                args['server']['hostname']: {**self.getserver(self.LOCAL_URI,self.AUTHTOKEN), 'port':'local'}
+                'local': {**self.getserver(self.LOCAL_URI,self.AUTHTOKEN), 'port':'local'}
             }
             config = getMergedConf(APP_NAME)
             for host in config:
