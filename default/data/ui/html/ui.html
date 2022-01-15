@@ -156,7 +156,7 @@
                     <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
                 </ui-confirm>
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @deny="">
-                    <ui-select has-search :options="conf_servers[conf_add_col].files" v-model="conf_add_file">File</ui-select>
+                    <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col].files)" v-model="conf_add_file">File</ui-select>
                     <ui-textbox v-model="conf_add_app">App</ui-textbox>
                     <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox>
                     <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
