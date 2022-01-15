@@ -302,7 +302,7 @@ class req(PersistentServerConnectionApplication):
                 if task.length == 1: #App
                     [app] = task
                     try:
-                        resp, content = simpleRequest(f"{uri}/services/apps/local?output_mode=json", sessionKey=token, postargs=json.loads(app), raiseAllErrors=True)
+                        resp, content = simpleRequest(f"{uri}/services/apps/local?output_mode=json", sessionKey=token, postargs=app, raiseAllErrors=True)
                     except Exception as e:
                         return self.errorhandle(f"POST request to {uri}/services/apps/local failed",e)
                     continue
@@ -316,7 +316,7 @@ class req(PersistentServerConnectionApplication):
                 if task.length == 4: #Attributes
                     [app,conf,stanza,attr] = task
                     try:
-                        resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}?output_mode=json", sessionKey=token, postargs=json.loads(attr), raiseAllErrors=True)
+                        resp, content = simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}?output_mode=json", sessionKey=token, postargs=attr, raiseAllErrors=True)
                         continue
                     except Exception as e:
                         return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
