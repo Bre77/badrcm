@@ -158,7 +158,7 @@
                 <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" :close-on-confirm="false" :loading="conf_add_loading">
                     <template v-if="conf_add_col">
                         <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col.server].files)" v-model="conf_add_file">File</ui-select>
-                        <ui-select v-model="conf_add_app" :options="Options(conf_add_app_option,conf_servers[conf_add_col.server].apps.map(a=>a.name))" @query-change="conf_add_app_option">App</ui-selectadasdsadasd>
+                        <ui-select v-model="conf_add_app" :options="Options(conf_add_app_option,conf_servers[conf_add_col.server].apps.map(a=>a.name))" @query-change="conf_add_app_option">App</ui-select>
                         <ui-textbox v-model="conf_add_stanza">Stanza</ui-textbox> or <ui-select v-if="conf_add_file && conf_add_app" v-model="conf_add_stanza" :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app])">Stanza</ui-select>
                         <ui-textbox v-for="(attr,x) in conf_add_attrs" v-model="conf_add_attrs[x]"></ui-textbox>
                     </template>
