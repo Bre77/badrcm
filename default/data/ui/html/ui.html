@@ -799,7 +799,7 @@ const vue = new Vue({
             // Mirror Children
             const prefix = key+'|'
             for (const child of Object.keys(this.conf_tick)){
-                if (child.startsWith(prefix)) this.$set(this.conf_tick,child,value)
+                if (child.startsWith(prefix)) this.$set(this.conf_tick,child,this.conf_tick[key])
             }
             // Untick parents
             if(this.conf_tick[key] == false){
