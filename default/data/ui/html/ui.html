@@ -297,21 +297,21 @@
                     <!-- File -->
                     <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[file.key]?'primary':'secondary'" :icon="conf_hide[file.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(file.key)"></ui-icon-button>
                     <ui-checkbox class="conf-file-left" v-model="conf_tick[file.key]" @change="ConfChangeTick(file.key)">{{f}}.conf</ui-checkbox>
-                    <template v-for="app,a of conf_model[f].apps" v-if="!conf_hide[file.key] && (conf_setting_apps.length == 0 || conf_setting_apps.includes(a))">
+                    <template v-for="app,a of file.apps" v-if="!conf_hide[file.key] && (conf_setting_apps.length == 0 || conf_setting_apps.includes(a))">
                         <!-- App -->
                         <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[app.key]?'primary':'secondary'" :icon="conf_hide[app.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(app.key)"></ui-icon-button>
                         <ui-checkbox class="conf-app-left" v-model="conf_tick[app.key]" :title="a" @change="ConfChangeTick(app.key)">{{a}} <img class="conf-sub-image" :src="`${SPLUNKD_PATH}/${a}/static/appIcon.png`" @error="ConfFixImage"/></ui-checkbox>
                         <!-- App Detail -->
-                        <div v-for="col,c of conf_model[f].apps[a].cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
+                        <div v-for="col,c of app.cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
                             <a v-if="app.url" :href="app.url" target="_blank" :title="col.label">{{col.label}}</a><span v-else :title="col.label">{{col.label}}</span>
                             <span v-if="col.version" :title="`Version ${col.version}`"> ({{col.version}})</span>
                         </div>
-                        <template v-for="stanza,s of conf_model[f].apps[a].stanzas" v-if="!conf_hide[app.key]">
+                        <template v-for="stanza,s of app.stanzas" v-if="!conf_hide[app.key]">
                             <!-- Stanza -->
                             <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[stanza.key]?'primary':'secondary'" :icon="conf_hide[stanza.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(stanza.key)"></ui-icon-button>
                             <ui-checkbox class="conf-stanza-left" v-model="conf_tick[stanza.key]" @change="ConfChangeTick(stanza.key)">[{{s}}]</ui-checkbox>
                             <!-- Stanza Details -->
-                            <div v-for="col,c of conf_model[f].apps[a].stanzas[s].cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
+                            <div v-for="col,c of stanza.cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
                                 <span class="material-icons" :title="'Sharing: '+col.sharing">{{SHARING_ICON[col.sharing]}}</span>
                                 <span title="The user who owns this stanza">Owner: <b>{{col.owner}}</b></span>
                                 <span v-if="!col.can_write">Missing write capability</span>
@@ -319,10 +319,10 @@
                                 <span v-else-if="!col.authorized">Requires {{col.roles.join(' or ')}} role</span>
                                 
                             </div>
-                            <template v-for="attr,x of conf_model[f].apps[a].stanzas[s].attrs" v-if="!conf_hide[stanza.key]">
+                            <template v-for="attr,x of stanza.attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
                                 <ui-checkbox :class="{'conf-attr-left':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" v-model="conf_tick[attr.key]" @change="ConfChangeTick(attr.key)">{{x}}</ui-checkbox>
-                                <template v-for="col,c of conf_model[f].apps[a].stanzas[s].attrs[x].cols">
+                                <template v-for="col,c of attr.cols">
                                     <!-- Values -->
                                     <ui-textbox v-if="typeof(col.value) == 'string'" :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-textbox>
                                     <ui-checkbox v-else :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-checkbox>
