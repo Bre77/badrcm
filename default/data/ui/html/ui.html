@@ -968,9 +968,10 @@ const vue = new Vue({
                     this.conf_add_stanza = ''
                     this.conf_add_attrs = []
                 })
-                return this.ConfChangeOptions(this.conf_paste_col,true)
             }, ()=>{
                 this.conf_add_loading = false
+            }).then(()=>{
+                return this.ConfChangeOptions(this.conf_paste_col,true)
             })
         },
         ConfAddLine(i){
@@ -994,6 +995,10 @@ const vue = new Vue({
                     this.$refs.remove.close()
                     this.conf_remove_col = null
                 })
+            },()=>{
+                this.conf_remove_loading = false
+            }).then(()=>{
+                return this.ConfChangeOptions(this.conf_paste_col,true)
             })
         },
         //
