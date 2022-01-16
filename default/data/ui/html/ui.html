@@ -382,7 +382,6 @@ const SPLUNK_CLOUD_BLACKLIST = ['server','limits']
 const DELIM = "\0"
 
 function imgError(image){
-    console.log(image)
     image.onerror = "";
     image.src = `${STATIC_PREFIX}/appIcon.png`;
     return true;
@@ -505,7 +504,6 @@ const vue = new Vue({
             this.addserver_auth = this.addserver_auth.trim()
             this.Request('addserver',{server:this.addserver_host, token:this.addserver_auth, shared:this.addserver_shared})
             .then(resp => {
-                console.log(resp)
                 this.$set(this.conf_servers,this.addserver_host,resp)
                 this.addserver_host = ""
                 this.addserver_auth = ""
