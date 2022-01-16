@@ -1036,7 +1036,7 @@ const vue = new Vue({
                 return Promise.reject({ cause: 'local', message: e.message });
             })
             .then(resp => {
-                console.log(resp.status)
+                console.log('Response',resp.status)
                 json = resp.json().catch(e => {
                     console.warn(e)
                     return resp.text().then(text =>{
