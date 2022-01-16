@@ -907,11 +907,12 @@ const vue = new Vue({
             }
             return this.Request('tasks',options).then(()=>{
                 this.conf_copy_loading = false // Order important
-                this.$refs.copy.close() // Order important
-                this.conf_copy_col = null
-                this.conf_paste_col = null
-                this.conf_copy_tasks = []
-                
+                Vue.nextTick(()=>{
+                    this.$refs.copy.close() // Order important
+                    this.conf_copy_col = null
+                    this.conf_paste_col = null
+                    this.conf_copy_tasks = []
+                })
                 return this.ConfChangeOptions(this.conf_paste_col,true)
             }, ()=>{
                 this.conf_copy_loading = false
@@ -949,6 +950,7 @@ const vue = new Vue({
                     this.conf_add_file = ''
                     this.conf_add_app = ''
                     this.conf_add_stanza = ''
+                    this.conf_add_attrs = []
                 })
                 return this.ConfChangeOptions(this.conf_paste_col,true)
             }, ()=>{
