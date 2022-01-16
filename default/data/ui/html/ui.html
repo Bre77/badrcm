@@ -812,6 +812,7 @@ const vue = new Vue({
             console.timeEnd(`ConfChangeTick ${key}`)
         },
         ConfGetStanza(c){
+            // Gets selected Stanzas as an array
             if(!c) return []
             console.time(`ConfGetStanza ${c.server}`)
             let selected = []
@@ -824,6 +825,7 @@ const vue = new Vue({
             return selected
         },
         ConfGetSelected(c){
+            // Gets selected Attributes and Values as an object
             if(!c) return {}
             console.time(`ConfGetSelected ${c.server}`)
             let selected = {}
