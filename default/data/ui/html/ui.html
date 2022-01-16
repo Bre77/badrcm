@@ -532,7 +532,6 @@ const vue = new Vue({
                 value: this.conf_data[key][a][s].attr[x]
             }
             return this.Request('setconf',options).then(resp => {
-                console.log(resp)
                 for (const respapp in resp){
                     if(resp[respapp][s]){
                         this.$set(this.conf_data[key][respapp],s,resp[respapp][s])
@@ -545,9 +544,7 @@ const vue = new Vue({
                     if (target == key) continue // Dont grab what we just changed
                     const [server, app, user, file] = target.split('|')
                     if (server !== this.conf_columns[c].server || file !== f) continue // Only grab same server and file
-                    console.log(server,app,user,file,s)
                     tasks.push(this.Request('getconf',{'file': file, 'server': server, 'app': app, 'user': user, 'stanza':s}).then(resp => {
-                        console.log(resp)
                         for (const respapp in resp){
                             if(resp[respapp][s]){
                                 this.$set(this.conf_data[target][respapp],s,resp[respapp][s])
@@ -572,17 +569,14 @@ const vue = new Vue({
                 c[0] = parseInt(c[0])
                 return c
             }) //Add Required CSS Column Offset
-            console.log(columns,this.conf_setting_files)
             for (const file of this.conf_setting_files){
                 // Get all data
                 let data = []
                 for (const [index,column] of columns){
                     const cd = this.conf_data[this.ConfKey(column,file)]
-                    console.log(column,file,cd)
                     if (!cd) continue
                     data.push(cd)
                 }
-                console.log(file,data)
                 if (data.length === 0) continue
 
                 // Create file parent
@@ -717,7 +711,6 @@ const vue = new Vue({
                 }
             }
             console.timeEnd('ConfModelUpdate')
-            console.log(model)
             this.$set(this,'conf_model',model)
 
             // Reformat App Options list
@@ -850,7 +843,6 @@ const vue = new Vue({
                 else selected[p[0]][p[1]][p[2]][p[3]] = value
 
             }
-            console.log(selected)
             console.timeEnd(`ConfGetSelected ${c.server}`)
             return selected
         },
