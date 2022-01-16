@@ -3,6 +3,7 @@ from splunk.clilib.cli_common import getMergedConf
 from splunk.rest import simpleRequest
 import json
 import logging
+import urllib.parse
 
 #import sys, os
 #sys.path.append(os.path.join(os.environ['SPLUNK_HOME'],'etc','apps','SA-VSCode','bin'))
@@ -327,7 +328,8 @@ class req(PersistentServerConnectionApplication):
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             try:
-                simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}", method='DELETE', sessionKey=token, raiseAllErrors=True)
+                stanza = urllib.parse.quote(form['stanza'])
+                simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{stanza}", method='DELETE', sessionKey=token, raiseAllErrors=True)
                 return {'payload': "true", 'status': 200} 
             except Exception as e:
                 return self.errorhandle(f"DELETE request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']} failed",e)
