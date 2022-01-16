@@ -793,12 +793,15 @@ const vue = new Vue({
             this.$set(this.conf_hide,key,!this.conf_hide[key])
             localStorage.setItem('badrcm_conf_hide', Object.entries(this.conf_hide).filter(x => x[1]).map(x => x[0]).join(DELIM))
         },
-        ConfChangeTick(key){
+        ConfChangeTick(key, value){
             console.time(`ConfChangeTick ${key}`)
             // Mirror Children
+
+            if(value == undefined) value = this.conf_tick[key]
+
             const prefix = key+'|'
             for (const child of Object.keys(this.conf_tick)){
-                if (child.startsWith(prefix)) this.$set(this.conf_tick,child,this.conf_tick[key])
+                if (child.startsWith(prefix)) this.$set(this.conf_tick,child,value)
             }
             // Untick parents
             if(this.conf_tick[key] == false){
