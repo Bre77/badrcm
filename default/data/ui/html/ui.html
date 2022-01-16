@@ -813,7 +813,7 @@ const vue = new Vue({
         },
         ConfGetStanza(c){
             // Gets selected Stanzas as an array
-            if(!c.server) return []
+            if(!c) return []
             console.time(`ConfGetStanza ${c.server}`)
             let selected = []
             for (const [key,ticked] of Object.entries(this.conf_tick)){
@@ -827,7 +827,7 @@ const vue = new Vue({
         },
         ConfGetSelected(c){
             // Gets selected Attributes and Values as an object
-            if(!c.server) return {}
+            if(!c) return {}
             console.time(`ConfGetSelected ${c.server}`)
             let selected = {}
             for (const [key,ticked] of Object.entries(this.conf_tick)){
