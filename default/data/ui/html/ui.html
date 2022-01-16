@@ -795,10 +795,9 @@ const vue = new Vue({
         },
         ConfChangeTick(key, value){
             console.time(`ConfChangeTick ${key}`)
-            // Mirror Children
-
             if(value == undefined) value = this.conf_tick[key]
-
+            
+            // Mirror Children
             const prefix = key+'|'
             for (const child of Object.keys(this.conf_tick)){
                 if (child.startsWith(prefix)) this.$set(this.conf_tick,child,value)
