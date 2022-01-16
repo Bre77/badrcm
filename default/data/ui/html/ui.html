@@ -992,8 +992,7 @@ const vue = new Vue({
                     stanza: x[2]
                 }
                 return this.Request('delstanza',options).then(()=>{
-                    
-
+                    // Cleanup Ticks
                     const key = x.join('|')
                     console.log(`Unticking ${key}`)
                     this.$remove(this.conf_tick,key)
