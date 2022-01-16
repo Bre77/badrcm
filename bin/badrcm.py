@@ -268,7 +268,7 @@ class req(PersistentServerConnectionApplication):
 
         # Get config of a single server
         if form['a'] == "getconf":
-            for x in ['server','file','user','app']: # Check required parameters
+            for x in ['file','user','app']: # Check required parameters
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             try:
@@ -280,7 +280,7 @@ class req(PersistentServerConnectionApplication):
         
         # Change a config and process the response
         if form['a'] == "setconf":
-            for x in ['server','file','stanza','attr','value']: # Check required parameters
+            for x in ['file','stanza','attr','value']: # Check required parameters
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             postargs = {form['attr']: form['value']}
@@ -293,7 +293,7 @@ class req(PersistentServerConnectionApplication):
 
         # Tasks
         if form['a'] == "tasks":
-            for x in ['server','user','tasks']: # Check required parameters
+            for x in ['user','tasks']: # Check required parameters
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             tasks = json.loads(form['tasks'])
@@ -323,11 +323,11 @@ class req(PersistentServerConnectionApplication):
             return {'payload': 'true', 'status': 200}
                 
         if form['a'] == "delstanza":
-            for x in ['server','user','app','conf','stanza']: # Check required parameters
+            for x in ['user','app','conf','stanza']: # Check required parameters
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             try:
-                simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}", method='DELETE', sessionKey=token, raiseAllErrors=True)
+                simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['conf']}/{form['stanza']}", method='DELETE', sessionKey=token, raiseAllErrors=True)
                 return {'payload': "true", 'status': 200} 
             except Exception as e:
                 return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
