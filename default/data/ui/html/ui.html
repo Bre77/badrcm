@@ -958,7 +958,7 @@ const vue = new Vue({
             })
         },
         ConfAddLine(i){
-            if(this.VALID_ATTR.test(this.conf_add_attrs[i]) && !this.conf_add_attrs[i+1]) this.conf_add_attrs.push('')
+            if(this.conf_add_attrs[i+1] == undefined && this.VALID_ATTR.test(this.conf_add_attrs[i])) this.conf_add_attrs.push('')
         },
         ConfRemove(c){
 
