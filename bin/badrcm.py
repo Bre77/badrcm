@@ -332,7 +332,7 @@ class req(PersistentServerConnectionApplication):
                 simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{stanza}", method='DELETE', sessionKey=token, raiseAllErrors=True)
                 return {'payload': "true", 'status': 200} 
             except Exception as e:
-                return self.errorhandle(f"DELETE request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']} failed",e)
+                return self.errorhandle(f"DELETE request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{stanza} failed",e)
 
         return self.errorhandle("No action requested")
         #except Exception as ex:
