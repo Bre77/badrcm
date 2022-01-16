@@ -985,7 +985,6 @@ const vue = new Vue({
                 return this.Request('delstanza',options).then(()=>{
                     // Cleanup Ticks
                     const key = x.join('|')
-                    console.log(`Unticking ${key}`)
                     this.$remove(this.conf_tick,key)
                     for (const child of Object.keys(this.conf_tick)){
                         if (child.startsWith(key)) this.$remove(this.conf_tick,child)
@@ -1019,7 +1018,7 @@ const vue = new Vue({
             for (x in data){
                 form.append(x, data[x])
             }
-            console.log(form.toString())
+            console.debug('Request',form.toString())
             return fetch(REST_ENDPOINT, {
                 method: 'POST',
                 headers: {
