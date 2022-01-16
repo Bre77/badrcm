@@ -858,7 +858,6 @@ const vue = new Vue({
             let description = []
 
             for (const file in conf){
-                console.log(file)
                 const data = this.conf_data[this.ConfKey(target,file)]
                 if(!data){
                     console.warn(`The file {file} doesnt exist on {target.server}`)
