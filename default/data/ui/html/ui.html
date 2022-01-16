@@ -1019,6 +1019,7 @@ const vue = new Vue({
                 form.append(x, data[x])
             }
             console.info('Request',form.toString())
+            const p = performance.now()
             return fetch(REST_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -1036,7 +1037,7 @@ const vue = new Vue({
                 return Promise.reject({ cause: 'local', message: e.message });
             })
             .then(resp => {
-                console.log('Response',resp.status, resp.statusText)
+                console.log('Response', resp.status, resp.statusText, performance.now()-p)
                 json = resp.json().catch(e => {
                     console.warn(e)
                     return resp.text().then(text =>{
