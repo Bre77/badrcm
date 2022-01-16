@@ -348,6 +348,7 @@
                 </ui-confirm>
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
                     Do you want to confirm this?
+                    {{ConfGetSelected(conf_remove_col)}}
                 </ui-confirm>
             </ui-tab>
         </ui-tabs>
