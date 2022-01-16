@@ -975,7 +975,6 @@ const vue = new Vue({
         ConfRemove(){
             this.conf_remove_loading = true
             return Promise.all(this.ConfGetStanza(this.conf_remove_col).map(x => {
-                console.log(x)
                 const options = {
                     server: this.conf_remove_col.server,
                     user: this.conf_remove_col.user.name,
