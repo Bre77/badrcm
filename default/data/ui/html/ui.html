@@ -1018,7 +1018,7 @@ const vue = new Vue({
             for (x in data){
                 form.append(x, data[x])
             }
-            console.debug('Request',form.toString())
+            console.info('Request',form.toString())
             return fetch(REST_ENDPOINT, {
                 method: 'POST',
                 headers: {
