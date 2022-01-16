@@ -323,11 +323,11 @@ class req(PersistentServerConnectionApplication):
             return {'payload': 'true', 'status': 200}
                 
         if form['a'] == "delstanza":
-            for x in ['user','app','conf','stanza']: # Check required parameters
+            for x in ['user','app','file','stanza']: # Check required parameters
                 if x not in form:
                     return self.errorhandle("Missing '{x}' parameter")
             try:
-                simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['conf']}/{form['stanza']}", method='DELETE', sessionKey=token, raiseAllErrors=True)
+                simpleRequest(f"{uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{form['stanza']}", method='DELETE', sessionKey=token, raiseAllErrors=True)
                 return {'payload': "true", 'status': 200} 
             except Exception as e:
                 return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['conf']}/{form['stanza']} failed",e)
