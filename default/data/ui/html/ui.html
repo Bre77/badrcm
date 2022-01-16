@@ -529,8 +529,8 @@ const vue = new Vue({
                 file: f,
                 stanza: s,
                 attr: x,
-                value: this.conf_data[key][a][s].attr[x]}
-            console.log(options)
+                value: this.conf_data[key][a][s].attr[x]
+            }
             return this.Request('setconf',options).then(resp => {
                 console.log(resp)
                 for (const respapp in resp){
