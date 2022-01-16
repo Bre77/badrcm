@@ -942,8 +942,10 @@ const vue = new Vue({
                 tasks: JSON.stringify(tasks)
             }
             return this.Request('tasks',options).then(()=>{
-                this.conf_add_loading = false // Order important
-                this.$refs.add.close() // Order important
+                this.conf_add_loading = false
+                Vue.nextTick().then(()=>{
+                    this.$refs.add.close()
+                })
                 this.conf_add_col = null
                 this.conf_add_file = ''
                 this.conf_add_app = ''
