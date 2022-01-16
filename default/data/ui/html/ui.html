@@ -348,7 +348,7 @@
                 </ui-confirm>
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
                     The following Stanzas will be removed. To remove individual attributes, remove their value in the main editor.
-                    {{ConfGetSelected(conf_remove_col)}}
+                    {{ConfGetStanza(conf_remove_col)}}
                 </ui-confirm>
             </ui-tab>
         </ui-tabs>
@@ -976,8 +976,10 @@ const vue = new Vue({
         ConfAddLine(i){
             if(this.conf_add_attrs[i+1] == undefined && this.VALID_ATTR.test(this.conf_add_attrs[i])) this.conf_add_attrs.push('')
         },
-        ConfRemove(c){
+        ConfRemove(){
+            return Promise.all(this.ConfGetStanza(this.conf_remove_col).map(options => {
 
+            }))
         },
         //
         // Generic Helpers
