@@ -349,7 +349,7 @@
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
                     <p>The following Stanzas will be removed. To remove individual attributes, remove their value in the main editor.</p>
                     <ul>
-                    <li v-for="x in ConfGetStanza(conf_remove_col)">{{x[1]}}/{{x[0]}}.conf [{{x[2]}}]</li>
+                        <li v-for="x in ConfGetStanza(conf_remove_col)">{{x[1]}}/{{x[0]}}.conf [{{x[2]}}]</li>
                     </ul>
                 </ui-confirm>
             </ui-tab>
