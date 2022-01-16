@@ -943,14 +943,13 @@ const vue = new Vue({
             }
             return this.Request('tasks',options).then(()=>{
                 this.conf_add_loading = false
-                Vue.nextTick().then(()=>{
+                Vue.nextTick(()=>{
                     this.$refs.add.close()
+                    this.conf_add_col = null
+                    this.conf_add_file = ''
+                    this.conf_add_app = ''
+                    this.conf_add_stanza = ''
                 })
-                this.conf_add_col = null
-                this.conf_add_file = ''
-                this.conf_add_app = ''
-                this.conf_add_stanza = ''
-                
                 return this.ConfChangeOptions(this.conf_paste_col,true)
             }, ()=>{
                 this.conf_add_loading = false
