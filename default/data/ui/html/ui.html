@@ -992,8 +992,15 @@ const vue = new Vue({
                     stanza: x[2]
                 }
                 return this.Request('delstanza',options).then(()=>{
-                    console.log(`Unticking ${x.join('|')}`)
-                    this.$remove(this.conf_tick,x.join('|'))
+                    
+
+                    const key = x.join('|')
+                    console.log(`Unticking ${key}`)
+                    this.$remove(this.conf_tick,key)
+                    for (const child of Object.keys(this.conf_tick)){
+                        if (child.startsWith(key)) this.$remove(this.conf_tick,child)
+                    }
+                    
                 })
             })).then(()=>{
                 this.conf_remove_loading = false
