@@ -347,7 +347,7 @@
                     This hasnt been built yet sorry.
                 </ui-confirm>
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
-                    Do you want to confirm this?
+                    The following Stanzas will be removed. To remove individual attributes, remove their value in the main editor.
                     {{ConfGetSelected(conf_remove_col)}}
                 </ui-confirm>
             </ui-tab>
@@ -810,6 +810,18 @@ const vue = new Vue({
                 }
             }
             console.timeEnd(`ConfChangeTick ${key}`)
+        },
+        ConfGetStanza(c){
+            if(!c) return []
+            console.time(`ConfGetStanza ${c.server}`)
+            let selected = []
+            for (const [key,ticked] of Object.entries(this.conf_tick)){
+                if(!ticked) continue
+                const p = key.split('|')
+                if(p.length !== 3) continue
+                selected.push(p)
+            console.timeEnd(`ConfGetStanza ${c.server}`)
+            return selected
         },
         ConfGetSelected(c){
             if(!c) return {}
