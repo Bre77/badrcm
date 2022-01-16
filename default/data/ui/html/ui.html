@@ -977,6 +977,7 @@ const vue = new Vue({
             if(this.conf_add_attrs[i+1] == undefined && this.VALID_ATTR.test(this.conf_add_attrs[i])) this.conf_add_attrs.push('')
         },
         ConfRemove(){
+            this.conf_remove_loading = true
             return Promise.all(this.ConfGetStanza(this.conf_remove_col).map(x => {
                 console.log(x)
                 const options = {
@@ -987,7 +988,13 @@ const vue = new Vue({
                     stanza: x[2]
                 }
                 return this.Request('delstanza',options)
-            }))
+            })).then(()=>{
+                this.conf_remove_loading = false
+                Vue.nextTick(()=>{
+                    this.$refs.remove.close()
+                    this.conf_remove_col = null
+                })
+            })
         },
         //
         // Generic Helpers
