@@ -322,7 +322,16 @@ class req(PersistentServerConnectionApplication):
                         return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
             return {'payload': 'true', 'status': 200}
                 
-                    
+        if form['a'] == "delstanza":
+            for x in ['server','user','app','conf','stanza']: # Check required parameters
+                if x not in form:
+                    return self.errorhandle("Missing '{x}' parameter")
+            try:
+                simpleRequest(f"{uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza}", method='DELETE', sessionKey=token, raiseAllErrors=True)
+                return {'payload': "true", 'status': 200} 
+            except Exception as e:
+                return self.errorhandle(f"POST request to {uri}/servicesNS/{form['user']}/{app}/configs/conf-{conf}/{stanza} failed",e)
+            continue
 
         return self.errorhandle("No action requested")
         #except Exception as ex:
