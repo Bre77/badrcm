@@ -322,7 +322,7 @@
                             <template v-for="attr,x of stanza.attrs" v-if="!conf_hide[stanza.key]">
                                 <!-- Attribute -->
                                 <ui-checkbox :class="{'conf-attr-left':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" v-model="conf_tick[attr.key]" @change="ConfChangeTick(attr.key)">{{x}}</ui-checkbox>
-                                <template v-for="col,c of attr.cols">
+                                <template v-for="col,c of attr.cols" v-if="GetChild(conf_data[col.key],[a,s,'attr',x]) !== undefined">
                                     <!-- Values -->
                                     <ui-textbox v-if="typeof(col.value) == 'string'" :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-textbox>
                                     <ui-checkbox v-else :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-checkbox>
