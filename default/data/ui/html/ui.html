@@ -821,6 +821,7 @@ const vue = new Vue({
                 const p = key.split('|')
                 if(p.length !== 3) continue
                 selected.push(p)
+            }
             console.timeEnd(`ConfGetStanza ${c.server}`)
             return selected
         },
