@@ -343,7 +343,7 @@ class req(PersistentServerConnectionApplication):
                 stanza = urllib.parse.quote(form['stanza'])
                 resp, content = simpleRequest(f"{uri}/services/{endpoint}?output_mode=json", sessionKey=token, raiseAllErrors=True)
                 data = json.loads(content)['entry']
-                return {'payload': json.dumps(data, separators=(',', ':'), 'status': 200} 
+                return {'payload': json.dumps(data, separators=(',', ':')), 'status': 200} 
             except Exception as e:
                 return self.errorhandle(f"GET request to {uri}/services/{endpoint} failed",e)
 
