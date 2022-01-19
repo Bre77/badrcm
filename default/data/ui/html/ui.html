@@ -253,7 +253,7 @@
                         <td @click="addserver_host=server">{{server}}</td>
                         <td>{{details.port}}</td>
                         <td v-if="details.rights">{{details.rights.username}}</td><td v-else>X</td>
-                        <td v-if="details.rights">{{details.rights.roles.join(', ')}}</td><td v-else>X</td>
+                        <td v-if="details.rights">{{details.rights.roles.slice(0,5).join(', ')}}<template v-if="details.rights.roles.length > 5">(and {{details.rights.roles.length-5}} more)</template></td><td v-else>X</td>
                         <td v-if="details.apps">{{details.apps.length}}</td><td v-else>X</td>
                         <td v-if="details.users">{{details.users.length}}</td><td v-else>X</td>
                         <td v-if="details.files">{{details.files.length}}</td><td v-else>X</td>
