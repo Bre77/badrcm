@@ -250,7 +250,7 @@
                         <th>Server</th><th>Port</th><th>Username</th><th>Roles</th><th>Apps</th><th>Users</th><th>Files</th>
                     </tr>
                     <tr v-for="details,server in conf_servers">
-                        <td>{{server}}</td>
+                        <td @click="addserver_host=server">{{server}}</td>
                         <td>{{details.port}}</td>
                         <td v-if="details.rights">{{details.rights.username}}</td><td v-else>X</td>
                         <td v-if="details.rights">{{details.rights.roles.join(', ')}}</td><td v-else>X</td>
