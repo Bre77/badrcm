@@ -334,6 +334,19 @@ class req(PersistentServerConnectionApplication):
             except Exception as e:
                 return self.errorhandle(f"DELETE request to {uri}/servicesNS/{form['user']}/{form['app']}/configs/conf-{form['file']}/{stanza} failed",e)
 
+        #https://badacs.stg.splunkcloud.com:8089/services/cluster_blaster_indexes/sh_indexes_manager?output_mode=json
+
+        if form['a'] == "getidx":
+            endpoint = "cluster_blaster_indexes/sh_indexes_manager" if form['server'].endswith('.splunkcloud.com') else "cluster/master/indexes"
+            
+            try:
+                stanza = urllib.parse.quote(form['stanza'])
+                resp, content = simpleRequest(f"{uri}/services/{endpoint}?output_mode=json", sessionKey=token, raiseAllErrors=True)
+                data = json.loads(content)['entry']
+                return {'payload': json.dumps(data, separators=(',', ':'), 'status': 200} 
+            except Exception as e:
+                return self.errorhandle(f"GET request to {uri}/services/{endpoint} failed",e)
+
         return self.errorhandle("No action requested")
         #except Exception as ex:
         #    return {'payload': json.dumps(ex), 'status': 500}
