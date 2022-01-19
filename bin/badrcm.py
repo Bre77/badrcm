@@ -256,16 +256,17 @@ class req(PersistentServerConnectionApplication):
            
 
         # HELPER - Get Server Context
-        if 'server' in form:
-            # Validate "server"
-            if form['server'] in [args['server']['hostname'],"local"]:
-                uri = self.LOCAL_URI
-                token = self.AUTHTOKEN
-            else:
-                uri = f"https://{form['server']}:8089"
-                token = self.gettoken(form['server'])
-        else:
+        if 'server' not in form:
             return self.errorhandle("Missing 'server' parameter")
+        
+        # Validate "server"
+        if form['server'] in [args['server']['hostname'],"local"]:
+            uri = self.LOCAL_URI
+            token = self.AUTHTOKEN
+        else:
+            uri = f"https://{form['server']}:8089"
+            token = self.gettoken(form['server'])
+            
 
         # Get config of a single server
         if form['a'] == "getconf":
