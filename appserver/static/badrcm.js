@@ -485,10 +485,10 @@ const vue = new Vue(
                 if(p.length !== 4) continue
 
                 // Check File
-                if(!conf_setting_files.includes(p[0])) continue
+                if(!this.conf_setting_files.includes(p[0])) continue
 
                 // Check App
-                if(!conf_setting_apps.includes(p[1])) continue
+                if(!this.conf_setting_apps.includes(p[1])) continue
                 
                 const value = this.GetChild(this.conf_data[this.ConfKey(c,p[0])],[p[1],p[2],'attr',p[3]])
                 if(value == undefined) continue
