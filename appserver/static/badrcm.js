@@ -509,7 +509,7 @@ const vue = new Vue(
                     for (const stanza in data[conf][app]){
                         body += `[${stanza}]${newline}`
                         for (const attr in data[conf][app][stanza]){
-                            let value = data[conf][app][stanza][attr].replaceAll('\n',`\\${newline}`)
+                            let value = data[conf][app][stanza][attr].replace(new RegExp('\n', 'g'),`\\${newline}`)
                             body += `${attr} = ${value}${newline}`
                         }
                         body += newline
