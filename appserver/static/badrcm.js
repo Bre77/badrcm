@@ -484,10 +484,10 @@ const vue = new Vue(
                 const p = key.split('|')
                 if(p.length !== 4) continue
 
-                // Check File
+                // Check File is visible
                 if(!this.conf_setting_files.includes(p[0])) continue
 
-                // Check App
+                // Check App is visible
                 if(!this.conf_setting_apps.includes(p[1])) continue
                 
                 const value = this.GetChild(this.conf_data[this.ConfKey(c,p[0])],[p[1],p[2],'attr',p[3]])
