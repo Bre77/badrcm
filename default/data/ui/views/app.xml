@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<view template="badrcm:/templates/app.html" type="html">
+	<label>Brett Adams' Dangerous REST Configuration Manager</label>
+</view>

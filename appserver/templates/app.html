@@ -1,0 +1,441 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <title>BADRCM</title>
+    <!--<link href="${make_url('/static/build/css/bootstrap-enterprise.css')}" rel="stylesheet" type="text/css"/>
+    <link href="{{SPLUNKWEB_URL_PREFIX}}/static/build/css/splunkjs-dashboard.css" rel="stylesheet" type="text/css"/>-->
+    <link href="${make_url('/static/app/badrcm/keen-ui.min.css')}" rel="stylesheet" type="text/css" />
+    <script>
+        function i18n_register(catalog) {return}
+        const STATIC_PREFIX = "${make_url('/static/app/badrcm')}"
+    </script>
+    <script src="${make_url('/config?autoload=1')}" crossorigin="use-credentials"></script>
+    <script src="${make_url('/static/app/badrcm/vue.min.js')}"></script>
+    <script src="${make_url('/static/app/badrcm/keen-ui.min.js')}"></script>
+    <script src="${make_url('/static/app/badrcm/jszip.min.js')}"></script>
+    <style>
+        /* Material Icons */
+        @font-face {
+            font-family: 'Material Icons';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Material Icons'),
+                local('MaterialIcons-Regular'),
+                url(${make_url('/static/app/badrcm/material-icons.woff2')}) format('woff2');
+        }
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga';
+        }
+
+        #vue {
+            font-family: Splunk Platform Sans,Proxima Nova,Roboto,Droid,Helvetica Neue,Helvetica,Arial,sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        .loading {
+            height: 0.25rem
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-gap: 0.5em;
+        }
+
+        .ui-button-group {
+            gap: .5rem;
+        }
+
+        /* Use disabled Tab as title */
+        .ui-tab-header-item.is-disabled {
+            opacity: 1;
+        }
+
+        .code {
+            font-family: Consolas, ui-monospace, monospace;
+        }
+
+        /* CONF GRID */
+        .grid {
+            display: grid;
+            column-gap: 1rem;
+            align-items: center;
+            /*grid-auto-rows: 2rem;*/
+            /*font-family: Consolas, ui-monospace, monospace;*/
+            font-size: 1rem;
+        }
+        .compact {
+            margin-bottom: 0;
+        }
+        .conf {
+            height: 1.5rem;
+            line-height: 1.5rem;
+            vertical-align: middle;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .conf-sub-image {
+            height: 18px;
+            /*line-height: inherit;
+            vertical-align: middle;*/
+        }
+        .conf-sub-text {
+            height: inherit;
+            line-height: inherit;
+            vertical-align: middle;
+        }
+
+        .conf-hide {
+            grid-column-start: 1;
+            /*height: 1.25rem;
+            width: 1.25rem;*/
+        }
+        .conf-file-left {
+            grid-column: 2;
+            font-style: italics;
+        }
+        .conf-app-left {
+            grid-column: 2;
+            font-weight: bold;
+            /*height: 36px;*/
+            /*line-height: 36px;*/
+            margin-top: 0.5em;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .conf-app-col {
+            /*height: 36px;
+            line-height: 36px;*/
+        }
+        .conf-stanza-left {
+            grid-column: 2;
+            font-weight:bold;
+            color: #E00000;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .conf-stanza-col {
+            line-height: 24px;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            gap: 1rem;
+        }
+        .conf-attr-left {
+            grid-column: 2;
+            height: 2rem;
+            line-height: 2rem;
+            color: #863B00;
+            text-align: right;
+            padding: 0 0.5rem;
+            margin: 0 -0.5rem;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .conf-attr-left > .ui-checkbox__label-text {
+            float:right;
+        }
+        .conf-attr-col {
+            height: 2rem;
+            padding: 0 0.5rem;
+            margin: 0 -0.5rem;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .conf-same {
+            background-color: #d1ffd1;
+        }
+        .conf-diff {
+            background-color: #ffd1d1;
+        }
+
+        .row1 {
+            grid-row: 1;
+        }
+        .row2 {
+            grid-row: 2;
+        }
+        .row3 {
+            grid-row: 3;
+        }
+        .row4 {
+            grid-row: 4;
+        }
+        .row5 {
+            grid-row: 5;
+            height: .25rem;
+        }
+        .col1 {
+            grid-column: 1;
+        }
+        .col1-2 {
+            grid-column: 1 / 3;
+        }
+        .col2 {
+            grid-column: 2;
+        }
+        .colall {
+            grid-column: 1 / -1;
+        }
+
+        .half-input {
+            width: 50%;
+        }
+
+        .create {
+            color: green;
+        }
+
+        .skip {
+            color: grey;
+        }
+
+        .modify {
+            color: orangered
+        }
+
+        .flex {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .grow {
+            flex-grow: 1;
+        }
+        .colstart {
+            grid-column-start: 1
+        }
+        #disclaimer {
+            
+        }
+        #serverlist {
+            row-gap: .2rem;
+        }
+
+    </style>
+</head>
+
+<body>
+    <%text>
+    <div id="vue">
+        <ui-confirm ref="disclaimer" title="Disclaimer" @confirm="localStorage.setItem('badrcm_disclaimer',true)" @deny="window.open('/','_self')" confirm-button-text="I Agree" deny-button-text="I Disagree" dismiss-on="">
+            <p>This application is offered under the Splunk general terms for third party applications avaliable at <a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a>.</p>
+            <p>Brett Adams' Dangerous REST Configuration Manager allows administrators to read, write, and modify Splunk configuration to the fullest extent of your account and the authentication tokens it's configured with.</p>
+            <p>Changes can result in serious issues such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should understand the implications.</p>
+            <p>Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to make major changes in Splunk Cloud.</p>
+            <p>By default all users with the admin or sc_admin role on this Search Head have access to this application, it's tokens, and the level of access they provide.</p>
+        </ui-confirm>
+        <ui-snackbar-container ref="errorbar" position="center"></ui-snackbar-container>
+        <ui-tabs>
+            <ui-tab disabled>
+                <div slot="header" style="color:black;">Brett Adams' Dangerous REST Config Manager</div>
+            </ui-tab>
+            <ui-tab id="home" title="Home" selected>
+                <h1>Welcome</h1>
+                <p>This app is under active development.</p>
+                <p>Created and supported by <a target="_blank" href="https://splunkbase.splunk.com/apps/#/author/s7orm">Brett Adams</a>. Please report issues on <a target="_blank" href="https://github.com/Bre77/badrcm/issues">GitHub</a></p>
+                <h3>Remote Servers</h3>
+                <ui-progress-circular v-if="startup" :size="48" :stroke="8" ></ui-progress-circular>
+                <div id="serverlist" class="grid" style="grid-template-columns: auto repeat(4, min-content) auto" v-else>
+                    <div><b>Server</b></div>
+                    <div><b>Apps</b></div>
+                    <div><b>Users</b></div>
+                    <div><b>Files</b></div>
+                    <div><b>Username</b></div>
+                    <div><b>Roles</b></div>
+                    <template v-for="details,server in conf_servers">
+                        <div style="grid-column-start: 1" @click="addserver_host = (server!='local') ? server : ''">{{server}}</div>
+                        <div v-if="details.error" style="grid-column: span 5">{{details.error}}</div>
+                        <template v-else>
+                            <div>{{details.apps ? details.apps.length : '-'}}</div>
+                            <div>{{details.users ? details.users.length : '-'}}</div>
+                            <div>{{details.files ? details.files.length : '-'}}</div>
+                            <div>{{details.rights ? details.rights.username : '-'}}</div>
+                            <div v-if="details.rights" :title="details.rights.roles.join(', ')">
+                                <template v-if="details.rights.roles.length <= 4">{{details.rights.roles.join(', ')}}</template>
+                                <template v-else>{{details.rights.roles.slice(0,3).join(', ')}} (+{{details.rights.roles.length-3}} more)</template>
+                            </div>
+                            <div v-else>-</div>
+                        </template>
+                    </template>
+                </div>
+                
+                <h3>Add or Update Server</h3>
+                <div class="flex">
+                    <ui-textbox class="grow" label="Hostname" placeholder="stack.splunkcloud.com" v-model="addserver_host" :error="addserver_host_error"></ui-textbox>
+                    <ui-textbox class="grow" label="Auth Token" v-model="addserver_auth" :error="addserver_auth_error"></ui-textbox>
+                </div>
+                <div class="flex">
+                    <ui-button @click="AddServer" :disabled="!Boolean(addserver_host && addserver_auth)" :loading="addserver_loading">Submit</ui-button>
+                    <ui-checkbox label="Shared" v-model="addserver_shared"></ui-checkbox>
+                </div>
+                
+                <h3>Disclaimer</h3>
+                <p id="disclaimer">This application is offered under the Splunk general terms for third party applications avaliable at <a href="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" target="_blank"/>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</a>.
+                Brett Adams' Dangerous REST Configuration Manager allows administrators to read, write, and modify Splunk configuration to the fullest extent of your account and the authentication tokens it's configured with.
+                Changes can result in serious issues such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should understand the implications.
+                Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to make major changes in Splunk Cloud.
+                By default all users with the admin or sc_admin role on this Search Head have access to this application, it's tokens, and the level of access they provide.</p>
+            </ui-tab>
+            <ui-tab id="conf" class="grid" title="Config" :style="{'grid-template-columns': `24px 1fr repeat(${this.setting_columns}, 1fr)`}">
+                <!-- Conf Page Settings -->
+                <ui-select class="settings col1-2 row1 compact" multiple has-search :options="Options(conf_setting_files,conf_setting_files_options)" v-model="conf_setting_files" @dropdown-close="ConfChangeFiles(); ConfChangeOptions()">Config Files</ui-select>
+                <ui-select class="settings col1-2 row2 compact" multiple has-search :options="Options(conf_setting_apps,conf_setting_apps_options)" v-model="conf_setting_apps" :loading="base_loading > 0" placeholder="All Apps" @dropdown-close="ConfChangeApps">Apps</ui-select>
+                <ui-select class="settings col1-2 row3 compact" :options="conf_setting_show_options" v-model="conf_setting_show" @dropdown-close="ConfChangeShow()">Show</ui-select>
+                <ui-select class="settings col1-2 row4 compact" :options="setting_columns_options" v-model="setting_columns_option" @change="ConfChangeColumns(); ConfModelUpdate()">Columns</ui-select>
+                <div class="loading col1-2 row5"><ui-progress-linear  v-show="base_loading"></ui-progress-linear></div>
+                <!-- Column Settings -->
+                <template v-for="c,i of conf_columns.slice(0,setting_columns)">
+                    <ui-select class="settings row1 compact" :style="{'grid-column':i+3}" :options="servers" :disabled="servers.length == 0" :loading="base_loading > 0" v-model="c.server" @change="ConfCheckColumnOptions(c); ConfChangeOptions(c)" placeholder="Please select a server" label="Server" :invalid="!c.server"></ui-select>
+                    <ui-select has-search class="settings row2 compact" :style="{'grid-column':i+3}" :options="conf_servers.hasOwnProperty(c.server) ? [DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, ...conf_servers[c.server].apps.filter(a => a.visable)] : [DEFAULT_APP_CONTEXT]" v-model="c.app" :disabled="!conf_servers.hasOwnProperty(c.server)" :keys="{'label': conf_app_label}" @change="ConfChangeOptions(c)">App Context</ui-select>
+                    <ui-select has-search class="settings row3 compact" :style="{'grid-column':i+3}" :options="conf_servers.hasOwnProperty(c.server) ? [DEFAULT_USER_CONTEXT, ...conf_servers[c.server].users] : [DEFAULT_USER_CONTEXT]" v-model="c.user" :disabled="!conf_servers.hasOwnProperty(c.server)" :keys="{'label': conf_user_label}" @change="ConfChangeOptions(c)">User Context</ui-select>
+                    <div class="settings row4 ui-button-group" :style="{'grid-column':i+3}">
+                        <ui-icon-button icon="content_copy" color="primary" tooltip="Copy Selected" :disabled="!c.server" @click="conf_copy_col=c"></ui-icon-button>
+                        <ui-icon-button icon="content_paste" color="primary" tooltip="Paste Selected" :disabled="!c.server || !conf_copy_col || conf_copy_col==c" @click="conf_paste_col=c;$refs.copy.open()"></ui-icon-button>
+                        <ui-icon-button icon="post_add" color="green" tooltip="Add Config" :disabled="!c.server" @click="conf_add_col=c;$refs.add.open()"></ui-icon-button>
+                        <ui-icon-button icon="drive_file_move" color="orange" tooltip="Move Stanza" :disabled="true || !c.server" @click="conf_move_col=c;$refs.move.open()"></ui-icon-button>
+                        <ui-icon-button icon="backspace" color="red" tooltip="Remove Stanza" :disabled="!c.server" @click="conf_remove_col=c;$refs.remove.open()"></ui-icon-button>
+                        <ui-icon-button icon="file_download" color="default" tooltip="Export" :disabled="!c.server" @click="conf_export_col=c;$refs.export.open()" :loading="conf_export_loading"></ui-icon-button>
+                        <ui-icon-button icon="refresh" color="default" tooltip="Refresh" :disabled="!c.server" @click="ConfChangeOptions(c,true)" :loading="c.loading > 0"></ui-icon-button>
+                    </div>
+                    <div class="loading row5" :style="{'grid-column':i+3}"><ui-progress-linear v-show="c.loading > 0"></ui-progress-linear></div>
+                </template>
+                <!-- Conf Model -->
+                <template v-for="file,f of conf_model">
+                    <!-- File -->
+                    <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[file.key]?'primary':'secondary'" :icon="conf_hide[file.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(file.key)"></ui-icon-button>
+                    <ui-checkbox class="conf-file-left" v-model="conf_tick[file.key]" @change="ConfChangeTick(file.key)">{{f}}.conf</ui-checkbox>
+                    <template v-for="app,a of file.apps" v-if="!conf_hide[file.key] && (conf_setting_apps.length == 0 || conf_setting_apps.includes(a))">
+                        <!-- App -->
+                        <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[app.key]?'primary':'secondary'" :icon="conf_hide[app.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(app.key)"></ui-icon-button>
+                        <ui-checkbox class="conf-app-left" v-model="conf_tick[app.key]" :title="a" @change="ConfChangeTick(app.key)">{{a}} <img class="conf-sub-image" :src="`${SPLUNKD_PATH}/${a}/static/appIconAlt.png`" @error="ConfFixImage"/></ui-checkbox>
+                        <!-- App Detail -->
+                        <div v-for="col,c of app.cols" class="conf-app-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
+                            <a v-if="app.url" :href="app.url" target="_blank" :title="col.label">{{col.label}}</a><span v-else :title="col.label">{{col.label}}</span>
+                            <span v-if="col.version" :title="`Version ${col.version}`"> ({{col.version}})</span>
+                        </div>
+                        <template v-for="stanza,s of app.stanzas" v-if="!conf_hide[app.key]">
+                            <!-- Stanza -->
+                            <ui-icon-button class="conf-hide" color="green" size="mini" :type="conf_hide[stanza.key]?'primary':'secondary'" :icon="conf_hide[stanza.key]?'arrow_drop_up':'arrow_drop_down'" @click="ConfShowHide(stanza.key)"></ui-icon-button>
+                            <ui-checkbox class="conf-stanza-left" v-model="conf_tick[stanza.key]" @change="ConfChangeTick(stanza.key)">[{{s}}]</ui-checkbox>
+                            <!-- Stanza Details -->
+                            <div v-for="col,c of stanza.cols" class="conf-stanza-col" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}">
+                                <span class="material-icons" :title="'Sharing: '+col.sharing">{{SHARING_ICON[col.sharing]}}</span>
+                                <span title="The user who owns this stanza">Owner: <b>{{col.owner}}</b></span>
+                                <span v-if="!col.can_write">Missing write capability</span>
+                                <span v-if="!col.safe">Contact Splunk Cloud Support to change</span>
+                                <span v-else-if="!col.authorized">Requires {{col.roles.join(' or ')}} role</span>
+                                
+                            </div>
+                            <template v-for="attr,x of stanza.attrs" v-if="!conf_hide[stanza.key]">
+                                <!-- Attribute -->
+                                <ui-checkbox :class="{'conf-attr-left':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" v-model="conf_tick[attr.key]" @change="ConfChangeTick(attr.key)">{{x}}</ui-checkbox>
+                                <template v-for="col,c of attr.cols" v-if="GetChild(conf_data[col.key],[a,s,'attr',x]) !== undefined">
+                                    <!-- Values -->
+                                    <ui-textbox v-if="typeof(col.value) == 'string'" :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-textbox>
+                                    <ui-checkbox v-else :class="{'conf-attr-col':true, 'conf-diff': attr.state==CONF_DIFF, 'conf-same': attr.state==CONF_SAME}" :style="{'grid-column':parseInt(c)+CONF_COLUMN_OFFSET}" :disabled="!col.edit" v-model="conf_data[col.key][a][s].attr[x]" @change="ConfChangeValue(c,f,a,s,x)"></ui-checkbox>
+                                </template>
+                            </template>
+                        </template>
+                    </template>
+                </template>
+                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" :close-on-confirm="false" :loading="conf_copy_loading">
+                    <template v-if="conf_copy_col && conf_paste_col">
+                        <p>The following configuration will be copied from {{conf_copy_col.server}} to {{conf_paste_col.server}}. Green items will be created, orange items will be modified, and grey items will be skipped.</p>
+                        <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
+                    </template>
+                </ui-confirm>
+                <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" :close-on-confirm="false" :loading="conf_add_loading">
+                    <template v-if="conf_add_col">
+                        <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col.server].files)" v-model="conf_add_file">File</ui-select>
+                        <ui-select has-search :options="conf_servers[conf_add_col.server].apps.map(a=>a.name)" v-model="conf_add_app">App</ui-select>
+                        <div class="flex"><ui-textbox class="grow" v-model="conf_add_stanza">New Stanza</ui-textbox><ui-select class="grow" v-if="conf_add_file && conf_add_app" has-search :options="Object.keys(conf_data[ConfKey(conf_add_col,conf_add_file)][conf_add_app] || {})" v-model="conf_add_stanza">Existing Stanza</ui-select></div>
+                        Attributes
+                        <ui-textbox class="compact" v-for="(attr,x) in conf_add_attrs" :key="'confaddattr'+x" v-model="conf_add_attrs[x]" placeholder="attribute = value" :invalid="!VALID_ATTR.test(attr)" @change="ConfAddLine(x)"></ui-textbox>
+                    </template>
+                </ui-confirm>
+                <ui-confirm ref="move" title="Move Selected Stanza" @confirm="ConfMove" @deny="">
+                    This hasnt been built yet sorry.
+                </ui-confirm>
+                <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @deny="">
+                    <p>The following Stanzas will be removed. To remove individual attributes, remove their value in the main editor.</p>
+                    <ul>
+                        <li v-for="x in ConfGetStanza(conf_remove_col)">{{x[1]}}/{{x[0]}}.conf [{{x[2]}}]</li>
+                    </ul>
+                </ui-confirm>
+                <ui-confirm ref="export" title="Export Selected Config" @confirm="ConfDownloadFiles(conf_export_col)" :close-on-confirm="false" confirm-button-text="Download">
+                    <template v-if="conf_export_col">
+                        <template v-for="(app,appname) in this.ConfGetFiles(conf_export_col,'<br>')">
+                            <template v-for="(folder,foldername) in app">
+                                <template v-for="(file,filename) in folder">
+                                    <b>{{appname}}/{{foldername}}/{{filename}}</b>
+                                    <div class="code" v-html="file"></div>
+                                </template>
+                            </template>
+                        </template>
+                    </template>
+                </ui-confirm>
+            </ui-tab>
+            <ui-tab id="idxc" class="grid" title="Index Cluster (Preview)" :style="{'grid-template-columns': `24px 1fr repeat(${this.setting_columns}, 1fr)`}">
+                <ui-select class="settings col1-2 row1 compact" :options="conf_setting_show_options" v-model="conf_setting_show" @dropdown-close="">Show</ui-select>
+                <ui-select class="settings col1-2 row2 compact" :options="setting_columns_options" v-model="setting_columns_option" @change="IdxcChangeOptions();">Columns</ui-select>
+                <div class="loading col1-2 row3"><ui-progress-linear  v-show="base_loading"></ui-progress-linear></div>
+                <!-- Column Settings -->
+                <template v-for="c,i of idxc_columns.slice(0,setting_columns)">
+                    <ui-select class="settings row1 compact" :style="{'grid-column':i+3}" :options="servers" :disabled="servers.length == 0" :loading="base_loading > 0"  v-model="c.server" @change="IdxcChangeOptions(c)" placeholder="Please select a server" label="Server" :invalid="!c.server"></ui-select>
+                    <div class="settings row2 ui-button-group" :style="{'grid-column':i+3}">
+                        <ui-icon-button icon="content_copy" color="primary" tooltip="Copy Selected" :disabled="true || !c.server"></ui-icon-button>
+                        <ui-icon-button icon="content_paste" color="primary" tooltip="Paste Selected" :disabled="true || !c.server || !conf_copy_col || conf_copy_col==c"></ui-icon-button>
+                        <ui-icon-button icon="post_add" color="green" tooltip="Add Index" :disabled="true || !c.server"></ui-icon-button>
+                        <ui-icon-button icon="backspace" color="red" tooltip="Remove Index" :disabled="true || !c.server"></ui-icon-button>
+                        <ui-icon-button icon="refresh" color="default" tooltip="Refresh" :disabled="true || !c.server" @click="IdxcChangeOptions(c,true)" :loading="c.loading > 0"></ui-icon-button>
+                    </div>
+                    <div class="loading row3" :style="{'grid-column':i+3}"><ui-progress-linear v-show="c.loading > 0"></ui-progress-linear></div>
+                </template>
+                <template v-for="index,index_name of idxc_model">
+                    <ui-icon-button class="conf-hide" color="green" size="mini" :type="idxc_hide[index_name]?'primary':'secondary'" :icon="idxc_hide[index_name]?'arrow_drop_up':'arrow_drop_down'" @click="IdxcShowHide(index_name)"></ui-icon-button>
+                    <ui-checkbox class="conf-stanza-left" v-model="idxc_tick[index_name]" @change="IdxcChangeTick(index_name)">{{index_name}}</ui-checkbox>
+                    <div v-for="acl,i of index.cols" :style="{'grid-column':i}">
+                        {{acl}}
+                    </div>
+                    <template v-for="attr,attr_name of index.attr">
+                        <ui-checkbox class="conf-attr-left" v-model="idxc_tick[attr.key]" @change="IdxcChangeTick(attr.key)">{{attr_name}}</ui-checkbox>
+                        <ui-textbox class="conf-attr-col" v-for="c,i of attr.cols" :key="attr.key+i" :style="{'grid-column':i}" :disabled="false" v-model="idxc_data[c.server][index_name].attr[attr_name]" @change="IdxcChangeValue(c.server,index_name,attr_name)"></ui-textbox>
+                    </template>
+                    <template v-for="attr,attr_name of index.static_attr">
+                        <ui-checkbox class="conf-attr-left" :disabled="true">{{attr_name}}</ui-checkbox>
+                        <ui-textbox v-if="!attr.bool" class="conf-attr-col" v-for="c,i of attr.cols" :key="attr.key+i" :style="{'grid-column':i}" :disabled="true" :value="idxc_data[c.server][index_name].attr[attr_name]"></ui-textbox>
+                        <ui-checkbox v-else class="conf-attr-col" :style="{'grid-column':i}" :disabled="true" :value="idxc_data[c.server][index_name].attr[attr_name]"></ui-checkbox>
+                    </template>
+                </template>
+                </div>
+            </ui-tab>
+        </ui-tabs>
+    </div></%text>
+    <script src="${make_url('/static/app/badrcm/badrcm.js')}"></script>
+    
+</body>
+</html>
