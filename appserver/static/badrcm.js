@@ -480,7 +480,10 @@ const vue = new Vue(
             console.time(`ConfGetSelected ${c.server}`)
             let selected = {}
             for (const [key,ticked] of Object.entries(this.conf_tick)){
+                // Check is actually ticked
                 if(!ticked) continue
+
+                // Check is attribute
                 const p = key.split('|')
                 if(p.length !== 4) continue
 
@@ -490,9 +493,11 @@ const vue = new Vue(
                 // Check App is visible
                 if(!this.conf_setting_apps.includes(p[1])) continue
                 
+                // Check Attribute has a value
                 const value = this.GetChild(this.conf_data[this.ConfKey(c,p[0])],[p[1],p[2],'attr',p[3]])
                 if(value == undefined) continue
                 
+                // Create Object Tree
                 if(!selected[p[0]]) selected[p[0]] = {[p[1]]: {[p[2]]: {[p[3]]: value}}}
                 else if(!selected[p[0]][p[1]]) selected[p[0]][p[1]] = {[p[2]]: {[p[3]]: value}}
                 else if(!selected[p[0]][p[1]][p[2]]) selected[p[0]][p[1]][p[2]] = {[p[3]]: value}
