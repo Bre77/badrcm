@@ -546,7 +546,6 @@ const vue = new Vue(
             return zip.generateAsync({type:"blob"}).then((content)=>{
                 this.$refs.export.close()
                 this.conf_export_loading = false
-                //saveAs(content, `badrcm_${c.server}.zip`);
                 window.location.assign(window.URL.createObjectURL(content));
             });
         },
