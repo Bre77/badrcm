@@ -483,6 +483,10 @@ const vue = new Vue(
                 if(!ticked) continue
                 const p = key.split('|')
                 if(p.length !== 4) continue
+
+                // Check File
+
+                // Check App
                 
                 const value = this.GetChild(this.conf_data[this.ConfKey(c,p[0])],[p[1],p[2],'attr',p[3]])
                 if(value == undefined) continue
