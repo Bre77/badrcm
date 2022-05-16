@@ -509,6 +509,7 @@ const vue = new Vue(
                     for (const stanza in data[conf][app]){
                         body += `[${stanza}]${newline}`
                         for (const attr in data[conf][app][stanza]){
+                            console.log(data[conf][app][stanza][attr])
                             let value = String(data[conf][app][stanza][attr]).replace(/\n/g,`\\${newline}`)
                             body += `${attr} = ${value}${newline}`
                         }
