@@ -549,6 +549,7 @@ const vue = new Vue(
             return zip.generateAsync({type:"blob"}).then((content)=>{
                 this.$refs.export.close()
                 this.conf_export_loading = false
+                this.conf_export_col = false
                 window.location.assign(window.URL.createObjectURL(content));
                 console.timeEnd(`ConfDownloadFiles ${c.server}`)
             });
