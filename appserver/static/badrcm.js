@@ -508,6 +508,7 @@ const vue = new Vue(
             return selected
         },
         ConfGetFiles(c, newline="<br>", folder="default"){
+            console.time(`ConfGetFiles ${c.server}`)
             let files = {}
             let data = this.ConfGetSelected(c)
 
@@ -528,9 +529,11 @@ const vue = new Vue(
                     files[app]['default'][`${conf}.conf`] = body
                 }
             }
+            console.timeEnd(`ConfGetFiles ${c.server}`)
             return files
         },
         ConfDownloadFiles(c){
+            console.time(`ConfDownloadFiles ${c.server}`)
             this.conf_export_loading = true
             let files = this.ConfGetFiles(c,"\n")
             var zip = new JSZip();
@@ -547,6 +550,7 @@ const vue = new Vue(
                 this.$refs.export.close()
                 this.conf_export_loading = false
                 window.location.assign(window.URL.createObjectURL(content));
+                console.timeEnd(`ConfDownloadFiles ${c.server}`)
             });
         },
         ConfCopyTasks(){
