@@ -491,7 +491,7 @@ const vue = new Vue(
                 if(!this.conf_setting_files.includes(p[0])) continue
 
                 // Check App is visible
-                if(this.conf_setting_files && !this.conf_setting_apps.includes(p[1])) continue
+                if(this.conf_setting_apps.length && !this.conf_setting_apps.includes(p[1])) continue
                 
                 // Check Attribute has a value
                 const value = this.GetChild(this.conf_data[this.ConfKey(c,p[0])],[p[1],p[2],'attr',p[3]])
