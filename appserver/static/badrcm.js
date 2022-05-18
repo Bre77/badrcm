@@ -26,8 +26,6 @@ Vue.component('buttonaction', {
     data: function(){
         return {
             loading: false,
-            error: false,
-            tooltip: ""
         }
     },
     props: ['icon','color','tooltip','disabled','action','args'],
@@ -37,7 +35,8 @@ Vue.component('buttonaction', {
             this.error = false
             this.action(...this.args).then(()=>{
                 this.loading = false
-            },reject=>{
+            },(reject)=>{
+                console.warn(reject)
                 this.loading = false
             })
         }
