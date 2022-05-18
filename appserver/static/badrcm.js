@@ -572,10 +572,12 @@ const vue = new Vue(
             }
             return zip.generateAsync({type:"blob"}).then((content)=>{
                 window.location.assign(window.URL.createObjectURL(content));
-                this.$refs.export.close()
-                this.conf_export_loading = false
-                this.conf_export_col = null
                 console.timeEnd(`ConfDownloadFiles ${c.server}`)
+                this.conf_export_loading = false // Order important
+                Vue.nextTick(()=>{
+                    this.$refs.export.close()
+                    this.conf_export_col = null
+                })
             });
         },
         ConfCopyTasks(){
