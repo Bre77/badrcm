@@ -555,6 +555,7 @@ const vue = new Vue(
                     files[app]['default'][`${conf}.conf`] = body
                 }
             }
+            this.conf_export_files = files
             console.timeEnd(`ConfGetFiles ${c.server}`)
             return files
         },
