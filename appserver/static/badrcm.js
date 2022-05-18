@@ -32,11 +32,13 @@ Vue.component('buttonaction', {
     methods: {
         handler() {
             this.loading = true
-            this.action(...this.args).then(()=>{
-                this.loading = false
-            },(reject)=>{
-                console.warn(reject)
-                this.loading = false
+            Vue.nextTick(()=>{
+                this.action(...this.args).then(()=>{
+                    this.loading = false
+                },(reject)=>{
+                    console.warn(reject)
+                    this.loading = false
+                })
             })
         }
     },
