@@ -533,8 +533,9 @@ const vue = new Vue(
             console.timeEnd(`ConfGetSelected ${c.server}`)
             return selected
         },
-        ConfGetFiles(c, newline="<br>", folder="default"){
+        ConfExport(c, newline="<br>", folder="default"){
             console.time(`ConfGetFiles ${c.server}`)
+            this.conf_export_loading=1
             let files = {}
             let data = this.ConfGetSelected(c)
 
@@ -556,11 +557,13 @@ const vue = new Vue(
                 }
             }
             this.conf_export_files = files
+            this.conf_export_loading = 0
+            $refs.export.open()
             console.timeEnd(`ConfGetFiles ${c.server}`)
-            return files
+            //return files
         },
-        ConfDownloadFiles(c){
-            console.time(`ConfDownloadFiles ${c.server}`)
+        ConfDownloadFiles(){
+            console.time('ConfDownloadFiles')
             this.conf_export_loading = true
             //let files = this.ConfGetFiles(c,"\n")
             let files = this.conf_export_files.replace(/<br>/g,`\n`)
@@ -576,7 +579,7 @@ const vue = new Vue(
             }
             return zip.generateAsync({type:"blob"}).then((content)=>{
                 window.location.assign(window.URL.createObjectURL(content));
-                console.timeEnd(`ConfDownloadFiles ${c.server}`)
+                console.timeEnd('ConfDownloadFiles')
                 this.conf_export_loading = false // Order important
                 Vue.nextTick(()=>{
                     this.$refs.export.close()
