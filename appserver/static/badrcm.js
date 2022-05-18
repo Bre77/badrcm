@@ -21,6 +21,31 @@ function imgError(image){
 
 Vue.prototype.localStorage = window.localStorage
 Vue.use(KeenUI);
+
+Vue.component('buttonaction', {
+    data: function(){
+        return {
+            loading: false,
+            error: false,
+            tooltip: ""
+        }
+    },
+    props: ['icon','color','tooltip','disabled','action','args'],
+    methods: {
+        handler() {
+            this.loading = true
+            this.error = false
+            this.action(...this.args).then(()=>{
+                this.loading = false
+            },reject=>{
+                this.loading = false
+                this.error = true
+            })
+        }
+    },
+    template: `<ui-icon-button :icon="icon" :color="color" :loading="loading" :tooltip="tooltip" @click="handler"></ui-icon-button>`
+})
+
 const vue = new Vue(
 {
     el: '#vue',
