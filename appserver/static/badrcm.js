@@ -32,7 +32,6 @@ Vue.component('buttonaction', {
     methods: {
         handler() {
             this.loading = true
-            this.error = false
             this.action(...this.args).then(()=>{
                 this.loading = false
             },(reject)=>{
