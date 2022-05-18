@@ -386,8 +386,8 @@
                         <li v-for="x in ConfGetStanza(conf_remove_col)">{{x[1]}}/{{x[0]}}.conf [{{x[2]}}]</li>
                     </ul>
                 </ui-confirm>
-                <ui-confirm v-if="conf_export_col" ref="export" title="Export Selected Config" @confirm="ConfDownloadFiles(conf_export_col)" @hide="conf_export_col=null" :close-on-confirm="false" confirm-button-text="Download" :loading="conf_export_loading">
-                    <template >
+                <ui-confirm ref="export" title="Export Selected Config" @confirm="ConfDownloadFiles(conf_export_col)" @hide="conf_export_col=null" :close-on-confirm="false" confirm-button-text="Download" :loading="conf_export_loading">
+                    <template v-if="conf_export_col">
                         <template v-for="(app,appname) in ConfGetFiles(conf_export_col,'<br>')">
                             <template v-for="(folder,foldername) in app">
                                 <template v-for="(file,filename) in folder">
