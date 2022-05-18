@@ -92,6 +92,7 @@ const vue = new Vue(
         conf_remove_loading: false,
         conf_export_col: null,
         conf_export_loading: false,
+        conf_export_files: {},
         idxc_columns: Array.from({length:COLUMNS_MAX}, u => ({
             server: '',
             loading: 0,
