@@ -562,7 +562,8 @@ const vue = new Vue(
         ConfDownloadFiles(c){
             console.time(`ConfDownloadFiles ${c.server}`)
             this.conf_export_loading = true
-            let files = this.ConfGetFiles(c,"\n")
+            //let files = this.ConfGetFiles(c,"\n")
+            let files = this.conf_export_files.replace(/<br>/g,`\n`)
             var zip = new JSZip();
             for (const app in files){
                 var zip_app = zip.folder(app)
