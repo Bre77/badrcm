@@ -42,7 +42,7 @@ Vue.component('buttonaction', {
             })
         }
     },
-    template: `<ui-icon-button :icon="icon" :color="color" :tooltip="tooltip" :disabled="disabled" @click="handler" :loading="loading" ></ui-icon-button>`
+    template: `<ui-icon-button :icon="icon" :color="color" :tooltip="tooltip" :disabled="disabled" :loading="loading"  @click="handler"></ui-icon-button>`
 })
 
 const vue = new Vue(
