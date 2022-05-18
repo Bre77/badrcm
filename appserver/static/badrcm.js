@@ -542,7 +542,8 @@ const vue = new Vue(
             for (const conf in data){
                 for (const app in data[conf]){
                     if (!files.hasOwnProperty(app)){
-                        files[app] = {folder: {}}
+                        files[app] = {}
+                        files[app][folder] = {}
                     }
                     body = ""
                     for (const stanza in data[conf][app]){
