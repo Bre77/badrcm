@@ -381,7 +381,7 @@
                     This hasnt been built yet sorry.
                 </ui-confirm>
                 <ui-confirm ref="remove" title="Remove Stanza" @confirm="ConfRemove" @hide="conf_remove_col=null">
-                    <template v-if="conf_remove_col"
+                    <template v-if="conf_remove_col">
                     <p>The following Stanzas will be removed. To remove individual attributes, remove their value in the main editor.</p>
                     <ul>
                         <li v-for="x in ConfGetStanza(conf_remove_col)">{{x[1]}}/{{x[0]}}.conf [{{x[2]}}]</li>
