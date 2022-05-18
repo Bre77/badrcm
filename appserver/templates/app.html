@@ -388,7 +388,7 @@
                         </ul>
                     </template>
                 </ui-confirm>
-                <ui-confirm ref="export" title="Export Selected Config" @confirm="ConfDownloadFiles(conf_export_col)" @hide="conf_export_col=null;conf_export_files={}" confirm-button-text="Download" :loading="conf_export_loading" :close-on-confirm="false">
+                <ui-confirm ref="export" title="Export Selected Config" @confirm="ConfDownloadFiles()" @hide="conf_export_col=null;conf_export_files={}" confirm-button-text="Download" :loading="conf_export_loading" :close-on-confirm="false">
                     <template v-if="conf_export_files">
                         <template v-for="(app,appname) in conf_export_files">
                             <template v-for="(folder,foldername) in app">
