@@ -89,6 +89,7 @@ const vue = new Vue(
         conf_copy_loading: false,
         conf_move_col: null,
         conf_remove_col: null,
+        conf_remove_loading: false,
         conf_export_col: null,
         conf_export_loading: false,
         idxc_columns: Array.from({length:COLUMNS_MAX}, u => ({
