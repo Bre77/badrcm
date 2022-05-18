@@ -368,7 +368,7 @@
                         <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
                     </template>
                 </ui-confirm>
-                <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" :close-on-confirm="false" :loading="conf_add_loading" @hide="conf_add_col=null">
+                <ui-confirm ref="add" title="Add Config" @confirm="ConfAdd" @hide="conf_add_col=null" :close-on-confirm="false" :loading="conf_add_loading">
                     <template v-if="conf_add_col">
                         <ui-select has-search :options="Options(conf_setting_files,conf_servers[conf_add_col.server].files)" v-model="conf_add_file">File</ui-select>
                         <ui-select has-search :options="conf_servers[conf_add_col.server].apps.map(a=>a.name)" v-model="conf_add_app">App</ui-select>
