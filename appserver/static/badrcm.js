@@ -560,6 +560,7 @@ const vue = new Vue(
                 this.$refs.export.open()
             })
             console.timeEnd(`ConfGetFiles ${c.server}`)
+            return Promise.resolve()
         },
         ConfDownloadFiles(){
             console.time('ConfDownloadFiles')
