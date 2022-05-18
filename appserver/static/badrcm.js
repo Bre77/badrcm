@@ -558,7 +558,9 @@ const vue = new Vue(
             }
             this.$set(this,'conf_export_files',files)
             this.conf_export_loading = false
-            this.$refs.export.open()
+            Vue.nextTick(()=>{
+                this.$refs.export.open()
+            })
             console.timeEnd(`ConfGetFiles ${c.server}`)
         },
         ConfDownloadFiles(){
