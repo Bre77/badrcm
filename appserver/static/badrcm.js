@@ -535,7 +535,7 @@ const vue = new Vue(
         },
         ConfExport(c, newline="<br>", folder="default"){
             console.time(`ConfGetFiles ${c.server}`)
-            this.conf_export_loading=1
+            this.conf_export_loading = 1
             let files = {}
             let data = this.ConfGetSelected(c)
 
