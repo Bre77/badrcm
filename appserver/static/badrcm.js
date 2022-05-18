@@ -39,7 +39,6 @@ Vue.component('buttonaction', {
                 this.loading = false
             },reject=>{
                 this.loading = false
-                this.error = true
             })
         }
     },
