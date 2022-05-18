@@ -566,24 +566,26 @@ const vue = new Vue(
             console.time('ConfDownloadFiles')
             this.conf_export_loading = true
             //let files = this.ConfGetFiles(c,"\n")
-            var zip = new JSZip();
-            for (const app in this.conf_export_files){
-                var zip_app = zip.folder(app)
-                for (const folder in this.conf_export_files[app]){
-                    var zip_app_folder = zip_app.folder(folder);
-                    for (const conf in this.conf_export_files[app][folder]){
-                        zip_app_folder.file(`${conf}`,this.conf_export_files[app][folder][conf].replace(/<br>/g,`\n`))
+            Vue.nextTick(()=>{
+                var zip = new JSZip();
+                for (const app in this.conf_export_files){
+                    var zip_app = zip.folder(app)
+                    for (const folder in this.conf_export_files[app]){
+                        var zip_app_folder = zip_app.folder(folder);
+                        for (const conf in this.conf_export_files[app][folder]){
+                            zip_app_folder.file(`${conf}`,this.conf_export_files[app][folder][conf].replace(/<br>/g,`\n`))
+                        }
                     }
                 }
-            }
-            return zip.generateAsync({type:"blob"}).then((content)=>{
-                window.location.assign(window.URL.createObjectURL(content));
-                console.timeEnd('ConfDownloadFiles')
-                this.conf_export_loading = false // Order important
-                Vue.nextTick(()=>{
-                    this.$refs.export.close()
-                })
-            });
+                return zip.generateAsync({type:"blob"}).then((content)=>{
+                    window.location.assign(window.URL.createObjectURL(content));
+                    console.timeEnd('ConfDownloadFiles')
+                    this.conf_export_loading = false // Order important
+                    Vue.nextTick(()=>{
+                        this.$refs.export.close()
+                    })
+                });
+            })
         },
         ConfCopyTasks(){
             let source = this.conf_copy_col
