@@ -532,7 +532,6 @@ const vue = new Vue(
         },
         ConfExport(c, newline="<br>", folder="default"){
             console.time(`ConfGetFiles ${c.server}`)
-            this.conf_export_loading = true
             let files = {}
             let data = this.ConfGetSelected(c)
 
@@ -555,10 +554,9 @@ const vue = new Vue(
                 }
             }
             this.$set(this,'conf_export_files',files)
-            this.conf_export_loading = false
-            Vue.nextTick(()=>{
+            //Vue.nextTick(()=>{
                 this.$refs.export.open()
-            })
+            //})
             console.timeEnd(`ConfGetFiles ${c.server}`)
             return Promise.resolve()
         },
