@@ -557,7 +557,7 @@ const vue = new Vue(
                     files[app][folder][`${conf}.conf`] = body
                 }
             }
-            this.conf_export_files = files
+            this.$set(this,'conf_export_files',files)
             this.conf_export_loading = 0
             this.$refs.export.open()
             console.timeEnd(`ConfGetFiles ${c.server}`)
