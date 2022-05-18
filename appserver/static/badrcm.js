@@ -576,7 +576,6 @@ const vue = new Vue(
                 this.conf_export_loading = false // Order important
                 Vue.nextTick(()=>{
                     this.$refs.export.close()
-                    this.conf_export_col = null
                 })
             });
         },
