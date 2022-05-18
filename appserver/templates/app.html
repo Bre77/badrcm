@@ -362,7 +362,7 @@
                         </template>
                     </template>
                 </template>
-                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" :close-on-confirm="false" :loading="conf_copy_loading">
+                <ui-confirm ref="copy" title="Copy Selected Configuration" @confirm="ConfCopy" @hide="conf_copy_col=null; conf_paste_col=null" :close-on-confirm="false" :loading="conf_copy_loading">
                     <template v-if="conf_copy_col && conf_paste_col">
                         <p>The following configuration will be copied from {{conf_copy_col.server}} to {{conf_paste_col.server}}. Green items will be created, orange items will be modified, and grey items will be skipped.</p>
                         <p v-for="(task) in ConfCopyTasks()" :class="task.class">{{task.text}}</p>
