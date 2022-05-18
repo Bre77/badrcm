@@ -542,7 +542,7 @@ const vue = new Vue(
             for (const conf in data){
                 for (const app in data[conf]){
                     if (!files.hasOwnProperty(app)){
-                        files[app] = {'default': {}}
+                        files[app] = {folder: {}}
                     }
                     body = ""
                     for (const stanza in data[conf][app]){
@@ -553,7 +553,7 @@ const vue = new Vue(
                         }
                         body += newline
                     }
-                    files[app]['default'][`${conf}.conf`] = body
+                    files[app][folder][`${conf}.conf`] = body
                 }
             }
             this.conf_export_files = files
