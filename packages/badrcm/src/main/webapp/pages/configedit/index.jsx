@@ -1,6 +1,5 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable no-nested-ternary */
-import "./styles.css"
 import React, { useState, useEffect, useReducer } from 'react';
 import layout from '@splunk/react-page';
 import { getUserTheme, getThemeOptions } from '@splunk/splunk-utils/themes';
@@ -9,7 +8,6 @@ import { StyledContainer, StanzaSpan, AttributeSpan } from './Styles';
 import { get, change, cleanUp } from '../../shared/badrcm'
 import { GlobalStyle } from '../../shared/styles'
 import { splunkdPath, username } from '@splunk/splunk-utils/config';
-import { SplunkThemeProvider } from '@splunk/themes';
 
 import ComboBox from '@splunk/react-ui/ComboBox';
 import ControlGroup from '@splunk/react-ui/ControlGroup';

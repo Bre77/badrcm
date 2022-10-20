@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import layout from '@splunk/react-page';
-import { getUserTheme, getThemeOptions } from '@splunk/splunk-utils/themes';
-import { SplunkThemeProvider } from '@splunk/themes';
+import { getUserTheme } from '@splunk/splunk-utils/themes';
 
-import { StyledContainer } from './Styles';
 import { get, change, cleanUp } from '../../shared/badrcm'
 import { GlobalStyle } from '../../shared/styles'
 
@@ -19,7 +17,7 @@ import ControlGroup from '@splunk/react-ui/ControlGroup';
 
 const Servers = () => {
 
-    const default_name = "splunktrust.splunkcloud.com"
+    const default_name = ""
     const default_token = "eyJraWQiOiJzcGx1bmsuc2VjcmV0IiwiYWxnIjoiSFM1MTIiLCJ2ZXIiOiJ2MiIsInR0eXAiOiJzdGF0aWMifQ.eyJpc3MiOiJicmV0dF9hZGFtcyBmcm9tIHNoLWktMGQyMjAyYzJhYjYzNTRiMmYiLCJzdWIiOiJicmV0dF9hZGFtcyIsImF1ZCI6IkJBRFJDTSIsImlkcCI6IlNwbHVuayIsImp0aSI6ImJiMWE4M2QyNGZiMDZjZTY1YjBiY2NjMzE3MzdkOTQ5YTkwYWRkMzg4ZGU1YWIyNmEyZjQxYWJkM2IwYmQ3NWUiLCJpYXQiOjE2NjU0NTIwNjAsImV4cCI6MTY3MzIyODA2MCwibmJyIjoxNjY1NDUyMDYwfQ.59l5P18hB7X7BDf9TVgtnKkA6PpGveTizaiaxPhNYHgOeTaE3fCzUyjIl1w9FzC_UoDuEcLkuT1UovnHShfK8g"
     const default_share = true
 
