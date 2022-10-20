@@ -1,0 +1,9 @@
+.cell-regular {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.cell-compact {
+    padding-top: 0;
+    padding-bottom: 0;
+}

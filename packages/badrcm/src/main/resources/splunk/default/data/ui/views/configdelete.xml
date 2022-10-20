@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<view template="badrcm:/templates/configedit.html" type="html">
+	<label>Config Add</label>
+</view>
