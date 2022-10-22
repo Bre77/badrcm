@@ -18,7 +18,7 @@ ATTR_BLACKLIST = [
 ]  # , 'sourcetype',
 
 
-class configs(common.RestHandler):
+class batch(common.RestHandler):
     # MAIN HANDLE
     def handle(self, in_string):
         args = self.getArgs(in_string)
@@ -39,81 +39,77 @@ class configs(common.RestHandler):
             uri = f"https://{self.hostport(args['query']['server'])}"
             token = self.gettoken(args["query"]["server"])
 
-        # GET
-        if args["method"] == "GET":
-
-            try:  # Check for required input
-                [file, app, user] = self.getInput(args, ["file", "app", "user"])
-            except Exception as e:
-                return self.json_error(str(e), "args", args)
-
-            stanza = args["query"].get("stanza", "")
-
-            try:
-                resp, content = simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}?output_mode=json&count=0",
-                    sessionKey=token,
-                    raiseAllErrors=True,
-                )
-
-            except Exception as e:
-                return self.json_error(
-                    f"GET request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
-                    e.__class__.__name__,
-                    str(e),
-                )
-            return self.json_response(
-                self.handleConf(json.loads(content)["entry"], uri, token, file)
-            )
-
+        
         if args["method"] == "POST":
             try:
-                [file, user, app, stanza] = self.getInput(
-                    args, ["file", "user", "app", "stanza"]
-                )
+                [user, tasks] = self.getInput(args, ["user"], ["tasks"])
             except Exception as e:
                 return self.json_error(str(e), "args", args)
 
-            stanza = urllib.parse.quote(stanza, safe="")
-
-            try:
-                resp, content = simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}?output_mode=json",
-                    sessionKey=token,
-                    postargs=args["form"],
-                    raiseAllErrors=True,
-                )
-                # if resp.status not in [200, 201, 409]:
-                #    return self.json_error(
-                #        f"Setting config {uri}/servicesNS/{self.USER}/{app}/configs/conf-{file}/{stanza} failed",
-                #        resp.reason,
-                #        resp.status,
-                #    )
-                configs = json.loads(content)["entry"]
-            except Exception as e:
-                return self.json_error(
-                    f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
-                    e,
-                )
-            # Reload
-            try:
-                simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/_reload",
-                    method="POST",
-                    sessionKey=token,
-                )
-            except Exception:
-                pass
-            return self.json_response(self.handleConf(configs, uri, token, file))
+            tasks = json.loads(tasks)
+            for task in tasks:
+                l = len(task)
+                if l == 1:  # Create App
+                    [app] = task
+                    try:
+                        resp, content = simpleRequest(
+                            f"{uri}/services/apps/local?output_mode=json",
+                            sessionKey=token,
+                            postargs=app,
+                            raiseAllErrors=True,
+                        )
+                    except Exception as e:
+                        return self.json_error(
+                            f"POST request to {uri}/services/apps/local failed",
+                            e,
+                        )
+                    continue
+                if l == 3:  # Create Stanza
+                    [app, conf, stanza] = task
+                    try:
+                        resp, content = simpleRequest(
+                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}?output_mode=json",
+                            sessionKey=token,
+                            postargs={"name": stanza},
+                            raiseAllErrors=True,
+                        )
+                    except Exception as e:
+                        return self.json_error(
+                            f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{conf} failed",
+                            e,
+                        )
+                    continue
+                if l == 4:  # Create/Change Attributes
+                    [app, conf, stanza, attr] = task
+                    stanza = urllib.parse.quote(stanza, safe="")
+                    try:
+                        resp, content = simpleRequest(
+                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
+                            sessionKey=token,
+                            postargs=attr,
+                            raiseAllErrors=True,
+                        )
+                        # Reload
+                        try:
+                            simpleRequest(
+                                f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}/_reload",
+                                method="POST",
+                                sessionKey=token,
+                            )
+                        except Exception:
+                            pass
+                    except Exception as e:
+                        return self.json_error(
+                            f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza} failed",
+                            e,
+                        )
+                    continue
+            return {"payload": "true", "status": 200}
 
         if args["method"] == "DELETE":
-            try:
-                [user, app, file, stanza] = self.getInput(
-                    args, ["user", "app", "file", "stanza"]
-                )
-            except Exception as e:
-                return self.json_error(str(e), "args", args)
-
+            for x in ["user", "app", "file", "stanza"]:  # Check required parameters
+                if x not in form:
+                    return self.json_error(f"Missing '{x}' parameter")
             try:
                 stanza = urllib.parse.quote(stanza, safe="")
                 simpleRequest(
@@ -128,7 +124,6 @@ class configs(common.RestHandler):
                     f"DELETE request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
                     e,
                 )
-
         return self.json_error("Method Not Allowed", 405)
 
     def handleConf(self, configs, uri, token, file):

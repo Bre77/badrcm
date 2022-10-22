@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import layout from '@splunk/react-page';
-import { getUserTheme } from '@splunk/splunk-utils/themes';
 
-import { get, change, cleanUp } from '../../shared/badrcm'
-import { GlobalStyle } from '../../shared/styles'
 
+// Components
 import CardLayout from '@splunk/react-ui/CardLayout';
 import Card from '@splunk/react-ui/Card';
 import DL from '@splunk/react-ui/DefinitionList';
@@ -15,17 +12,20 @@ import Link from '@splunk/react-ui/Link';
 import RadioBar from '@splunk/react-ui/RadioBar';
 import ControlGroup from '@splunk/react-ui/ControlGroup';
 
+// Shared
+import { restGet, restChange, cleanUp } from '../../shared/fetch'
+import Page from '../../shared/page'
+
 const Servers = () => {
 
-    const default_name = ""
-    const default_token = ""
-    const default_share = true
-
+    const DEFAULT_NAME = ""
+    const DEFAULT_TOKEN = ""
+    const DEFAULT_SHARED = false
 
     const [servers, setServers] = useState([]);
-    const [name, setName] = useState(default_name);
-    const [token, setToken] = useState(default_token);
-    const [share, setShare] = useState(default_share);
+    const [name, setName] = useState(DEFAULT_NAME);
+    const [token, setToken] = useState(DEFAULT_TOKEN);
+    const [share, setShare] = useState(DEFAULT_SHARED);
     const [nameerror, setNameError] = useState();
     const [tokenerror, setTokenError] = useState();
     const [running, setRunning] = useState(false);
@@ -34,7 +34,7 @@ const Servers = () => {
     const namehelp = (<span>Include splunkd port if it's not :8089.</span>)
 
     useEffect(() => {
-        get('servers', {}, setServers).then(() => { cleanUp() })
+        restGet('servers', {}, setServers).then(() => { cleanUp() })
     }, []);
 
     async function addServer() {
@@ -45,13 +45,13 @@ const Servers = () => {
         }
         setNameError()
         setRunning(true)
-        return change('servers', { 'server': name }, { 'token': token, 'shared': share }).then(() => {
+        return restChange('servers', { 'server': name }, { 'token': token, 'shared': share }).then(() => {
             //Success
             setServers(servers.concat([name]))
-            setName(default_name)
-            setToken(default_token)
-            setShare(default_share)
-            return get('servers', {}, setServers, 1) // Fill cache
+            setName(DEFAULT_NAME)
+            setToken(DEFAULT_TOKEN)
+            setShare(DEFAULT_SHARED)
+            return restGet('servers', {}, setServers, 1) // Fill cache
         }, (data) => {
             if (data.status == 400) {
                 if (data.class == "AuthenticationFailed") {
@@ -64,17 +64,16 @@ const Servers = () => {
     }
 
     const removeServer = (e, { value }) => {
-        console.log(value)
-        return change('servers', { 'server': value }, {}, 'DELETE').then(() => {
+        return restChange('servers', { 'server': value }, {}, 'DELETE').then(() => {
             setServers(servers.filter(x => x !== value))
-            return get('servers', {}, setServers, 1) // Fill cache
+            return restGet('servers', {}, setServers, 1) // Fill cache
         }, () => {
             // No Catch
         })
     }
 
     return (
-        <CardLayout cardMinWidth={400} wrapCards={true}>
+        <CardLayout cardMinWidth={400} wrapCards>
             {servers.map((server) => (
                 <Card key={server}>
                     <ServerCard name={server} key={server} onClick={removeServer} />
@@ -104,21 +103,13 @@ const Servers = () => {
     )
 }
 
-/*const wrapSet = (func, name = "") => {
-    let cancelled = false
-    const cancel = () => { cancelled = true; console.warn(name, "YOUR CANCELLED") }
-    const run = (x) => { console.warn(name, "WRAPPED", cancelled); return cancelled ? false : func(x) }
-    return [run, cancel]
-}*/
-
-const ServerCard = (props) => {
+const ServerCard = ({ name, onClick }) => {
     const [details, setDetails] = useState();
     const [running, setRunning] = useState(false);
 
     useEffect(() => {
-        //const [wrappedSet, cancel] = wrapSet(setDetails, props.name)
         setRunning(true)
-        get(`servers`, { 'server': props.name }, ([apps, users, files, username, realname, roles]) => {
+        restGet(`servers`, { 'server': name }, ([apps, users, files, username, , roles]) => {
             setDetails({
                 username,
                 roles: roles.length <= 4 ? roles.join(', ') : `${roles.slice(0, 3).join(', ')} (+${roles.length - 3} more)`,
@@ -127,13 +118,12 @@ const ServerCard = (props) => {
                 files: Object.keys(files).length,
             })
         }).then(setRunning(false))
-        //return cancel
     }, []);
 
     return <>
-        <Card.Header title={props.name} />
+        <Card.Header title={name} />
         <Card.Body>
-            {!!details ?
+            {details ?
                 (<DL termWidth={100}>
                     <DL.Term>Username</DL.Term>
                     <DL.Description>{details.username}</DL.Description>
@@ -147,26 +137,12 @@ const ServerCard = (props) => {
                     <DL.Description>{details.files}</DL.Description>
                 </DL>) : (<WaitSpinner />)}
         </Card.Body>
-        {props.name === "local" ? null : (<Card.Footer showBorder={false}>
-            <Button label="Remove" appearance="default" onClick={props.onClick} value={props.name} disabled={running} />
+        {name === "local" ? null : (<Card.Footer showBorder={false}>
+            <Button label="Remove" appearance="default" onClick={onClick} value={name} disabled={running} />
         </Card.Footer>)}
     </>
 
 }
 
 
-getUserTheme()
-    .then((theme) => {
-        layout(
-            <>
-                <GlobalStyle />
-                <Servers />
-            </>,
-            { theme }
-        );
-    })
-    .catch((e) => {
-        const errorEl = document.createElement('span');
-        errorEl.innerHTML = e;
-        document.body.appendChild(errorEl);
-    });
+Page(<Servers />)

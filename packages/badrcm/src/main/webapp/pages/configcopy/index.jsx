@@ -5,7 +5,7 @@ import layout from '@splunk/react-page';
 import { getUserTheme, getThemeOptions } from '@splunk/splunk-utils/themes';
 import { Map, OrderedMap, Set } from 'immutable'
 import { StyledContainer } from './Styles';
-import { get, change, cleanUp } from '../../shared/badrcm'
+import { restGet, restChange, cleanUp } from '../../shared/fetch'
 import { GlobalStyle } from '../../shared/styles'
 import { splunkdPath, username } from '@splunk/splunk-utils/config';
 import { SplunkThemeProvider } from '@splunk/themes';
@@ -75,7 +75,7 @@ const Configs = () => {
 
     // Startup
     useEffect(() => {
-        get('servers', {}, setServerOptions).then(() => { cleanUp() })
+        restGet('servers', {}, setServerOptions).then(() => { cleanUp() })
     }, []);
 
     // Server Selector
@@ -83,7 +83,7 @@ const Configs = () => {
         useEffect(() => {
             if (!s) return // Requirements not met
             console.log(`EFFECT Context of ${s} for ${i}`)
-            get('servers', { 'server': s }, ([apps, users, files, username, realname, roles]) => {
+            restGet('servers', { 'server': s }, ([apps, users, files, username, realname, roles]) => {
                 for (const [app, [label, visable, version]] of Object.entries(apps)) {
                     apps[app] = { 'label': label, 'visable': Boolean(visable), 'version': version }
                 }
@@ -101,9 +101,9 @@ const Configs = () => {
             if (!server[i] || !appcontext[i] || !usercontext[i]) return // Requirements not met
             console.log(`EFFECT Configs for ${i}`)
             filefilter.map((file) => {
-                get('configs', { server: server[i], app: appcontext[i], user: usercontext[i], file: file }, (config) => {
-                    console.log({[file]: config })
-                    setServerConfig[i]({[file]: config })
+                restGet('configs', { server: server[i], app: appcontext[i], user: usercontext[i], file: file }, (config) => {
+                    console.log({ [file]: config })
+                    setServerConfig[i]({ [file]: config })
                 })
             })
         }, [server[i], appcontext[i], usercontext[i], filefilter])
@@ -174,9 +174,9 @@ const Configs = () => {
     }, [...serverconfig, columncount])
 
     // Handlers
-    const check = (obj,path)=>{
+    const check = (obj, path) => {
         try {
-            return path.reduce((parent,child)=> parent[child],obj) !== undefined
+            return path.reduce((parent, child) => parent[child], obj) !== undefined
         }
         catch {
             return false
@@ -203,7 +203,7 @@ const Configs = () => {
                         .slice(0, columncount)
                         .map((d, z) => (
                             <Table.Cell key={z} className="conf-value">
-                                {check(d,[file,app,stanza,'attr',attribute]) ?
+                                {check(d, [file, app, stanza, 'attr', attribute]) ?
                                     (typeof d[file][app][stanza].attr[attribute] === "boolean" ?
                                         <Switch appearance="toggle" value={d[file][app][stanza].attr[attribute]} /> :
                                         <Text value={d[file][app][stanza].attr[attribute]} />) :
@@ -216,7 +216,7 @@ const Configs = () => {
         ])
     }
 
-    const tick = (data)=>{
+    const tick = (data) => {
 
     }
 

@@ -1,15 +1,22 @@
+/* eslint-disable */
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable no-nested-ternary */
-import React, { useState, useEffect, useReducer } from 'react';
-import layout from '@splunk/react-page';
-import { getUserTheme, getThemeOptions } from '@splunk/splunk-utils/themes';
-import { Map, Set } from 'immutable'
-import { StyledContainer, StanzaSpan, AttributeSpan } from './Styles';
-import { get, change, cleanUp } from '../../shared/badrcm'
-import { GlobalStyle } from '../../shared/styles'
-import { splunkdPath, username } from '@splunk/splunk-utils/config';
 
-import ComboBox from '@splunk/react-ui/ComboBox';
+import React, { useState, useEffect, useReducer, useCallback } from 'react';
+
+import debounce from 'lodash.debounce';
+
+import { Map, Set } from 'immutable'
+import { StyledContainer, StanzaSpan, AttributeSpan, InfoCell, AttributeCell, InputCell } from './Styles';
+import Page from '../../shared/page'
+import { isort, isort0, tupleSplit, wrapSetValues, wrapSetValue, localLoad, localSave } from '../../shared/helpers'
+import { restGet, restChange, cleanUp } from '../../shared/fetch'
+import { LOCAL_filefilter, LOCAL_appfilter, LOCAL_columncount } from '../../shared/const'
+
+import { username } from '@splunk/splunk-utils/config';
+
+import Button from '@splunk/react-ui/Button';
 import ControlGroup from '@splunk/react-ui/ControlGroup';
 import ColumnLayout from '@splunk/react-ui/ColumnLayout';
 import Number from '@splunk/react-ui/Number';
@@ -18,10 +25,11 @@ import Select from '@splunk/react-ui/Select';
 import Switch from '@splunk/react-ui/Switch';
 import Text from '@splunk/react-ui/Text';
 import Table from '@splunk/react-ui/Table';
+import Link from '@splunk/react-ui/Link';
 
-import Globe from '@splunk/react-icons/Globe';
-import Dashboard from '@splunk/react-icons/Dashboard';
-import User from '@splunk/react-icons/User';
+//import Globe from '@splunk/react-icons/Globe';
+//import Dashboard from '@splunk/react-icons/Dashboard';
+//import User from '@splunk/react-icons/User';
 
 const Configs = () => {
     // Constants
@@ -31,58 +39,53 @@ const Configs = () => {
     const SYSTEM_APP_CONTEXT = { name: 'system', label: "System" }
     const DEFAULT_USER_CONTEXT = { name: 'nobody', realname: "Nobody" }
     const COMMON_FILES = ['props', 'transforms', 'eventtypes', 'inputs', 'outputs', 'server'] //'app', 'authentication', 'authorize', 'collections', 'commands', 'datamodels',  'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
-    const SHARING_ICON = {
+    /*const SHARING_ICON = {
         'global': <Globe size={1} screenReaderText="Global" />,
         'app': <Dashboard size={1} screenReaderText="App" />,
         'user': <User size={1} screenReaderText="User" />
-    }
+    }*/
 
     // Helpers
-    const isort = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }) // Case insensitive sort 
-    const isort0 = (a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' })
-    const isort1 = (a, b) => a[1].localeCompare(b[1], undefined, { sensitivity: 'base' })
-    const dedup = (a) => Array.from(new Set(a))
 
 
-    // State - Helpers
-    const tupleSplit = (states) => [states.map(x => x[0]), states.map(x => x[1])]
-    const wrapSetValue = (f) => (_, { value }) => f(value)
-    const wrapSetValues = (f) => (_, { values }) => f(values)
 
     // State - Page Selectors
-    const [filefilter, setFileFilter] = useState(['props', 'transforms']); //
-    const handleFileFilter = wrapSetValues(setFileFilter)
-    const [appfilter, setAppFilter] = useState([]);
-    const handleAppFilter = wrapSetValues(setAppFilter)
-    const [columncount, setColumnCount] = useState(2);
-    const handleColumnCount = wrapSetValue(setColumnCount)
+    const [filefilter, setFileFilter] = useState(localLoad(LOCAL_filefilter, ['props', 'transforms'])); //
+    const handleFileFilter = wrapSetValues(localSave(setFileFilter, LOCAL_filefilter))
+    const [appfilter, setAppFilter] = useState(localLoad(LOCAL_appfilter, []));
+    const handleAppFilter = wrapSetValues(localSave(setAppFilter, LOCAL_appfilter))
+    const [columncount, setColumnCount] = useState(localLoad(LOCAL_columncount, 2));
+    const handleColumnCount = wrapSetValue(localSave(setColumnCount, LOCAL_columncount))
 
     const [fileoptions, setFileOptions] = useState(Set());
     const [appoptions, setAppOptions] = useState(Map());
-    const [applabels, setAppLabels] = useState({});
 
     // State - Column Selector
-    const [server, setServer] = tupleSplit(COLUMN_INDEX.map(() => useState()))
-    const handleServer = setServer.map((x) => wrapSetValue(x))
-    const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map(() => useState(DEFAULT_APP_CONTEXT.name)))
-    const handleAppContext = setAppContext.map(wrapSetValue)
-    const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map(() => useState(DEFAULT_USER_CONTEXT.name)))
-    const handleUserContext = setUserContext.map(wrapSetValue)
+    const [server, setServer] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_server${z}`))))
+    const handleServer = setServer.map((f, z) => wrapSetValue(localSave(f, `BADRCM_server${z}`)))
+    const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_appcontext${z}`, DEFAULT_APP_CONTEXT.name))))
+    const handleAppContext = setAppContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_appcontext${z}`)))
+    const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_usercontext${z}`, DEFAULT_USER_CONTEXT.name))))
+    const handleUserContext = setUserContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_usercontext${z}`)))
 
-    const [loading, setLoading] = tupleSplit(COLUMN_INDEX.map(() => useState(false)))
-    const handleLoading = setLoading.map(wrapSetValue)
+    const [loading, setLoading] = tupleSplit(COLUMN_INDEX.map(() => useState(0)))
+    // const handleLoading = setLoading.map(wrapSetValue)
 
     const [serveroptions, setServerOptions] = useState([]);
     const [servercontext, setServerContext] = tupleSplit(COLUMN_INDEX.map(() => useState()))
-    const [serverconfig, setServerConfig] = tupleSplit(COLUMN_INDEX.map(() => useReducer((prev, add) => ({ ...prev, ...add }))))
-    //const [appcontextoptions, setAppContextOptions] = tupleSplit(COLUMN_INDEX.map(useState([])))
-    //const [usercontextoptions, setUserContextOptions] = tupleSplit(COLUMN_INDEX.map(useState([])))
+    const [serverconfig, mergeServerConfig] = tupleSplit(COLUMN_INDEX.map((z) => useReducer((prev, update) => {
+        const x = prev.mergeDeep(update)
+        console.log("MERGE", z)
+        return x
+    }, Map())))
+    // const [appcontextoptions, setAppContextOptions] = tupleSplit(COLUMN_INDEX.map(useState([])))
+    // const [usercontextoptions, setUserContextOptions] = tupleSplit(COLUMN_INDEX.map(useState([])))
 
     const [mergedconfig, setMergedConfig] = useState([]);
 
     // Startup
     useEffect(() => {
-        get('servers', {}, setServerOptions).then(() => { cleanUp() })
+        restGet('servers', {}, setServerOptions).then(() => { cleanUp() })
     }, []);
 
     // Server Selector
@@ -90,7 +93,7 @@ const Configs = () => {
         useEffect(() => {
             if (!s) return // Requirements not met
             console.log(`EFFECT Context of ${s} for ${i}`)
-            get('servers', { 'server': s }, ([apps, users, files, username, realname, roles]) => {
+            restGet('servers', { 'server': s }, ([apps, users, files, username, realname, roles]) => {
                 for (const [app, [label, visable, version]] of Object.entries(apps)) {
                     apps[app] = { 'label': label, 'visable': Boolean(visable), 'version': version }
                 }
@@ -108,17 +111,16 @@ const Configs = () => {
             if (!server[i] || !appcontext[i] || !usercontext[i]) return // Requirements not met
             console.log(`EFFECT Configs for ${i}`)
             filefilter.map((file) => {
-                get('configs', { server: server[i], app: appcontext[i], user: usercontext[i], file: file }, (config) => {
-                    console.log({ [file]: config })
-                    setServerConfig[i]({ [file]: config })
+                restGet('configs', { server: server[i], app: appcontext[i], user: usercontext[i], file: file }, (config) => {
+                    mergeServerConfig[i]({ [file]: config })
                 })
             })
         }, [server[i], appcontext[i], usercontext[i], filefilter])
     })
 
     // Get Filter Lists
-    useEffect(() => {
-        console.log('EFFECT Filter Options')
+    const debouncedFilterOptions = useCallback(debounce((servercontext, columncount) => {
+        console.log('EFFECT Filter Options', serverconfig)
         const files = Set(servercontext
             .slice(0, columncount)
             .filter((context) => context)
@@ -142,22 +144,26 @@ const Configs = () => {
 
         setFileOptions(files)
         setAppOptions(apps)
-    }, [...servercontext, columncount])
+    }, 100), [])
+    useEffect(() => { debouncedFilterOptions(servercontext, columncount) }, [...servercontext, columncount])
 
     // Get Config keys
-    useEffect(() => {
-        console.log('EFFECT Config Keys')
+    const debouncedServerContext = useCallback(debounce((serverconfig, columncount) => {
+        console.log('EFFECT Config Keys', serverconfig)
         const configdict = serverconfig
             .slice(0, columncount)
             .filter((config) => config)
             .reduce((output, input) => {
-                for (const [file, apps] of Object.entries(input)) {
+                for (const [file, apps] of input.entries()) {
                     for (const [app, stanzas] of Object.entries(apps)) {
                         if (!output[app]) output[app] = { [file]: {} }
                         else if (!output[app][file]) output[app][file] = {}
                         for (const [stanza, content] of Object.entries(stanzas)) {
-                            if (!output[app][file][stanza]) output[app][file][stanza] = new Set(Object.keys(content.attr))
-                            else Object.keys(content.attr).forEach((attr) => output[app][file][stanza].add(attr))
+                            if (!output[app][file][stanza]) output[app][file][stanza] = {}
+                            for (const [attr, value] of Object.entries(content.attr)) {
+                                if (!output[app][file][stanza][attr]) output[app][file][stanza][attr] = [value]
+                                else output[app][file][stanza][attr].push(value)
+                            }
                         }
                     }
                 }
@@ -172,63 +178,98 @@ const Configs = () => {
                     .map(([app, stanzas]) => {
                         return [app, Object.entries(stanzas)
                             .sort(isort0)
-                            .map(([stanza, content]) => {
-                                return [stanza, Array.from(content).sort(isort)]
+                            .map(([stanza, attributes]) => {
+                                return [stanza, Object.entries(attributes)
+                                    .sort(isort0)
+                                    .map(([attribute, values]) => {
+                                        return [attribute, {
+                                            // Use boolean only if all values are boolean
+                                            text: values.some(value => typeof value !== "boolean"),
+                                            // 0 if different, 1 if only one value, 2 if all the same
+                                            same: values.every(value => value == values[0]) * 2 - (values.length === 1)
+                                        }]
+                                    })]
                             })]
                     })]
             })
         setMergedConfig(configarray)
-    }, [...serverconfig, columncount])
+    }, 100), [])
+    useEffect(() => { debouncedServerContext(serverconfig, columncount) }, [...serverconfig, columncount])
 
     // Handlers
     const check = (obj, path) => {
         try {
             return path.reduce((parent, child) => parent[child], obj) !== undefined
         }
-        catch {
+        catch (e) {
+            //console.warn(e)
             return false
-        }
-    }
-    const safe = (obj, path) => {
-        try {
-            return path.reduce((parent, child) => parent[child], obj)
-        }
-        catch {
-            return undefined
         }
     }
 
     // Methods
 
+    const handleConfigChangeFactory = (z, file, app, stanza, attr) => (e, { value }) => {
+        console.log("Changing", attr)
+        restChange('configs', { 'server': server[z], file, user: usercontext[z], app, stanza }, { [attr]: value }).then((resp) => {
+            console.log("Changed", attr)
+            mergeServerConfig[z]({ [file]: resp })
+        })
+    }
+
     const getConfigRows = (app, file, stanzas) => {
+        console.log("GET CONFIG ROWS", app, file, stanzas)
         return stanzas.flatMap(([stanza, attributes]) => [(
             <Table.Row key={app + file + stanza} >
-                <Table.Cell align="right" truncate className="cell-regular"><StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan></Table.Cell>
+                <InfoCell align="right" truncate><StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan></InfoCell>
                 {serverconfig
                     .slice(0, columncount)
-                    .map((config, z) => (
-                        check(config, [file, app, stanza, 'acl']) ?
-                            <Table.Cell key={z} className="cell-regular">Sharing: <b>{[config[file][app][stanza].acl.sharing]}</b> - Owner: <b>{config[file][app][stanza].acl.owner}</b></Table.Cell> :
-                            <Table.Cell key={z} className="cell-regular">Not Present</Table.Cell>
-                    ))}
+                    .map((config, z) => {
+                        /*if (!server[z] || !config.hasIn([file, app, stanza])) return (
+                            <InfoCell key={z}></InfoCell>
+                        )*/
+                        const acl = config.getIn([file, app, stanza, 'acl'])
+                        if (acl === undefined) return (
+                            <InfoCell key={z}></InfoCell>
+                        )
+                        return (
+                            <InfoCell key={z}>Sharing: <b>{acl.sharing}</b> - Owner: <b>{acl.owner}</b></InfoCell>
+                        )
+                    })}
             </Table.Row>
-        ), ...attributes.map((attribute) => (
+        ), ...attributes.map(([attribute, metadata]) => (
             <Table.Row key={app + file + stanza + attribute} >
-                <Table.Cell align="right" truncate className="cell-regular"><AttributeSpan>{attribute}</AttributeSpan></Table.Cell>
+                <AttributeCell align="right" truncate>{attribute}</AttributeCell>
                 {
                     serverconfig
                         .slice(0, columncount)
-                        .map((config, z) => (
-                            <Table.Cell key={z} className="cell-compact">
-                                {check(config, [file, app, stanza, 'attr', attribute]) ?
-                                    (typeof config[file][app][stanza].attr[attribute] === "boolean" ?
-                                        <Switch appearance="toggle" value={config[file][app][stanza].attr[attribute]} disabled={!config[file][app][stanza].acl.can_write} /> :
-                                        <Text value={config[file][app][stanza].attr[attribute]} disabled={!config[file][app][stanza].acl.can_write} />) :
-                                    <Text />
-                                }
-                            </Table.Cell>
-                        ))}
-            </Table.Row>
+                        .map((config, z) => {
+                            const value = config.getIn([file, app, stanza, 'attr', attribute])
+                            if (!server[z] || !config.hasIn([file, app, stanza])) return (
+                                <InputCell key={z}></InputCell>
+                            )
+                            if (value === undefined) return (
+                                <InputCell key={z}>
+                                    <Button
+                                        appearance="pill"
+                                        value={metadata.text ? "" : false}
+                                        onClick={handleConfigChangeFactory(z, file, app, stanza, attribute)}
+                                        label="Create Attribute"
+                                    />
+                                </InputCell>
+                            )
+                            return (
+                                <ConfigInput
+                                    key={z}
+                                    value={value}
+                                    metadata={metadata}
+                                    disabled={!config.getIn([file, app, stanza, 'acl', 'can_write'])}
+                                    handle={handleConfigChangeFactory(z, file, app, stanza, attribute)}
+                                />
+                            )
+                        })
+                }
+            </Table.Row >
         ))
         ])
     }
@@ -260,20 +301,30 @@ const Configs = () => {
                     {COLUMN_INDEX.slice(0, columncount).map((z) => (
                         < ColumnLayout.Column key={z} >
                             <ControlGroup label="Server" labelPosition="left">
+
                                 <Select inline appearance="primary" value={server[z]} onChange={handleServer[z]} error={!server[z]}>
+
                                     {serveroptions.map(s => (<Select.Option key={s} label={s} value={s} />))}
+                                    <Select.Divider />
+                                    <Select.Option label="None" value="" />
                                 </Select>
                             </ControlGroup>
                             <ControlGroup label="App Context" labelPosition="left">
                                 <Select inline value={appcontext[z]} onChange={handleAppContext[z]} disabled={!server[z]} animateLoading={!servercontext[z]}>
-                                    <Select.Option label="All" value="-" />
-                                    <Select.Option label="None" description="system" value="system" />
+                                    <Select.Heading>Special</Select.Heading>
+                                    <Select.Option label="All Apps" value="-" />
+                                    <Select.Option label="None / Global" description="system" value="system" />
+                                    <Select.Heading>Apps</Select.Heading>
                                     {servercontext[z] ? Object.entries(servercontext[z].apps).map(([id, { label }]) => (<Select.Option key={id} label={label} description={id} value={id} />)) : null}
                                 </Select>
                             </ControlGroup>
                             <ControlGroup label="User Context" labelPosition="left">
                                 <Select inline value={usercontext[z]} onChange={handleUserContext[z]} disabled={!server[z]} animateLoading={!servercontext[z]}>
+
+                                    <Select.Heading>Special</Select.Heading>
                                     <Select.Option label="Nobody" value="nobody" />
+                                    {servercontext[z] && servercontext[z].users[username] ? <Select.Option label="Your User" value={username} description={username} /> : null}
+                                    <Select.Heading>All Users</Select.Heading>
                                     {servercontext[z] ? Object.entries(servercontext[z].users).map(([user, real]) => (<Select.Option key={user} label={real} description={user} value={user} />)) : null}
                                 </Select>
                             </ControlGroup>
@@ -281,13 +332,14 @@ const Configs = () => {
                     ))}
                 </ColumnLayout.Row>
             </ColumnLayout >
+            <br />
             <Table stripeRows rowExpansion="multi">
                 <Table.Head>
                     <Table.HeadCell >Config Editor</Table.HeadCell>
                     {server
                         .slice(0, columncount)
                         .map((servername, z) => (
-                            <Table.HeadCell key={z}>{servername || ""}</Table.HeadCell>
+                            <Table.HeadCell key={z}>{servername || "No Server Selected"}</Table.HeadCell>
                         ))}
                 </Table.Head>
                 <Table.Body>
@@ -303,7 +355,13 @@ const Configs = () => {
                                             {servercontext
                                                 .slice(0, columncount)
                                                 .map((context, z) => {
-                                                    return <Table.Cell key={z}>{check(context, ['apps', app, 'label']) ? context.apps[app].label : null} {check(context, ['apps', app, 'version']) ? context.apps[app].version : null}</Table.Cell>
+                                                    if (!server[z] || !serverconfig[z].hasIn([file, app])) return (
+                                                        <Table.Cell key={z}></Table.Cell>
+                                                    )
+                                                    return (
+                                                        <Table.Cell key={z}>{check(context, ['apps', app, 'label']) ? context.apps[app].label : null} {check(context, ['apps', app, 'version']) ? context.apps[app].version : null}</Table.Cell>
+                                                    )
+
 
                                                 })}
 
@@ -316,18 +374,45 @@ const Configs = () => {
     )
 }
 
-getUserTheme()
-    .then((theme) => {
-        layout(
-            <StyledContainer>
-                <GlobalStyle />
-                <Configs />
-            </StyledContainer>,
-            { theme }
-        );
-    })
-    .catch((e) => {
-        const errorEl = document.createElement('span');
-        errorEl.innerHTML = e;
-        document.body.appendChild(errorEl);
-    });
+const ConfigInput = ({ value, handle, disabled, metadata }) => {
+    const [internalvalue, setInternalValue] = useState(value); //
+    const deboundedHandle = useCallback(debounce(handle, 1000), [])
+    const inputHandle = (e, data) => {
+        setInternalValue(data.value)
+        deboundedHandle(e, data)
+    }
+
+    useEffect(() => {
+        setInternalValue(value)
+    }, [value])
+
+    if (metadata.text)
+        return (
+            <InputCell>
+                <Text
+                    value={internalvalue}
+                    onChange={inputHandle}
+                    disabled={disabled}
+                    error={metadata.same === 0}
+                />
+            </InputCell>
+        )
+    else return (
+        <InputCell>
+            <Switch
+                appearance="toggle"
+                selected={internalvalue}
+                value={!internalvalue}
+                onClick={inputHandle}
+                disabled={disabled}
+                error={metadata.same === 0}
+            />
+        </InputCell>
+    )
+}
+
+Page(
+    <StyledContainer>
+        <Configs />
+    </StyledContainer>
+)

@@ -14,7 +14,8 @@
     "stylelint": "stylelint \"src/**/*.{js,jsx}\" --config stylelint.config.js"
   },
   "dependencies": {
-    "immutable": "^4.1.0"
+    "immutable": "^4.1.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
