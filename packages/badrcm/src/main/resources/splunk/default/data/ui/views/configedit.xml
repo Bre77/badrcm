@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <view template="badrcm:/templates/configedit.html" type="html">
-	<label>Config Edit</label>
+	<label>Config Compare &amp; Edit</label>
 </view>

@@ -14,4 +14,11 @@ export const localSave = (f, key) => (value) => {
     f(value)
     window.localStorage.setItem(key, JSON.stringify(value))
 }
-export const localLoad = (key, fallback = null) => JSON.parse(window.localStorage.getItem(key)) || fallback
+export const localLoad = (key, fallback = null) => {
+    try {
+        return JSON.parse(window.localStorage.getItem(key)) || fallback
+    } catch {
+        return fallback
+    }
+}
+export const localDel = (key) => window.localStorage.removeItem(key)

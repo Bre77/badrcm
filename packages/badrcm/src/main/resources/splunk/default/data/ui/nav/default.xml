@@ -2,7 +2,9 @@
   <view name="servers" default="true"/>
   <view name="configedit"/>
   <view name="configcopy"/>
-  <view name="configadd"/>
+  <view name="configwrite"/>
   <view name="configdelete"/>
+  <view name="apps"/>
+  <view name="indexes"/>
   <a href="https://github.com/Bre77/badrcm/issues" target="_blank">Get Support</a>
 </nav>

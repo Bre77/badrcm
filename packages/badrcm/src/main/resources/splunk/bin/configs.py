@@ -93,7 +93,8 @@ class configs(common.RestHandler):
             except Exception as e:
                 return self.json_error(
                     f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
-                    e,
+                    e.__class__.__name__,
+                    str(e),
                 )
             # Reload
             try:

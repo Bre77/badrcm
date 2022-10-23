@@ -1,10 +1,16 @@
 'use strict';
 import { splunkdPath } from '@splunk/splunk-utils/config';
-import { defaultFetchInit, handleError, handleResponse } from '@splunk/splunk-utils/fetch';
+import { defaultFetchInit, handleError, handleresonse } from '@splunk/splunk-utils/fetch';
+
+import Toaster, { makeCreateToast } from '@splunk/react-toast-notifications/Toaster';
+import { TOAST_TYPES } from '@splunk/react-toast-notifications/ToastConstants';
 
 const version = "1"
 const lifespan = 24 * 60 * 60 * 1000
 const local = window.localStorage
+
+// Helpers
+const Toast = makeCreateToast(Toaster)
 
 export const cleanUp = () => {
     Object.entries(local).forEach(([key, value]) => {
@@ -47,17 +53,17 @@ export async function restGet(endpoint, parameters = {}, callback, skip = 0) {
         }
         return Promise.resolve(false)
     }).then((cached) => {
-        // Skip if requested AND a cached response was used
+        // Skip if requested AND a cached resonse was used
         if (skip === 2 && cached === true) { return Promise.resolve() }
 
-        // Only send the hash if a cached response was alredy used.
+        // Only send the hash if a cached resonse was alredy used.
         const hash = (cached === true) ? local.getItem(`${request}|hash`) || "" : ""
         // Improve this by only adding hash if it was enabled, maybe use URL parameters object
         return fetch(`${splunkdPath}/services/badrcm/${request}&hash=${hash}`, { ...defaultFetchInit, })
             .then((res) => {
                 if (res.status === 200) {
                     return res.json().then(data => {
-                        console.debug("USING RESP FOR", request)
+                        console.debug("USING res FOR", request)
                         local.setItem(`${request}|time`, Date.now())
                         local.setItem(`${request}|data`, JSON.stringify(data.data))
                         local.setItem(`${request}|hash`, data.hash)
@@ -69,7 +75,12 @@ export async function restGet(endpoint, parameters = {}, callback, skip = 0) {
                     local.setItem(`${request}|time`, Date.now())
                     return Promise.resolve()
                 }
-                return Promise.reject(res.status)
+                return res.json().then(data => {
+                    data.status = res.status
+                    console.warn(data)
+                    Toast({ message: data.context, type: TOAST_TYPES.ERROR })
+                    return Promise.reject(data)
+                })
             })
     })
 };
@@ -86,13 +97,14 @@ export async function restChange(endpoint, parameters = {}, body, method = "POST
         ...defaultFetchInit,
         'method': method,
         'body': makeBody(body)
-    }).then((resp) => {
-        if (status.includes(resp.status)) {
-            return (resp.status === 204) ? Promise.resolve() : resp.json().then(j => j.data)
+    }).then((res) => {
+        if (status.includes(res.status)) {
+            return (res.status === 204) ? Promise.resolve() : res.json().then(j => j.data)
         }
-        return resp.json().then(data => {
-            data.status = resp.status
+        return res.json().then(data => {
+            data.status = res.status
             console.warn(data)
+            Toast({ message: data.context, type: TOAST_TYPES.ERROR })
             return Promise.reject(data)
         })
     })
