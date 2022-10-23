@@ -38,11 +38,10 @@ import Select from "@splunk/react-ui/Select";
 import TextArea from "@splunk/react-ui/TextArea";
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ComboBox from "@splunk/react-ui/ComboBox";
-import Code from "@splunk/react-ui/Code";
+import Button from "@splunk/react-ui/Button";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 import { username } from "@splunk/splunk-utils/config";
-import Button from "@splunk/react-ui/Button";
 
 const ConfigWrite = () => {
   const SYSTEM_APP_CONTEXT = { name: "system", label: "System" };
