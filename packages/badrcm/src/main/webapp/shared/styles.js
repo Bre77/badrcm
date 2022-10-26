@@ -34,3 +34,6 @@ export const AttributeSpan = styled.span`
     color: ${props => props.theme.splunkThemeV1.colorScheme === "light" ? "#853A0A" : "#9EDCFD"};
 `;
 
+export const ValueSpan = styled.span`
+    color: ${props => props.theme.splunkThemeV1.colorScheme === "light" ? "#0451A5" : "#CE9178"};
+`;

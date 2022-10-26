@@ -156,10 +156,16 @@ class configs(common.RestHandler):
                 output[app] = {}
             output[app][s["name"]] = {
                 "acl": {
-                    "can_write": s["acl"]["can_write"],
-                    "owner": s["acl"]["owner"],
                     "sharing": s["acl"]["sharing"],
-                    "roles": s["acl"]["perms"]["write"] if s["acl"]["perms"] else [],
+                    "owner": s["acl"]["owner"],
+                    "can_write": [0, 1][s["acl"]["can_write"]],
+                    "readers": s["acl"]["perms"]["read"] if s["acl"]["perms"] else [],
+                    "writers": s["acl"]["perms"]["write"] if s["acl"]["perms"] else [],
+                    "share": [
+                        [0, 1][s["acl"]["can_share_global"]],
+                        [0, 1][s["acl"]["can_share_app"]],
+                        [0, 1][s["acl"]["can_share_user"]],
+                    ],
                 },
                 "attr": {},
             }

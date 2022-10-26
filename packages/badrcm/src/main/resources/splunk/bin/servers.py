@@ -45,18 +45,11 @@ class servers(common.RestHandler):
 
         if args["method"] == "POST":
             try:  # Check for required input
-                [server, token, shared] = self.getInput(
-                    args, ["server"], ["token", "shared"]
+                [server, token, share] = self.getInput(
+                    args, ["server"], ["token", "share"]
                 )
             except Exception as e:
                 return self.json_error(str(e), "args", args)
-            # for field in ["server", "token", "shared"]:
-            #    if field not in args["form"]:
-            #        return self.json_error(f"Missing {field} field", "args", args)
-
-            # server = args["form"]["server"]
-            # token = args["form"]["token"]
-            # shared = args["form"]["shared"]
 
             try:
                 resp, _ = simpleRequest(
@@ -75,8 +68,8 @@ class servers(common.RestHandler):
                 )
 
             # Add Server
-            user_context = "nobody" if shared == "true" else self.USER
-            sharing = "app" if shared == "true" else "user"
+            user_context = "nobody" if share == "true" else self.USER
+            sharing = "app" if share == "true" else "user"
             self.logger.info(
                 f"Adding {server} for app {self.APP_NAME} user {user_context}"
             )

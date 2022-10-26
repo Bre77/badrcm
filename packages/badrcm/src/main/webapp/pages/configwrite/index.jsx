@@ -1,23 +1,14 @@
 /* eslint-disable */
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useReducer,
-} from "react";
+import React, { useState, useEffect, useCallback, useReducer } from "react";
 import debounce from "lodash.debounce";
 import { Map } from "immutable";
 
 import Page from "../../shared/page";
-import { AsyncButton } from "../../shared/components";
 import {
   StyledContainer,
-  ShortCell,
-  TallCell,
   StanzaSpan,
   AttributeSpan,
-  CreateLink,
+  ValueSpan,
 } from "../../shared/styles";
 import {
   wrapSetValue,
@@ -26,11 +17,6 @@ import {
   localDel,
 } from "../../shared/helpers";
 import { restGet, restChange, cleanUp } from "../../shared/fetch";
-import {
-  LOCAL_filefilter,
-  LOCAL_appfilter,
-  LOCAL_columncount,
-} from "../../shared/const";
 
 import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Multiselect, { Heading } from "@splunk/react-ui/Multiselect";
@@ -40,8 +26,9 @@ import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ComboBox from "@splunk/react-ui/ComboBox";
 import Button from "@splunk/react-ui/Button";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
+import Typography from "@splunk/react-ui/Typography";
 
-import { username } from "@splunk/splunk-utils/config";
+import { config, username } from "@splunk/splunk-utils/config";
 
 const ConfigWrite = () => {
   const SYSTEM_APP_CONTEXT = { name: "system", label: "System" };
@@ -76,29 +63,34 @@ const ConfigWrite = () => {
     localSave(setStanza, "BADRCM_configwritestanza")
   );
 
-  // Loaded Data
+  // State - Loaded Data
   const [serveroptions, setServerOptions] = useState([]);
   const [servercontext, setServerContext] = useState();
   const [config, setConfig] = useState(Map());
   const [stanzaOptions, setStanzaOptions] = useState([]);
 
+  // State - Status
   const [error, setError] = useState(false);
   const [loading, setLoading] = useReducer((prev, change) => prev + change, 0);
 
+  // State - Input
   const [input, setInput] = useState("");
   const handleInput = wrapSetValue(setInput);
   const [inputerror, setInputError] = useState(false);
+
+  // State - Calculated
+  const [currentConfig, setCurrentConfig] = useState([]);
   const [output, setOutput] = useState([]);
   const [changes, setChanges] = useState();
 
-  // Startup
+  // Effect - Startup
   useEffect(() => {
     restGet("servers", {}, setServerOptions).then(() => {
       cleanUp();
     });
   }, []);
 
-  // Get Server Contexts
+  // Effect - Get Server Contexts
   useEffect(() => {
     if (!server) return; // Requirements not met
     console.log(`EFFECT Get Context for ${server}`);
@@ -154,7 +146,7 @@ const ConfigWrite = () => {
     );
   }, [server]);
 
-  // Get Config Data
+  // Effect - Get Config
   const debouncedGetConfig = useCallback(
     debounce((server, app, user, file) => {
       console.log(`EFFECT Config`);
@@ -164,10 +156,10 @@ const ConfigWrite = () => {
       restGet("configs", { server, app, user, file }, (config) => {
         setConfig(Map(config));
         const stanzas = Object.keys(config[app] || {});
-        if (!stanzas.includes(stanza)) {
+        /*if (!stanzas.includes(stanza)) {
           console.log("Clearing Stanza");
           setStanza("");
-        }
+        }*/
         setStanzaOptions(stanzas);
       }).then(
         () => {
@@ -187,7 +179,7 @@ const ConfigWrite = () => {
       debouncedGetConfig(server, app, user, file);
   }, [servercontext, app, user, file]);
 
-  // Process Input
+  // Effect - Process Input
   const debouncedInput = useCallback(
     debounce((input, config, app, stanza) => {
       setInputError(false);
@@ -199,8 +191,8 @@ const ConfigWrite = () => {
         .map((line) => {
           const x = line.indexOf("=");
           const attribute = line.slice(0, x).trim();
-          const value = line.slice(x + 1).trim();
-          if (x > 0 && attribute.length && value.length) {
+          const value = line.slice(x + 1).trim() || "";
+          if (x > 0 && attribute.length) {
             return [attribute, value];
           } else {
             setInputError(true);
@@ -220,9 +212,9 @@ const ConfigWrite = () => {
           },
           { ...existing }
         );
-        setOutput(confString(Object.entries(output)));
+        setOutput(Object.entries(output));
       } else {
-        setOutput(confString(changes));
+        setOutput(changes);
       }
     }, 100),
     []
@@ -232,11 +224,11 @@ const ConfigWrite = () => {
     debouncedInput(input, config, app, stanza);
   }, [input, config, app, stanza]);
 
-  const [currentConfig, setCurrentConfig] = useState();
+  // Effect - Current Config
   useEffect(
     () =>
       setCurrentConfig(
-        confString(Object.entries(config.getIn([app, stanza, "attr"]) || {}))
+        Object.entries(config.getIn([app, stanza, "attr"]) || {})
       ),
     [config, stanza]
   );
@@ -246,26 +238,23 @@ const ConfigWrite = () => {
     setLoading(1);
     return (
       config.hasIn([app, stanza, "attr"])
-        ? Promise.resolve()
+        ? restChange("configs", { server, file, user, app, stanza }, changes)
         : restChange(
             "configs",
             { server, file, user, app, stanza: "" },
-            { name: stanza }
+            { ...changes, name: stanza }
           )
     )
-      .then(() =>
-        restChange("configs", { server, file, user, app, stanza }, changes)
-      )
       .then((newdata) => setConfig(config.mergeDeep(newdata)))
       .then(() => {
         setLoading(-1);
       });
   };
 
+  // Render
   return (
     <ColumnLayout divider="vertical">
       <ColumnLayout.Row>
-        <ColumnLayout.Column></ColumnLayout.Column>
         <ColumnLayout.Column>
           <ControlGroup label="Server" labelPosition="left">
             <Select
@@ -281,6 +270,36 @@ const ConfigWrite = () => {
               ))}
             </Select>
           </ControlGroup>
+          <ControlGroup label="Conf File" labelPosition="left">
+            <Select
+              inline
+              filter
+              value={file}
+              onChange={handleFile}
+              disabled={!server}
+              error={!file}
+            >
+              <Select.Heading>Common Files</Select.Heading>
+              {COMMON_FILES.map((file) => (
+                <Multiselect.Option key={file} label={file} value={file} />
+              ))}
+
+              <Select.Heading>All Files</Select.Heading>
+              {servercontext
+                ? servercontext.files
+                    .filter((file) => !COMMON_FILES.includes(file))
+                    .map((file) => (
+                      <Multiselect.Option
+                        key={file}
+                        label={file}
+                        value={file}
+                      />
+                    ))
+                : null}
+            </Select>
+          </ControlGroup>
+        </ColumnLayout.Column>
+        <ColumnLayout.Column>
           <ControlGroup label="App" labelPosition="left">
             <Select
               inline
@@ -292,7 +311,7 @@ const ConfigWrite = () => {
             >
               <Select.Option
                 label={SYSTEM_APP_CONTEXT.label}
-                description={SYSTEM_APP_CONTEXT.label}
+                description={SYSTEM_APP_CONTEXT.name}
                 value={SYSTEM_APP_CONTEXT.name}
               />
               {servercontext
@@ -342,34 +361,8 @@ const ConfigWrite = () => {
                 : null}
             </Select>
           </ControlGroup>
-          <ControlGroup label="Conf File" labelPosition="left">
-            <Select
-              inline
-              filter
-              value={file}
-              onChange={handleFile}
-              disabled={!server}
-              error={!file}
-            >
-              <Select.Heading>Common Files</Select.Heading>
-              {COMMON_FILES.map((file) => (
-                <Multiselect.Option key={file} label={file} value={file} />
-              ))}
-
-              <Select.Heading>All Files</Select.Heading>
-              {servercontext
-                ? servercontext.files
-                    .filter((file) => !COMMON_FILES.includes(file))
-                    .map((file) => (
-                      <Multiselect.Option
-                        key={file}
-                        label={file}
-                        value={file}
-                      />
-                    ))
-                : null}
-            </Select>
-          </ControlGroup>
+        </ColumnLayout.Column>
+        <ColumnLayout.Column>
           <ControlGroup label="Stanza" labelPosition="left">
             <ComboBox
               inline
@@ -384,46 +377,89 @@ const ConfigWrite = () => {
               ))}
             </ComboBox>
           </ControlGroup>
+          <ControlGroup label="Sharing" labelPosition="left">
+            <Select
+              inline
+              disabled
+              value={
+                config.getIn([app, stanza, "acl", "sharing"]) || app == "system"
+                  ? "global"
+                  : user == "nobody"
+                  ? "app"
+                  : "private"
+              }
+              //onChange={handleFile}
+              //disabled={!stanza || !user}
+              error={!stanza}
+            >
+              <Multiselect.Option
+                label="Private"
+                value="private"
+                disabled={user == "nobody" || app == "system"}
+              />
+              <Multiselect.Option
+                label="App"
+                value="app"
+                disabled={app == "system"}
+              />
+              <Multiselect.Option label="Global" value="global" />
+            </Select>
+          </ControlGroup>
         </ColumnLayout.Column>
-        <ColumnLayout.Column></ColumnLayout.Column>
       </ColumnLayout.Row>
       {server && app && user && file && stanza && config ? (
         <ColumnLayout.Row>
           <ColumnLayout.Column>
             <Heading level={3}>Current</Heading>
             <StanzaSpan>[{stanza}]</StanzaSpan>
-            <TextArea value={currentConfig} rowsMin={5} rowsMax={25}></TextArea>
+            <ConfigDisplay value={currentConfig} />
           </ColumnLayout.Column>
-          <ColumnLayout.Column>
-            <Heading level={3}>Changes</Heading>
-            <StanzaSpan>[{stanza}]</StanzaSpan>
-            <TextArea
-              placeholder="attribute = value"
-              onChange={handleInput}
-              value={input}
-              canClear
-              rowsMin={5}
-              rowsMax={25}
-              error={inputerror}
-            ></TextArea>
-            <br />
-            <Button
-              inline
-              label={loading ? <WaitSpinner /> : "Write Changes"}
-              appearance="primary"
-              onClick={handleWrite}
-              disabled={!!loading || error || !config}
-            />
-          </ColumnLayout.Column>
+          {config.getIn([app, stanza, "acl", "can_write"]) === false ? (
+            <ColumnLayout.Column>
+              <Heading level={3}>
+                You do not have access to change this stanza
+              </Heading>
+            </ColumnLayout.Column>
+          ) : (
+            <ColumnLayout.Column>
+              <Heading level={3}>Changes</Heading>
+              <StanzaSpan>[{stanza}]</StanzaSpan>
+              <TextArea
+                placeholder="attribute = value"
+                onChange={handleInput}
+                value={input}
+                canClear
+                rowsMin={5}
+                rowsMax={25}
+                error={inputerror}
+              ></TextArea>
+              <br />
+              <Button
+                label={loading ? <WaitSpinner /> : "Write Changes"}
+                appearance="primary"
+                onClick={handleWrite}
+                disabled={!!loading || error || !config}
+                width="100%"
+              />
+            </ColumnLayout.Column>
+          )}
           <ColumnLayout.Column>
             <Heading level={3}>Preview</Heading>
             <StanzaSpan>[{stanza}]</StanzaSpan>
-            <TextArea value={output} rowsMin={5} rowsMax={25}></TextArea>
+            <ConfigDisplay value={output} />
           </ColumnLayout.Column>
         </ColumnLayout.Row>
       ) : null}
     </ColumnLayout>
   );
+};
+
+const ConfigDisplay = ({ value }) => {
+  return value.map(([a, v]) => (
+    <Typography as="p" variant="monoBody" key={a}>
+      <AttributeSpan>{a}</AttributeSpan> = <ValueSpan>{v}</ValueSpan>
+    </Typography>
+  ));
 };
 
 Page(
