@@ -158,9 +158,14 @@ class configs(common.RestHandler):
                 "acl": {
                     "sharing": s["acl"]["sharing"],
                     "owner": s["acl"]["owner"],
-                    "can_write": [0, 1][s["acl"]["can_write"]],
-                    "readers": s["acl"]["perms"]["read"] if s["acl"]["perms"] else [],
-                    "writers": s["acl"]["perms"]["write"] if s["acl"]["perms"] else [],
+                    "write": [0, 1][s["acl"]["can_write"]],
+                    "change": [0, 1][s["acl"]["can_change_perms"]],
+                    "readers": s["acl"]["perms"].get("read", [])
+                    if s["acl"]["perms"]
+                    else [],
+                    "writers": s["acl"]["perms"].get("write", [])
+                    if s["acl"]["perms"]
+                    else [],
                     "share": [
                         [0, 1][s["acl"]["can_share_global"]],
                         [0, 1][s["acl"]["can_share_app"]],

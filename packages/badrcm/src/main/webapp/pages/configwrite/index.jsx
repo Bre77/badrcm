@@ -4,18 +4,8 @@ import debounce from "lodash.debounce";
 import { Map } from "immutable";
 
 import Page from "../../shared/page";
-import {
-  StyledContainer,
-  StanzaSpan,
-  AttributeSpan,
-  ValueSpan,
-} from "../../shared/styles";
-import {
-  wrapSetValue,
-  localLoad,
-  localSave,
-  localDel,
-} from "../../shared/helpers";
+import { StyledContainer, StanzaSpan, AttributeSpan, ValueSpan } from "../../shared/styles";
+import { wrapSetValue, localLoad, localSave, localDel } from "../../shared/helpers";
 import { restGet, restChange, cleanUp } from "../../shared/fetch";
 
 import ControlGroup from "@splunk/react-ui/ControlGroup";
@@ -33,35 +23,21 @@ import { config, username } from "@splunk/splunk-utils/config";
 const ConfigWrite = () => {
   const SYSTEM_APP_CONTEXT = { name: "system", label: "System" };
   const SYSTEM_USER_CONTEXT = { name: "nobody", realname: "Nobody" };
-  const COMMON_FILES = [
-    "props",
-    "transforms",
-    "eventtypes",
-    "inputs",
-    "outputs",
-    "server",
-  ]; //'app', 'authentication', 'authorize', 'collections', 'commands', 'datamodels',  'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
+  const COMMON_FILES = ["props", "transforms", "eventtypes", "inputs", "outputs", "server"]; //'app', 'authentication', 'authorize', 'collections', 'commands', 'datamodels',  'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
 
-  const confString = (entities) =>
-    entities.map(([a, v]) => `${a} = ${v}`).join("\n");
+  const confString = (entities) => entities.map(([a, v]) => `${a} = ${v}`).join("\n");
 
   // Selected Data
-  const [server, setServer] = useState(localLoad("BADRCM_configwriteserver"));
-  const handleServer = wrapSetValue(
-    localSave(setServer, "BADRCM_configwriteserver")
-  );
-  const [app, setApp] = useState(localLoad("BADRCM_configwriteapp"));
-  const handleApp = wrapSetValue(localSave(setApp, "BADRCM_configwriteapp"));
-  const [user, setUser] = useState(localLoad("BADRCM_configwriteuser"));
-  const handleUser = wrapSetValue(localSave(setUser, "BADRCM_configwriteuser"));
-  const [file, setFile] = useState(localLoad("BADRCM_configwritefile"));
-  const handleFile = wrapSetValue(localSave(setFile, "BADRCM_configwritefile"));
-  const [stanza, setStanza] = useState(
-    localLoad("BADRCM_configwritestanza", "")
-  );
-  const handleStanza = wrapSetValue(
-    localSave(setStanza, "BADRCM_configwritestanza")
-  );
+  const [server, setServer] = useState(localLoad("BADRCM_writeserver"));
+  const handleServer = wrapSetValue(localSave(setServer, "BADRCM_writeserver"));
+  const [app, setApp] = useState(localLoad("BADRCM_writeapp"));
+  const handleApp = wrapSetValue(localSave(setApp, "BADRCM_writeapp"));
+  const [user, setUser] = useState(localLoad("BADRCM_writeuser"));
+  const handleUser = wrapSetValue(localSave(setUser, "BADRCM_writeuser"));
+  const [file, setFile] = useState(localLoad("BADRCM_writefile"));
+  const handleFile = wrapSetValue(localSave(setFile, "BADRCM_writefile"));
+  const [stanza, setStanza] = useState(localLoad("BADRCM_writestanza", ""));
+  const handleStanza = wrapSetValue(localSave(setStanza, "BADRCM_writestanza"));
 
   // State - Loaded Data
   const [serveroptions, setServerOptions] = useState([]);
@@ -98,43 +74,34 @@ const ConfigWrite = () => {
     setLoading(1);
     setServerContext(null);
     setConfig(Map());
-    restGet(
-      "servers",
-      { server },
-      ([apps, users, files, username, realname, roles]) => {
-        for (const [app, [label, visable, version]] of Object.entries(apps)) {
-          apps[app] = label;
-        }
-        for (const [user, [realname, defaultapp]] of Object.entries(users)) {
-          users[user] = realname;
-        }
-
-        // Check App and User contexts are valid before changing context
-        if (
-          app &&
-          ![...Object.keys(apps), SYSTEM_APP_CONTEXT.name].includes(app)
-        ) {
-          console.log("Resetting App Context", app, "didnt exist");
-          setApp();
-          localDel(`BADRCM_configwriteapp`);
-        }
-        if (
-          user &&
-          ![...Object.keys(users), SYSTEM_USER_CONTEXT.name].includes(user)
-        ) {
-          console.log("Resetting User Context", user, "didnt exist");
-          setUser();
-          localDel(`BADRCM_configwriteuser`);
-        }
-        if (file && !files.includes(file)) {
-          console.log("Resetting File Context", file, "didnt exist");
-          setFile();
-          localDel(`BADRCM_configwritefile`);
-        }
-
-        setServerContext({ apps, users, files });
+    restGet("servers", { server }, ([apps, users, files]) => {
+      // , username, realname, roles
+      for (const [app, [label]] of Object.entries(apps)) {
+        apps[app] = label;
       }
-    ).then(
+      for (const [user, [realname]] of Object.entries(users)) {
+        users[user] = realname;
+      }
+
+      // Check App and User contexts are valid before changing context
+      if (app && ![...Object.keys(apps), SYSTEM_APP_CONTEXT.name].includes(app)) {
+        console.log("Resetting App Context", app, "didnt exist");
+        setApp();
+        localDel(`BADRCM_writeapp`);
+      }
+      if (user && ![...Object.keys(users), SYSTEM_USER_CONTEXT.name].includes(user)) {
+        console.log("Resetting User Context", user, "didnt exist");
+        setUser();
+        localDel(`BADRCM_writeuser`);
+      }
+      if (file && !files.includes(file)) {
+        console.log("Resetting File Context", file, "didnt exist");
+        setFile();
+        localDel(`BADRCM_writefile`);
+      }
+
+      setServerContext({ apps, users, files });
+    }).then(
       () => {
         setLoading(-1);
       },
@@ -175,8 +142,7 @@ const ConfigWrite = () => {
   );
   useEffect(() => {
     // Check requirements are met
-    if (server && servercontext && app && user && file)
-      debouncedGetConfig(server, app, user, file);
+    if (server && servercontext && app && user && file) debouncedGetConfig(server, app, user, file);
   }, [servercontext, app, user, file]);
 
   // Effect - Process Input
@@ -225,13 +191,7 @@ const ConfigWrite = () => {
   }, [input, config, app, stanza]);
 
   // Effect - Current Config
-  useEffect(
-    () =>
-      setCurrentConfig(
-        Object.entries(config.getIn([app, stanza, "attr"]) || {})
-      ),
-    [config, stanza]
-  );
+  useEffect(() => setCurrentConfig(Object.entries(config.getIn([app, stanza, "attr"]) || {})), [config, stanza]);
 
   // Handlers
   const handleWrite = () => {
@@ -239,11 +199,7 @@ const ConfigWrite = () => {
     return (
       config.hasIn([app, stanza, "attr"])
         ? restChange("configs", { server, file, user, app, stanza }, changes)
-        : restChange(
-            "configs",
-            { server, file, user, app, stanza: "" },
-            { ...changes, name: stanza }
-          )
+        : restChange("configs", { server, file, user, app, stanza: "" }, { ...changes, name: stanza })
     )
       .then((newdata) => setConfig(config.mergeDeep(newdata)))
       .then(() => {
@@ -257,28 +213,14 @@ const ConfigWrite = () => {
       <ColumnLayout.Row>
         <ColumnLayout.Column>
           <ControlGroup label="Server" labelPosition="left">
-            <Select
-              inline
-              appearance="primary"
-              value={server}
-              onChange={handleServer}
-              animateLoading={serveroptions.length === 0}
-              error={!server}
-            >
+            <Select inline appearance="primary" value={server} onChange={handleServer} animateLoading={serveroptions.length === 0} error={!server}>
               {serveroptions.map((s) => (
                 <Select.Option key={s} label={s} value={s} />
               ))}
             </Select>
           </ControlGroup>
           <ControlGroup label="Conf File" labelPosition="left">
-            <Select
-              inline
-              filter
-              value={file}
-              onChange={handleFile}
-              disabled={!server}
-              error={!file}
-            >
+            <Select inline filter value={file} onChange={handleFile} disabled={!server} error={!file}>
               <Select.Heading>Common Files</Select.Heading>
               {COMMON_FILES.map((file) => (
                 <Multiselect.Option key={file} label={file} value={file} />
@@ -286,78 +228,28 @@ const ConfigWrite = () => {
 
               <Select.Heading>All Files</Select.Heading>
               {servercontext
-                ? servercontext.files
-                    .filter((file) => !COMMON_FILES.includes(file))
-                    .map((file) => (
-                      <Multiselect.Option
-                        key={file}
-                        label={file}
-                        value={file}
-                      />
-                    ))
+                ? servercontext.files.filter((file) => !COMMON_FILES.includes(file)).map((file) => <Multiselect.Option key={file} label={file} value={file} />)
                 : null}
             </Select>
           </ControlGroup>
         </ColumnLayout.Column>
         <ColumnLayout.Column>
           <ControlGroup label="App" labelPosition="left">
-            <Select
-              inline
-              value={app}
-              onChange={handleApp}
-              disabled={!server}
-              error={!app}
-              filter
-            >
-              <Select.Option
-                label={SYSTEM_APP_CONTEXT.label}
-                description={SYSTEM_APP_CONTEXT.name}
-                value={SYSTEM_APP_CONTEXT.name}
-              />
+            <Select inline value={app} onChange={handleApp} disabled={!server} error={!app} filter>
+              <Select.Option label={SYSTEM_APP_CONTEXT.label} description={SYSTEM_APP_CONTEXT.name} value={SYSTEM_APP_CONTEXT.name} />
               {servercontext
-                ? Object.entries(servercontext.apps).map(([id, label]) => (
-                    <Select.Option
-                      key={id}
-                      label={label}
-                      description={id}
-                      value={id}
-                    />
-                  ))
+                ? Object.entries(servercontext.apps).map(([id, label]) => <Select.Option key={id} label={label} description={id} value={id} />)
                 : null}
             </Select>
           </ControlGroup>
           <ControlGroup label="Owner" labelPosition="left">
-            <Select
-              inline
-              filter
-              value={user}
-              onChange={handleUser}
-              disabled={!server}
-              error={!user}
-            >
+            <Select inline filter value={user} onChange={handleUser} disabled={!server} error={!user}>
               <Select.Heading>Special</Select.Heading>
-              <Select.Option
-                label={SYSTEM_USER_CONTEXT.realname}
-                description={SYSTEM_USER_CONTEXT.realname}
-                value={SYSTEM_USER_CONTEXT.name}
-              />
-              {servercontext && servercontext.users[username] ? (
-                <Select.Option
-                  label="Your User"
-                  value={username}
-                  description={username}
-                />
-              ) : null}
+              <Select.Option label={SYSTEM_USER_CONTEXT.realname} description={SYSTEM_USER_CONTEXT.realname} value={SYSTEM_USER_CONTEXT.name} />
+              {servercontext && servercontext.users[username] ? <Select.Option label="Your User" value={username} description={username} /> : null}
               <Select.Heading>All Users</Select.Heading>
               {servercontext
-                ? Object.entries(servercontext.users).map(([user, real]) => (
-                    <Select.Option
-                      key={user}
-                      label={real}
-                      description={user}
-                      value={user}
-                    />
-                  ))
+                ? Object.entries(servercontext.users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />)
                 : null}
             </Select>
           </ControlGroup>
@@ -381,28 +273,14 @@ const ConfigWrite = () => {
             <Select
               inline
               disabled
-              value={
-                config.getIn([app, stanza, "acl", "sharing"]) || app == "system"
-                  ? "global"
-                  : user == "nobody"
-                  ? "app"
-                  : "private"
-              }
+              value={config.getIn([app, stanza, "acl", "sharing"]) || app == "system" ? "global" : user == "nobody" ? "app" : "private"}
               //onChange={handleFile}
               //disabled={!stanza || !user}
               error={!stanza}
             >
-              <Multiselect.Option
-                label="Private"
-                value="private"
-                disabled={user == "nobody" || app == "system"}
-              />
-              <Multiselect.Option
-                label="App"
-                value="app"
-                disabled={app == "system"}
-              />
-              <Multiselect.Option label="Global" value="global" />
+              <Select.Option label="Private" value="private" disabled={user == "nobody" || app == "system"} />
+              <Select.Option label="App" value="app" disabled={app == "system"} />
+              <Select.Option label="Global" value="global" />
             </Select>
           </ControlGroup>
         </ColumnLayout.Column>
@@ -416,23 +294,13 @@ const ConfigWrite = () => {
           </ColumnLayout.Column>
           {config.getIn([app, stanza, "acl", "can_write"]) === false ? (
             <ColumnLayout.Column>
-              <Heading level={3}>
-                You do not have access to change this stanza
-              </Heading>
+              <Heading level={3}>You do not have access to change this stanza</Heading>
             </ColumnLayout.Column>
           ) : (
             <ColumnLayout.Column>
               <Heading level={3}>Changes</Heading>
               <StanzaSpan>[{stanza}]</StanzaSpan>
-              <TextArea
-                placeholder="attribute = value"
-                onChange={handleInput}
-                value={input}
-                canClear
-                rowsMin={5}
-                rowsMax={25}
-                error={inputerror}
-              ></TextArea>
+              <TextArea placeholder="attribute = value" onChange={handleInput} value={input} canClear rowsMin={5} rowsMax={25} error={inputerror}></TextArea>
               <br />
               <Button
                 label={loading ? <WaitSpinner /> : "Write Changes"}
