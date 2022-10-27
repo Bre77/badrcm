@@ -11,7 +11,7 @@ import Page from "../../shared/page";
 import { StyledContainer, ShortCell, TallCell, StanzaSpan, AttributeSpan, CreateLink } from "../../shared/styles";
 import { isort, isort0, tupleSplit, wrapSetValues, wrapSetValue, localLoad, localSave, localDel } from "../../shared/helpers";
 import { restGet, restChange, cleanUp } from "../../shared/fetch";
-import { DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
+import { DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT, COMMON_FILES } from "../../shared/const";
 
 import { username } from "@splunk/splunk-utils/config";
 
@@ -34,26 +34,25 @@ const ConfigEdit = () => {
   const COLUMN_INDEX = Array(MAX_COLUMNS)
     .fill()
     .map((_, i) => i);
-  const COMMON_FILES = ["props", "transforms", "eventtypes", "inputs", "outputs", "server"]; //'app', 'authentication', 'authorize', 'collections', 'commands', 'datamodels',  'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
 
   // State - Page Selectors
-  const [filefilter, setFileFilter] = useState(localLoad("badrcm_filefilter", ["props", "transforms"])); //
-  const handleFileFilter = wrapSetValues(localSave(setFileFilter, "badrcm_filefilter"));
-  const [appfilter, setAppFilter] = useState(localLoad("badrcm_appfilter", ["search"]));
-  const handleAppFilter = wrapSetValues(localSave(setAppFilter, "badrcm_appfilter"));
-  const [columncount, setColumnCount] = useState(localLoad("badrcm_columncount", 2));
-  const handleColumnCount = wrapSetValue(localSave(setColumnCount, "badrcm_columncount"));
+  const [filefilter, setFileFilter] = useState(localLoad("BADRCM_editfilefilter", ["props", "transforms"])); //
+  const handleFileFilter = wrapSetValues(localSave(setFileFilter, "BADRCM_editfilefilter"));
+  const [appfilter, setAppFilter] = useState(localLoad("BADRCM_editappfilter", ["search"]));
+  const handleAppFilter = wrapSetValues(localSave(setAppFilter, "BADRCM_editappfilter"));
+  const [columncount, setColumnCount] = useState(localLoad("BADRCM_editcolumncount", 2));
+  const handleColumnCount = wrapSetValue(localSave(setColumnCount, "BADRCM_editcolumncount"));
 
   const [fileoptions, setFileOptions] = useState(Set());
   const [appoptions, setAppOptions] = useState(Map());
 
   // State - Column Selector
-  const [server, setServer] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_server${z}`))));
-  const handleServer = setServer.map((f, z) => wrapSetValue(localSave(f, `BADRCM_server${z}`)));
-  const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_appcontext${z}`, DEFAULT_APP_CONTEXT.name))));
-  const handleAppContext = setAppContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_appcontext${z}`)));
-  const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_usercontext${z}`, SYSTEM_USER_CONTEXT.name))));
-  const handleUserContext = setUserContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_usercontext${z}`)));
+  const [server, setServer] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_editserver${z}`))));
+  const handleServer = setServer.map((f, z) => wrapSetValue(localSave(f, `BADRCM_editserver${z}`)));
+  const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_editappcontext${z}`, DEFAULT_APP_CONTEXT.name))));
+  const handleAppContext = setAppContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_editappcontext${z}`)));
+  const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_editusercontext${z}`, SYSTEM_USER_CONTEXT.name))));
+  const handleUserContext = setUserContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_editusercontext${z}`)));
   const [error, setError] = tupleSplit(COLUMN_INDEX.map(() => useState(false)));
   const [loading, setLoading] = tupleSplit(COLUMN_INDEX.map(() => useReducer((prev, change) => prev + change, 0)));
   // const handleLoading = setLoading.map(wrapSetValue)
@@ -81,14 +80,15 @@ const ConfigEdit = () => {
       setServerContext[z](null);
       setServerConfig[z](Map());
       restGet("servers", { server: s }, ([apps, users, files, username, realname, roles]) => {
-        for (const [app, [label, visable, version]] of Object.entries(apps)) {
+        //
+        for (const [app, [label, _, version]] of Object.entries(apps)) {
           apps[app] = {
             label: label,
-            visable: Boolean(visable),
+            //visable: Boolean(visable),
             version: version,
           };
         }
-        for (const [user, [realname, defaultapp]] of Object.entries(users)) {
+        for (const [user, [realname]] of Object.entries(users)) {
           users[user] = realname;
         }
 
@@ -96,12 +96,12 @@ const ConfigEdit = () => {
         if (![...Object.keys(apps), DEFAULT_APP_CONTEXT.name, SYSTEM_APP_CONTEXT.name].includes(appcontext[z])) {
           console.log("Resetting App Context", z, appcontext[z], "didnt exist");
           setAppContext[z](DEFAULT_APP_CONTEXT.name);
-          localDel(`BADRCM_appcontext${z}`);
+          localDel(`BADRCM_editappcontext${z}`);
         }
         if (![...Object.keys(users), SYSTEM_USER_CONTEXT.name].includes(usercontext[z])) {
           console.log("Resetting User Context", z, usercontext[z], "didnt exist");
           setUserContext[z](SYSTEM_USER_CONTEXT.name);
-          localDel(`BADRCM_usercontext${z}`);
+          localDel(`BADRCM_editusercontext${z}`);
         }
 
         const user_options = Object.entries(users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />);
@@ -126,10 +126,6 @@ const ConfigEdit = () => {
         console.log(`EFFECT Configs for ${z}`);
         setError[z](false);
         setLoading[z](1);
-
-        // Validate the appcontext and usercontext
-        //appcontext[z]
-
         filefilter.map((file) => {
           restGet(
             "configs",
@@ -139,13 +135,9 @@ const ConfigEdit = () => {
               user: usercontext[z],
               file: file,
             },
-            (config) => {
-              setServerConfig[z]((prev) => prev.merge({ [file]: config }));
-            }
+            (config) => setServerConfig[z]((prev) => prev.merge({ [file]: config }))
           ).then(
-            () => {
-              setLoading[z](-1);
-            },
+            () => setLoading[z](-1),
             (e) => {
               setError[z](true);
               setLoading[z](-1);
@@ -214,18 +206,20 @@ const ConfigEdit = () => {
               if (!output[app]) output[app] = { [file]: {} };
               else if (!output[app][file]) output[app][file] = {};
               for (const [stanza, content] of Object.entries(stanzas)) {
-                if (!output[app][file][stanza]) output[app][file][stanza] = {};
+                if (!output[app][file][stanza]) output[app][file][stanza] = { acl: {}, attr: {} };
                 for (const [attr, value] of Object.entries(content.attr)) {
-                  if (!output[app][file][stanza][attr]) output[app][file][stanza][attr] = [value];
-                  else output[app][file][stanza][attr].push(value);
+                  if (!output[app][file][stanza].attr[attr]) output[app][file][stanza].attr[attr] = [value];
+                  else output[app][file][stanza].attr[attr].push(value);
+                }
+                for (const [attr, value] of Object.entries(content.acl)) {
+                  if (!output[app][file][stanza].acl[attr]) output[app][file][stanza].acl[attr] = [value];
+                  else output[app][file][stanza].acl[attr].push(value);
                 }
               }
             }
           }
           return output;
         }, {});
-
-      console.log(configdict);
 
       const configarray = Object.entries(configdict)
         .sort(isort0)
@@ -239,22 +233,34 @@ const ConfigEdit = () => {
                   app,
                   Object.entries(stanzas)
                     .sort(isort0)
-                    .map(([stanza, attributes]) => {
+                    .map(([stanza, { attr, acl }]) => {
                       return [
                         stanza,
-                        Object.entries(attributes)
-                          .sort(isort0)
-                          .map(([attribute, values]) => {
-                            return [
-                              attribute,
-                              {
-                                // Use boolean only if all values are boolean
-                                text: values.some((value) => typeof value !== "boolean"),
-                                // 0 if different, 1 if only one value, 2 if all the same
-                                same: values.every((value) => value == values[0]) * 2 - (values.length === 1),
-                              },
-                            ];
-                          }),
+                        {
+                          attr: Object.entries(attr)
+                            .sort(isort0)
+                            .map(([attribute, values]) => {
+                              return [
+                                attribute,
+                                {
+                                  // Use boolean only if all values are boolean
+                                  text: values.some((value) => typeof value !== "boolean"),
+                                  // 0 if different, 1 if only one value, 2 if all the same
+                                  same: values.every((value, _, values) => value == values[0]),
+                                },
+                              ];
+                            }),
+                          acl: {
+                            sharing: acl.sharing.every((value, _, values) => value == values[0]),
+                            owner: acl.owner.every((value, _, values) => value == values[0]),
+                            readers: acl.readers.every((array, _, arrays) => {
+                              array.length == arrays[0].length && array.every((value) => arrays[0].includes(value));
+                            }),
+                            writers: acl.writers.every((array, _, arrays) => {
+                              array.length == arrays[0].length && array.every((value) => arrays[0].includes(value));
+                            }),
+                          },
+                        },
                       ];
                     }),
                 ];
@@ -282,15 +288,30 @@ const ConfigEdit = () => {
   // Methods
 
   const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
-    const value = fixedvalue !== undefined ? fixedvalue : inputvalue;
-    console.log(z, file, app, stanza, key, value);
-    restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: value }).then((config) => {
-      setServerConfig[z]((prev) => prev.mergeDeep({ [file]: config }));
-    });
+    restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: fixedvalue || inputvalue }).then((config) =>
+      setServerConfig[z]((prev) => prev.mergeIn([file, app, stanza], config[app][stanza]))
+    );
   };
 
+  const handleAclChangeFactory =
+    (z, file, app, stanza, key) =>
+    (_, { value, values }) => {
+      console.log("ACL", z, file, app, stanza, key, value || values);
+      const current = serverconfig[z].getIn([file, app, stanza, "acl"]);
+      return restChange(
+        "acl",
+        { server: server[z], file, user: usercontext[z], app, stanza },
+        { sharing: current.sharing, owner: current.owner, "perms.read": current.readers, "perms.write": current.writers, [key]: value || values }
+      ).then((acls) => {
+        setServerConfig[z]((prev) => {
+          console.log(prev, file, app, stanza, "acl", acls);
+          return prev.setIn([file, app, stanza, "acl"], acls);
+        });
+      });
+    };
+
   // Table Expansion
-  const getConfigRows = (app, file, stanza, attributes) => [
+  const getConfigRows = (app, file, stanza, attributes, acls) => [
     <Table.Row key={`${app}|${file}|${stanza}|sharing`}>
       <TallCell align="right">Sharing</TallCell>
 
@@ -298,7 +319,7 @@ const ConfigEdit = () => {
         const acl = config.getIn([file, app, stanza, "acl"]);
         return acl ? (
           <ShortCell key={z}>
-            <Select inline value={acl.sharing}>
+            <Select inline disabled={!acl.change} value={acl.sharing} onChange={handleAclChangeFactory(z, file, app, stanza, "sharing")} error={!acls.sharing}>
               <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
               <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
               <Select.Option disabled={!acl.share[2]} label="Private" value="private" icon={<User />} />
@@ -312,10 +333,10 @@ const ConfigEdit = () => {
     <Table.Row key={`${app}|${file}|${stanza}|owner`}>
       <TallCell align="right">Owner</TallCell>
       {serverconfig.slice(0, columncount).map((config, z) => {
-        const owner = config.getIn([file, app, stanza, "acl", "owner"]);
-        return servercontext[z] && owner ? (
+        const acl = config.getIn([file, app, stanza, "acl"]);
+        return acl && servercontext[z] ? (
           <ShortCell key={z}>
-            <Select inline value={owner}>
+            <Select inline disabled={!acl.change} value={acl.owner} onChange={handleAclChangeFactory(z, file, app, stanza, "owner")} error={!acls.owner}>
               <Select.Option label="Nobody" value="nobody" />
               {servercontext[z].user_options}
             </Select>
@@ -329,10 +350,15 @@ const ConfigEdit = () => {
       <TallCell align="right">Read Roles</TallCell>
 
       {serverconfig.slice(0, columncount).map((config, z) => {
-        const roles = config.getIn([file, app, stanza, "acl", "readers"]);
-        return roles ? (
+        const acl = config.getIn([file, app, stanza, "acl"]);
+        return acl && servercontext[z] ? (
           <ShortCell key={z}>
-            <Multiselect values={roles}>
+            <Multiselect
+              disabled={!acl.change}
+              values={acl.readers}
+              onChange={handleAclChangeFactory(z, file, app, stanza, "perms.read")}
+              error={!acls.readers}
+            >
               <Multiselect.Option label="Everyone" value="*" />
               {servercontext[z].roles.map((role) => (
                 <Multiselect.Option key={role} label={role} value={role} />
@@ -347,10 +373,15 @@ const ConfigEdit = () => {
     <Table.Row key={`${app}|${file}|${stanza}|writers`}>
       <TallCell align="right">Write Roles</TallCell>
       {serverconfig.slice(0, columncount).map((config, z) => {
-        const roles = config.getIn([file, app, stanza, "acl", "writers"]);
-        return roles ? (
+        const acl = config.getIn([file, app, stanza, "acl"]);
+        return acl && servercontext[z] ? (
           <ShortCell key={z}>
-            <Multiselect values={roles}>
+            <Multiselect
+              disabled={!acl.change}
+              values={acl.writers}
+              onChange={handleAclChangeFactory(z, file, app, stanza, "perms.write")}
+              error={!acls.writers}
+            >
               <Multiselect.Option label="Everyone" value="*" />
               {servercontext[z].roles.map((role) => (
                 <Multiselect.Option key={role} label={role} value={role} />
@@ -361,6 +392,12 @@ const ConfigEdit = () => {
           <ShortCell key={z}></ShortCell>
         );
       })}
+    </Table.Row>,
+    <Table.Row key={`${app}|${file}|${stanza}|break`}>
+      <Table.Cell></Table.Cell>
+      {COLUMN_INDEX.slice(0, columncount).map((z) => (
+        <Table.Cell key={z}></Table.Cell>
+      ))}
     </Table.Row>,
     ...attributes.map(([attribute, metadata]) => (
       <Table.Row key={`${app}|${file}|${stanza}|attribute`}>
@@ -381,7 +418,7 @@ const ConfigEdit = () => {
               key={z}
               value={value}
               metadata={metadata}
-              disabled={!config.getIn([file, app, stanza, "acl", "can_write"])}
+              disabled={!config.getIn([file, app, stanza, "acl", "write"])}
               handle={handleConfigChangeFactory(z, file, app, stanza, attribute)}
             />
           );
@@ -519,9 +556,9 @@ const ConfigEdit = () => {
                   </Table.Row>,
                   ...stanzas.map(
                     (
-                      [stanza, attributes] // Stanza Row with expansion
+                      [stanza, { attr, acl }] // Stanza Row with expansion
                     ) => (
-                      <Table.Row key={`${app}|${file}|${stanza}`} expansionRow={getConfigRows(app, file, stanza, attributes)}>
+                      <Table.Row key={`${app}|${file}|${stanza}`} expansionRow={getConfigRows(app, file, stanza, attr, acl)}>
                         <ShortCell align="right" truncate>
                           <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
                         </ShortCell>
@@ -568,13 +605,13 @@ const ConfigInput = ({ value, handle, disabled, metadata }) => {
   if (metadata.text)
     return (
       <ShortCell>
-        <Text value={internalvalue} onChange={inputHandle} disabled={disabled} error={metadata.same === 0} />
+        <Text value={internalvalue} onChange={inputHandle} disabled={disabled} error={!metadata.same} />
       </ShortCell>
     );
   else
     return (
       <ShortCell>
-        <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={metadata.same === 0} />
+        <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={!metadata.same} />
       </ShortCell>
     );
 };
