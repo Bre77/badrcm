@@ -13,8 +13,6 @@ import { isort, isort0, tupleSplit, wrapSetValues, wrapSetValue, localLoad, loca
 import { restGet, restChange, cleanUp } from "../../shared/fetch";
 import { DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT, COMMON_FILES } from "../../shared/const";
 
-import { username } from "@splunk/splunk-utils/config";
-
 import ControlGroup from "@splunk/react-ui/ControlGroup";
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import Number from "@splunk/react-ui/Number";
@@ -106,7 +104,7 @@ const ConfigEdit = () => {
 
         const user_options = Object.entries(users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />);
 
-        setServerContext[z]({ apps, users, files, roles, user_options });
+        setServerContext[z]({ apps, users, files, username, realname, roles, user_options });
       }).then(
         () => {
           setLoading[z](-1);
@@ -493,9 +491,8 @@ const ConfigEdit = () => {
                   <Select.Option label="All Apps" value={DEFAULT_APP_CONTEXT.name} />
                   <Select.Option label="None / Global Only" description="system" value={SYSTEM_APP_CONTEXT.name} />
                   <Select.Heading>Apps</Select.Heading>
-                  {servercontext[z]
-                    ? Object.entries(servercontext[z].apps).map(([id, { label }]) => <Select.Option key={id} label={label} description={id} value={id} />)
-                    : null}
+                  {servercontext[z] &&
+                    Object.entries(servercontext[z].apps).map(([id, { label }]) => <Select.Option key={id} label={label} description={id} value={id} />)}
                 </Select>
               </ControlGroup>
               <ControlGroup
@@ -514,9 +511,15 @@ const ConfigEdit = () => {
                 >
                   <Select.Heading>Special</Select.Heading>
                   <Select.Option label="No Private Config" description="nobody" value={SYSTEM_USER_CONTEXT.name} />
-                  {servercontext[z] && servercontext[z].users[username] ? <Select.Option label="Your User" value={username} description={username} /> : null}
+                  {servercontext[z] && (
+                    <Select.Option
+                      label={`${servercontext[z].realname} (Auth Token User)`}
+                      value={servercontext[z].username}
+                      description={servercontext[z].username}
+                    />
+                  )}
                   <Select.Heading>All Users</Select.Heading>
-                  {servercontext[z] ? servercontext[z].user_options : null}
+                  {servercontext[z] && servercontext[z].user_options}
                 </Select>
               </ControlGroup>
             </ColumnLayout.Column>

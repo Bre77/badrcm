@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect, useReducer, useCallback } from "react";
+import debounce from "lodash.debounce";
 import { Map, Set } from "immutable";
 
 import Page from "../../shared/page";
@@ -59,7 +60,7 @@ const ConfigCopy = () => {
       setLoading[z](1);
       setServerContext[z](null);
       setServerConfig[z](Map());
-      restGet("servers", { server: s }, ([apps, users, files]) => {
+      restGet("servers", { server: s }, ([apps, users, files, username, realname]) => {
         //username, realname, roles
         for (const [app, [label]] of Object.entries(apps)) {
           apps[app] = label;
@@ -80,7 +81,7 @@ const ConfigCopy = () => {
           localDel(`BADRCM_copyusercontext${z}`);
         }
 
-        setServerContext[z]({ apps, users, files });
+        setServerContext[z]({ apps, users, files, username, realname });
       }).then(
         () => {
           setLoading[z](-1);
@@ -129,7 +130,6 @@ const ConfigCopy = () => {
     }, [servercontext[z], appcontext[z], usercontext[z], filefilter]);
   });
 
-
   // Get Config keys
   useEffect(() => {
     console.log("EFFECT Config Keys");
@@ -172,7 +172,6 @@ const ConfigCopy = () => {
     setMergedConfig(configarray);
   }, [...serverconfig]);
 
-
   // Methods
 
   const getConfigRows = (app, file, stanzas) => {
@@ -214,50 +213,40 @@ const ConfigCopy = () => {
     <>
       <ColumnLayout divider="vertical">
         <ColumnLayout.Row>
-        <ColumnLayout.Column>
-              <ControlGroup label="Source Server" labelPosition="left">
-                <Select inline appearance="primary" value={server[0]} onChange={handleServer[0]} error={!server[0]}>
-                  {serveroptions.map((s) => (
-                    <Select.Option key={s} label={s} value={s} />
-                  ))}
-                </Select>
-              </ControlGroup>
-              <ControlGroup label="Source App Context" labelPosition="left">
-                <Select inline value={appcontext[0]} onChange={handleAppContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
-                  <Select.Option label="All" value="-" />
-                  <Select.Option label="None" description="system" value="system" />
-                  {servercontext[0]
-                    ? Object.entries(servercontext[z].apps).map(([id, label]) => <Select.Option key={id} label={label} description={id} value={id} />)
-                    : null}
-                </Select>
-              </ControlGroup>
-              <ControlGroup label="Source User Context" labelPosition="left">
-                <Select inline value={usercontext[0]} onChange={handleUserContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
-                  <Select.Option label="Nobody" value="nobody" />
-                  {servercontext[0]
-                    ? Object.entries(servercontext[0].users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />)
-                    : null}
-                </Select>
-              </ControlGroup>
-            </ColumnLayout.Column>
+          <ColumnLayout.Column>
+            <ControlGroup label="Source Server" labelPosition="left">
+              <Select inline appearance="primary" value={server[0]} onChange={handleServer[0]} error={!server[0]}>
+                {serveroptions.map((s) => (
+                  <Select.Option key={s} label={s} value={s} />
+                ))}
+              </Select>
+            </ControlGroup>
+            <ControlGroup label="Source App Context" labelPosition="left">
+              <Select inline value={appcontext[0]} onChange={handleAppContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
+                <Select.Option label="All" value="-" />
+                <Select.Option label="None" description="system" value="system" />
+                {servercontext[0] &&
+                  Object.entries(servercontext[0].apps).map(([id, label]) => <Select.Option key={id} label={label} description={id} value={id} />)}
+              </Select>
+            </ControlGroup>
+            <ControlGroup label="Source User Context" labelPosition="left">
+              <Select inline value={usercontext[0]} onChange={handleUserContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
+                <Select.Option label="Nobody" value="nobody" />
+                {servercontext[0] &&
+                  Object.entries(servercontext[0].users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />)}
+              </Select>
+            </ControlGroup>
+          </ColumnLayout.Column>
           <ColumnLayout.Column>
             <ControlGroup label="Config Files" labelPosition="left">
-              <Multiselect
-                inline
-                values={filefilter}
-                onChange={handleFileFilter}
-                placeholder={`All ${fileoptions.size} files`}
-                allowKeyMatching={true}
-              >
+              <Multiselect inline values={filefilter} onChange={handleFileFilter} placeholder={`All ${fileoptions.size} files`} allowKeyMatching={true}>
                 <Select.Heading>Common Files</Select.Heading>
                 {COMMON_FILES.map((file) => (
                   <Multiselect.Option key={file} label={file} value={file} />
                 ))}
 
                 <Select.Heading>All Files</Select.Heading>
-                {servercontext[0] && servercontext[0].apps.map((file) => (
-                  <Multiselect.Option key={file} label={file} value={file} />
-                ))}
+                {servercontext[0] && servercontext[0].files.map((file) => <Multiselect.Option key={file} label={file} value={file} />)}
               </Multiselect>
             </ControlGroup>
             <ControlGroup label="Apps" labelPosition="left">
@@ -269,58 +258,36 @@ const ConfigCopy = () => {
                 allowKeyMatching={true}
                 noOptionsMessage="Select at least one server first"
               >
-                {appoptions.map((label, id) => <Multiselect.Option key={id} label={label} value={id} />).toList()}
+                {servercontext[0] && Object.entries(servercontext[0].apps).map(([id, label]) => <Multiselect.Option key={id} label={label} value={id} />)}
               </Multiselect>
             </ControlGroup>
           </ColumnLayout.Column>
-          {COLUMN_INDEX.map((z) => (
-            <ColumnLayout.Column key={z}>
-              <ControlGroup label="Server" labelPosition="left">
-                <Select inline appearance="primary" value={server[z]} onChange={handleServer[z]} error={!server[z]}>
-                  {serveroptions.map((s) => (
-                    <Select.Option key={s} label={s} value={s} />
-                  ))}
-                </Select>
-              </ControlGroup>
-              <ControlGroup label="App Context" labelPosition="left">
-                <Select inline value={appcontext[z]} onChange={handleAppContext[z]} disabled={!server[z]} animateLoading={!servercontext[z]}>
-                  <Select.Option label="All" value="-" />
-                  <Select.Option label="None" description="system" value="system" />
-                  {servercontext[z]
-                    ? Object.entries(servercontext[z].apps).map(([id, { label }]) => <Select.Option key={id} label={label} description={id} value={id} />)
-                    : null}
-                </Select>
-              </ControlGroup>
-              <ControlGroup label="User Context" labelPosition="left">
-                <Select inline value={usercontext[z]} onChange={handleUserContext[z]} disabled={!server[z]} animateLoading={!servercontext[z]}>
-                  <Select.Option label="Nobody" value="nobody" />
-                  {servercontext[z]
-                    ? Object.entries(servercontext[z].users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />)
-                    : null}
-                </Select>
-              </ControlGroup>
-            </ColumnLayout.Column>
-          ))}
+
+          <ColumnLayout.Column>
+            <ControlGroup label="Destination Server" labelPosition="left">
+              <Select inline appearance="primary" value={server[1]} onChange={handleServer[1]} error={!server[1]}>
+                {serveroptions.map((s) => (
+                  <Select.Option key={s} label={s} value={s} />
+                ))}
+              </Select>
+            </ControlGroup>
+            <ControlGroup label="Destination User" labelPosition="left">
+              <Select inline value={usercontext[1]} onChange={handleUserContext[1]} disabled={!server[1]} animateLoading={!servercontext[1]}>
+                <Select.Option label="Nobody" value="nobody" />
+                {servercontext[1]
+                  ? Object.entries(servercontext[1].users).map(([user, real]) => <Select.Option key={user} label={real} description={user} value={user} />)
+                  : null}
+              </Select>
+            </ControlGroup>
+          </ColumnLayout.Column>
         </ColumnLayout.Row>
       </ColumnLayout>
     </>
   );
 };
 
-getUserTheme()
-  .then((theme) => {
-    const splunkTheme = getThemeOptions(theme);
-    layout(
-      <SplunkThemeProvider {...splunkTheme}>
-        <StyledContainer>
-          <Configs />
-        </StyledContainer>
-      </SplunkThemeProvider>,
-      splunkTheme
-    );
-  })
-  .catch((e) => {
-    const errorEl = document.createElement("span");
-    errorEl.innerHTML = e;
-    document.body.appendChild(errorEl);
-  });
+Page(
+  <StyledContainer>
+    <ConfigCopy />
+  </StyledContainer>
+);

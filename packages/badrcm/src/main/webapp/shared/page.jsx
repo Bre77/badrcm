@@ -64,13 +64,13 @@ const Disclaimer = () => {
   );
 };
 
-export default (component) =>
+export default (component, animate = false) =>
   getUserTheme()
     .then((theme) => {
       layout(
         <>
           <GlobalStyle />
-          <AnimationToggleProvider enabled={false}>{component}</AnimationToggleProvider>
+          <AnimationToggleProvider enabled={animate}>{component}</AnimationToggleProvider>
           <ToastMessages />
           <Disclaimer />
         </>,
