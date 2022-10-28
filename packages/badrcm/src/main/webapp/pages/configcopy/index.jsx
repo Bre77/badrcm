@@ -1,20 +1,23 @@
 /* eslint-disable */
-import React, { useState, useEffect, useReducer, useCallback } from "react";
-import debounce from "lodash.debounce";
 import { Map, Set } from "immutable";
+import debounce from "lodash.debounce";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 
+// Shared
+import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
+import { cleanUp, restChange, restGet } from "../../shared/fetch";
+import { isort, isort0, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import Page from "../../shared/page";
-import { StyledContainer } from "./Styles";
-import { isort, isort0, tupleSplit, wrapSetValues, wrapSetValue, localLoad, localSave, localDel } from "../../shared/helpers";
-import { restGet, restChange, cleanUp } from "../../shared/fetch";
-import { DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT, COMMON_FILES } from "../../shared/const";
+import { AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
+// Splunk UI
+import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ComboBox from "@splunk/react-ui/ComboBox";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
-import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import Multiselect from "@splunk/react-ui/Multiselect";
 import Select from "@splunk/react-ui/Select";
 import Table from "@splunk/react-ui/Table";
+import Typography from "@splunk/react-ui/Typography";
 
 const ConfigCopy = () => {
   const COLUMN_INDEX = [0, 1];
@@ -40,9 +43,10 @@ const ConfigCopy = () => {
 
   const [serveroptions, setServerOptions] = useState([]);
   const [servercontext, setServerContext] = tupleSplit(COLUMN_INDEX.map(() => useState()));
-  const [serverconfig, setServerConfig] = tupleSplit(COLUMN_INDEX.map(() => useReducer((prev, add) => ({ ...prev, ...add }))));
+  const [serverconfig, setServerConfig] = tupleSplit(COLUMN_INDEX.map(() => useState(Map())));
 
   const [mergedconfig, setMergedConfig] = useState([]);
+  const [ticks, setTick] = useState(Map());
 
   // Startup
   useEffect(() => {
@@ -131,80 +135,76 @@ const ConfigCopy = () => {
   });
 
   // Get Config keys
-  useEffect(() => {
-    console.log("EFFECT Config Keys");
-    const configdict = serverconfig
+  const debouncedServerContext = useCallback(
+    debounce((serverconfig, appfilter, filefilter) => {
+      console.log("EFFECT Config Keys");
 
-      .filter((config) => config)
-      .reduce((output, input) => {
-        for (const [file, apps] of Object.entries(input)) {
-          for (const [app, stanzas] of Object.entries(apps)) {
-            if (!output[app]) output[app] = { [file]: {} };
-            else if (!output[app][file]) output[app][file] = {};
-            for (const [stanza, content] of Object.entries(stanzas)) {
-              if (!output[app][file][stanza]) output[app][file][stanza] = new Set(Object.keys(content.attr));
-              else Object.keys(content.attr).forEach((attr) => output[app][file][stanza].add(attr));
-            }
+      const configdict = serverconfig[1].reduce((src, apps, file) => {
+        for (const [app, stanzas] of Object.entries(apps)) {
+          if (!src[file] || !src[file][app]) continue;
+          for (const [stanza, content] of Object.entries(stanzas)) {
+            if (!src[file][app][stanza]) src[file][app][stanza] = content;
+            else Object.keys(content.attr).forEach((attr) => (src[file][app][stanza].attr[attr] = null));
           }
         }
-        return output;
-      }, {});
+        return src;
+      }, serverconfig[0]);
 
-    const configarray = Object.entries(configdict)
-      .sort(isort0)
-      .map(([file, apps]) => {
-        return [
-          file,
-          Object.entries(apps)
+      //const ticks = {}
+      const configarray = configdict
+        .toArray()
+        .filter(([file]) => filefilter.length === 0 || filefilter.includes(file))
+        .sort(isort0)
+        .flatMap(([file, apps]) => {
+          return Object.entries(apps)
+            .filter(([app]) => appfilter.length === 0 || appfilter.includes(app))
             .sort(isort0)
             .map(([app, stanzas]) => {
               return [
-                app,
+                [app, file],
                 Object.entries(stanzas)
                   .sort(isort0)
                   .map(([stanza, content]) => {
-                    return [stanza, Array.from(content).sort(isort)];
+                    return [stanza, Object.keys(content.attr).sort(isort)];
                   }),
               ];
-            }),
-        ];
-      });
-    setMergedConfig(configarray);
-  }, [...serverconfig]);
+            });
+        });
+      console.log(configarray);
+      //console.log(configdict.toArray().filter(([file]) => filefilter.length === 0 || filefilter.includes(file)));
+      setMergedConfig(configarray);
+      //setTicks
+    }, 100),
+    []
+  );
+  useEffect(() => {
+    if (!serverconfig[0].isEmpty() && !serverconfig[1].isEmpty()) debouncedServerContext(serverconfig, appfilter, filefilter);
+  }, [...serverconfig, appfilter, filefilter]);
 
   // Methods
 
-  const getConfigRows = (app, file, stanzas) => {
-    return stanzas.flatMap(([stanza, attributes]) => [
-      <Table.Row key={app + file + stanza} onRequestToggle={tick}>
-        <Table.Cell align="right" truncate className="conf-stanza">
-          [{stanza.substring(0, 30)}]
-        </Table.Cell>
-        {servercontext.map((context, z) => (
-          <Table.Cell key={z}>ACLS GO HERE</Table.Cell>
-        ))}
-      </Table.Row>,
-      ...attributes.map((attribute) => (
-        <Table.Row key={app + file + stanza + attribute} onRequestToggle={tick}>
-          <Table.Cell align="right" truncate className="conf-attribute">
-            {attribute}
+  const getConfigRows = (app, file, stanza, attrs) => {
+    return attrs.map((attr) => {
+      const src = serverconfig[0].getIn([file, app, stanza, "attr", attr]);
+      const dst = serverconfig[1].getIn([file, app, stanza, "attr", attr]);
+      return (
+        <Table.Row key={`${app}|${file}|${stanza}|${attr}`}>
+          <Table.Cell align="right" truncate>
+            <AttributeSpan>{attr}</AttributeSpan>
           </Table.Cell>
-          {serverconfig.map((d, z) => (
-            <Table.Cell key={z} className="conf-value">
-              {check(d, [file, app, stanza, "attr", attribute]) ? (
-                typeof d[file][app][stanza].attr[attribute] === "boolean" ? (
-                  <Switch appearance="toggle" value={d[file][app][stanza].attr[attribute]} />
-                ) : (
-                  <Text value={d[file][app][stanza].attr[attribute]} />
-                )
-              ) : (
-                <Text />
-              )}
-            </Table.Cell>
-          ))}
+          <Table.Cell>
+            <Typography as="p" variant="monoBody">
+              {src}
+            </Typography>
+          </Table.Cell>
+          <Table.Cell>
+            <Typography as="p" variant="monoBody">
+              {dst}
+            </Typography>
+          </Table.Cell>
         </Table.Row>
-      )),
-    ]);
+      );
+    });
   };
 
   const tick = (data) => {};
@@ -221,15 +221,17 @@ const ConfigCopy = () => {
                 ))}
               </Select>
             </ControlGroup>
-            <ControlGroup label="Source App Context" labelPosition="left">
+            <ControlGroup label="App Context" labelPosition="left">
               <Select inline value={appcontext[0]} onChange={handleAppContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
-                <Select.Option label="All" value="-" />
-                <Select.Option label="None" description="system" value="system" />
+                <Select.Heading>General</Select.Heading>
+                <Select.Option label="All" description="-" value="-" />
+                <Select.Option label="None / Global Only" description="system" value="system" />
+                <Select.Heading>Specific App (Not Recommended)</Select.Heading>
                 {servercontext[0] &&
                   Object.entries(servercontext[0].apps).map(([id, label]) => <Select.Option key={id} label={label} description={id} value={id} />)}
               </Select>
             </ControlGroup>
-            <ControlGroup label="Source User Context" labelPosition="left">
+            <ControlGroup label="User Context" labelPosition="left">
               <Select inline value={usercontext[0]} onChange={handleUserContext[0]} disabled={!server[0]} animateLoading={!servercontext[0]}>
                 <Select.Option label="Nobody" value="nobody" />
                 {servercontext[0] &&
@@ -282,6 +284,51 @@ const ConfigCopy = () => {
           </ColumnLayout.Column>
         </ColumnLayout.Row>
       </ColumnLayout>
+      <Table rowExpansion="multi">
+        <Table.Head>
+          <Table.HeadCell>Config Copy</Table.HeadCell>
+          <Table.HeadCell>Source</Table.HeadCell>
+          <Table.HeadCell>Destination</Table.HeadCell>
+        </Table.Head>
+        <Table.Body>
+          {servercontext[0] &&
+            servercontext[1] &&
+            mergedconfig.map(([[app, file], stanzas]) => [
+              // App File Row
+              <Table.Row key={`${app}|${file}`}>
+                <Table.Cell>
+                  <b>
+                    {app} / {file}.conf
+                  </b>
+                </Table.Cell>
+                <Table.Cell>{servercontext[0].apps[app].label}</Table.Cell>
+                <Table.Cell>{servercontext[1].apps[app].label}</Table.Cell>
+              </Table.Row>,
+              ...stanzas.map(
+                (
+                  [stanza, attrs] // Stanza Row with expansion
+                ) => (
+                  <Table.Row key={`${app}|${file}|${stanza}`} expansionRow={getConfigRows(app, file, stanza, attrs)}>
+                    <ShortCell align="right" truncate>
+                      <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
+                    </ShortCell>
+                    {serverconfig.map((config, z) => {
+                      const content = config.getIn([file, app, stanza]);
+                      if (content === undefined) return <Table.Cell key={z}></Table.Cell>;
+                      return (
+                        <Table.Cell key={z}>
+                          <i>
+                            {Object.keys(content.attr).length} attributes in {content.acl.sharing} scope
+                          </i>
+                        </Table.Cell>
+                      );
+                    })}
+                  </Table.Row>
+                )
+              ),
+            ])}
+        </Table.Body>
+      </Table>
     </>
   );
 };

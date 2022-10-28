@@ -3,28 +3,29 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable no-nested-ternary */
 
-import React, { useState, useEffect, useReducer, useCallback } from "react";
-import debounce from "lodash.debounce";
 import { Map, Set } from "immutable";
+import { debounce, hasIn } from "lodash";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 
+// Shared
+import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
+import { cleanUp, restChange, restGet } from "../../shared/fetch";
+import { isort, isort0, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import Page from "../../shared/page";
-import { StyledContainer, ShortCell, TallCell, StanzaSpan, AttributeSpan, CreateLink } from "../../shared/styles";
-import { isort, isort0, tupleSplit, wrapSetValues, wrapSetValue, localLoad, localSave, localDel } from "../../shared/helpers";
-import { restGet, restChange, cleanUp } from "../../shared/fetch";
-import { DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT, COMMON_FILES } from "../../shared/const";
+import { AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
-import ControlGroup from "@splunk/react-ui/ControlGroup";
+// Splunk UI
+import Dashboard from "@splunk/react-icons/Dashboard";
+import Globe from "@splunk/react-icons/Globe";
+import User from "@splunk/react-icons/User";
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
-import Number from "@splunk/react-ui/Number";
+import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Multiselect from "@splunk/react-ui/Multiselect";
+import Number from "@splunk/react-ui/Number";
 import Select from "@splunk/react-ui/Select";
 import Switch from "@splunk/react-ui/Switch";
-import Text from "@splunk/react-ui/Text";
 import Table from "@splunk/react-ui/Table";
-
-import Globe from "@splunk/react-icons/Globe";
-import Dashboard from "@splunk/react-icons/Dashboard";
-import User from "@splunk/react-icons/User";
+import Text from "@splunk/react-ui/Text";
 
 const ConfigEdit = () => {
   // Constants
@@ -193,7 +194,7 @@ const ConfigEdit = () => {
 
   // Get Config keys
   const debouncedServerContext = useCallback(
-    debounce((serverconfig, columncount) => {
+    debounce((serverconfig, columncount, appfilter, filefilter) => {
       console.log("EFFECT Config Keys", serverconfig);
       const configdict = serverconfig
         .slice(0, columncount)
@@ -219,17 +220,23 @@ const ConfigEdit = () => {
           return output;
         }, {});
 
+      console.log(filefilter);
+      console.log(Object.entries(configdict).filter(([file]) => filefilter.length === 0 || filefilter.includes(file)));
+
       const configarray = Object.entries(configdict)
+        .filter(([app]) => appfilter.length === 0 || appfilter.includes(app))
         .sort(isort0)
-        .map(([file, apps]) => {
+        .map(([app, files]) => {
           return [
-            file,
-            Object.entries(apps)
+            app,
+            Object.entries(files)
+              .filter(([file]) => filefilter.length === 0 || filefilter.includes(file))
               .sort(isort0)
-              .map(([app, stanzas]) => {
+              .map(([file, stanzas]) => {
                 return [
-                  app,
+                  file,
                   Object.entries(stanzas)
+
                     .sort(isort0)
                     .map(([stanza, { attr, acl }]) => {
                       return [
@@ -270,21 +277,10 @@ const ConfigEdit = () => {
     []
   );
   useEffect(() => {
-    debouncedServerContext(serverconfig, columncount);
-  }, [...serverconfig, columncount]);
-
-  // Handlers
-  const check = (obj, path) => {
-    try {
-      return path.reduce((parent, child) => parent[child], obj) !== undefined;
-    } catch (e) {
-      //console.warn(e)
-      return false;
-    }
-  };
+    debouncedServerContext(serverconfig, columncount, appfilter, filefilter);
+  }, [...serverconfig, columncount, appfilter, filefilter]);
 
   // Methods
-
   const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
     restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: fixedvalue || inputvalue }).then((config) =>
       setServerConfig[z]((prev) => prev.mergeIn([file, app, stanza], config[app][stanza]))
@@ -320,7 +316,7 @@ const ConfigEdit = () => {
             <Select inline disabled={!acl.change} value={acl.sharing} onChange={handleAclChangeFactory(z, file, app, stanza, "sharing")} error={!acls.sharing}>
               <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
               <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
-              <Select.Option disabled={!acl.share[2]} label="Private" value="private" icon={<User />} />
+              <Select.Option disabled={!acl.share[2]} label="User" value="user" icon={<User />} />
             </Select>
           </ShortCell>
         ) : (
@@ -487,10 +483,10 @@ const ConfigEdit = () => {
                   error={error[z]}
                   filter
                 >
-                  <Select.Heading>Special</Select.Heading>
-                  <Select.Option label="All Apps" value={DEFAULT_APP_CONTEXT.name} />
+                  <Select.Heading>General</Select.Heading>
+                  <Select.Option label="All Apps" description="-" value={DEFAULT_APP_CONTEXT.name} />
                   <Select.Option label="None / Global Only" description="system" value={SYSTEM_APP_CONTEXT.name} />
-                  <Select.Heading>Apps</Select.Heading>
+                  <Select.Heading>Specific App (Not Recommended)</Select.Heading>
                   {servercontext[z] &&
                     Object.entries(servercontext[z].apps).map(([id, { label }]) => <Select.Option key={id} label={label} description={id} value={id} />)}
                 </Select>
@@ -498,7 +494,7 @@ const ConfigEdit = () => {
               <ControlGroup
                 label="User Context"
                 labelPosition="left"
-                tooltip="Changes which user private config is shown, and which user will own any created config"
+                tooltip="Changes which private user config is shown, and which user will own any created config"
               >
                 <Select
                   inline
@@ -509,14 +505,10 @@ const ConfigEdit = () => {
                   error={error[z]}
                   filter
                 >
-                  <Select.Heading>Special</Select.Heading>
+                  <Select.Heading>General</Select.Heading>
                   <Select.Option label="No Private Config" description="nobody" value={SYSTEM_USER_CONTEXT.name} />
                   {servercontext[z] && (
-                    <Select.Option
-                      label={`${servercontext[z].realname} (Auth Token User)`}
-                      value={servercontext[z].username}
-                      description={servercontext[z].username}
-                    />
+                    <Select.Option label={servercontext[z].realname} value={servercontext[z].username} description={servercontext[z].username} />
                   )}
                   <Select.Heading>All Users</Select.Heading>
                   {servercontext[z] && servercontext[z].user_options}
@@ -535,58 +527,54 @@ const ConfigEdit = () => {
           ))}
         </Table.Head>
         <Table.Body>
-          {mergedconfig
-            .filter(([app]) => appfilter.length === 0 || appfilter.includes(app))
-            .flatMap(([app, files]) =>
-              files
-                .filter(([file]) => filefilter.length === 0 || filefilter.includes(file))
-                .map(([file, stanzas]) => [
-                  // App File Row
-                  <Table.Row key={`${app}|${file}`}>
-                    <Table.Cell>
-                      <b>
-                        {app} / {file}.conf
-                      </b>
+          {mergedconfig.flatMap(([app, files]) =>
+            files.map(([file, stanzas]) => [
+              // App File Row
+              <Table.Row key={`${app}|${file}`}>
+                <Table.Cell>
+                  <b>
+                    {app} / {file}.conf
+                  </b>
+                </Table.Cell>
+                {servercontext.slice(0, columncount).map((context, z) => {
+                  if (!server[z] || !context || !context.apps[app]) return <Table.Cell key={z}></Table.Cell>;
+                  return (
+                    <Table.Cell key={z}>
+                      {context.apps[app].label} {context.apps[app].version}
                     </Table.Cell>
-                    {servercontext.slice(0, columncount).map((context, z) => {
-                      if (!server[z] || !context || !context.apps[app]) return <Table.Cell key={z}></Table.Cell>;
+                  );
+                })}
+              </Table.Row>,
+              ...stanzas.map(
+                (
+                  [stanza, { attr, acl }] // Stanza Row with expansion
+                ) => (
+                  <Table.Row key={`${app}|${file}|${stanza}`} expansionRow={getConfigRows(app, file, stanza, attr, acl)}>
+                    <Table.Cell align="right" truncate>
+                      <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
+                    </Table.Cell>
+                    {serverconfig.slice(0, columncount).map((config, z) => {
+                      if (!server[z] || !hasIn(servercontext[z], ["apps", app])) return <Table.Cell key={z}></Table.Cell>;
+                      const content = config.getIn([file, app, stanza]);
+                      if (content === undefined)
+                        return (
+                          <Table.Cell key={z}>
+                            <CreateLink onClick={handleConfigChangeFactory(z, file, app, "", "name", stanza)}>Create Stanza</CreateLink>
+                          </Table.Cell>
+                        );
                       return (
                         <Table.Cell key={z}>
-                          {context.apps[app].label} {context.apps[app].version}
+                          <i>
+                            {Object.keys(content.attr).length} attributes in {content.acl.sharing} scope
+                          </i>
                         </Table.Cell>
                       );
                     })}
-                  </Table.Row>,
-                  ...stanzas.map(
-                    (
-                      [stanza, { attr, acl }] // Stanza Row with expansion
-                    ) => (
-                      <Table.Row key={`${app}|${file}|${stanza}`} expansionRow={getConfigRows(app, file, stanza, attr, acl)}>
-                        <ShortCell align="right" truncate>
-                          <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
-                        </ShortCell>
-                        {serverconfig.slice(0, columncount).map((config, z) => {
-                          if (!server[z] || !check(servercontext[z], ["apps", app])) return <ShortCell key={z}></ShortCell>;
-                          const content = config.getIn([file, app, stanza]);
-                          if (content === undefined)
-                            return (
-                              <Table.Cell key={z}>
-                                <CreateLink onClick={handleConfigChangeFactory(z, file, app, "", "name", stanza)}>Create Stanza</CreateLink>
-                              </Table.Cell>
-                            );
-                          return (
-                            <Table.Cell key={z}>
-                              <i>
-                                {Object.keys(content.attr).length} attributes in {content.acl.sharing} scope
-                              </i>
-                            </Table.Cell>
-                          );
-                        })}
-                      </Table.Row>
-                    )
-                  ),
-                ])
-            )}
+                  </Table.Row>
+                )
+              ),
+            ])
+          )}
         </Table.Body>
       </Table>
     </>

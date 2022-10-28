@@ -1,22 +1,24 @@
 /* eslint-disable */
-import React, { useState, useEffect, useCallback, useReducer } from "react";
-import debounce from "lodash.debounce";
 import { Map } from "immutable";
+import debounce from "lodash.debounce";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 
+// Shared
+import { cleanUp, restChange, restGet } from "../../shared/fetch";
+import { localDel, localLoad, localSave, wrapSetValue } from "../../shared/helpers";
 import Page from "../../shared/page";
-import { StyledContainer, StanzaSpan, AttributeSpan, ValueSpan } from "../../shared/styles";
-import { wrapSetValue, localLoad, localSave, localDel } from "../../shared/helpers";
-import { restGet, restChange, cleanUp } from "../../shared/fetch";
+import { AttributeSpan, StanzaSpan, StyledContainer, ValueSpan } from "../../shared/styles";
 
+// Splunk UI
+import Button from "@splunk/react-ui/Button";
+import ColumnLayout from "@splunk/react-ui/ColumnLayout";
+import ComboBox from "@splunk/react-ui/ComboBox";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Multiselect, { Heading } from "@splunk/react-ui/Multiselect";
 import Select from "@splunk/react-ui/Select";
 import TextArea from "@splunk/react-ui/TextArea";
-import ColumnLayout from "@splunk/react-ui/ColumnLayout";
-import ComboBox from "@splunk/react-ui/ComboBox";
-import Button from "@splunk/react-ui/Button";
-import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 import Typography from "@splunk/react-ui/Typography";
+import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 import { config, username } from "@splunk/splunk-utils/config";
 
@@ -244,7 +246,7 @@ const ConfigWrite = () => {
           </ControlGroup>
           <ControlGroup label="Owner" labelPosition="left">
             <Select inline filter value={user} onChange={handleUser} disabled={!server} error={!user}>
-              <Select.Heading>Special</Select.Heading>
+              <Select.Heading>General</Select.Heading>
               <Select.Option label={SYSTEM_USER_CONTEXT.realname} description={SYSTEM_USER_CONTEXT.realname} value={SYSTEM_USER_CONTEXT.name} />
               {servercontext && servercontext.users[username] ? <Select.Option label="Your User" value={username} description={username} /> : null}
               <Select.Heading>All Users</Select.Heading>
@@ -278,7 +280,7 @@ const ConfigWrite = () => {
               //disabled={!stanza || !user}
               error={!stanza}
             >
-              <Select.Option label="Private" value="private" disabled={user == "nobody" || app == "system"} />
+              <Select.Option label="User" value="user" disabled={user == "nobody" || app == "system"} />
               <Select.Option label="App" value="app" disabled={app == "system"} />
               <Select.Option label="Global" value="global" />
             </Select>
