@@ -44,50 +44,41 @@ export async function restGet(endpoint, parameters = false, callback, skip) {
   if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
   console.debug("REST GET", endpoint);
 
-  return (
-    fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "force-cache", mode: "same-origin" }) // force-cache or only-if-cached
-      /*.catch((e) =>
-      e instanceof TypeError && e.message === "Failed to fetch"
-        ? { status: 504 } // Workaround for chrome; which fails with a TypeError
-        : Promise.reject(e)
-    )*/
-      .then((res) => {
-        console.debug(...res.headers);
-        /*if (res.status === 504) {
-          console.log("NOT CACHED", endpoint);
-          return false;
-        }*/
-        if (res.status === 200) {
-          const age = (Date.now() - new Date(res.headers.get("date", 0)).getTime()) / 1000;
-          console.log(`${endpoint} was ${age}s old`);
-          return res.json().then(async (data) => {
-            callback(data.data);
-            return age < 60 ? true : data.hash;
-          });
-        }
-        return false;
-      })
-      .then((prev) => {
-        if (prev === true) return;
-        return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "reload", mode: "same-origin" }).then((res) => {
-          if (res.status === 200) {
-            return res.json().then((data) => {
-              if (data.hash !== prev) {
-                console.debug("USING res FOR", endpoint);
-                return callback(data.data);
-              }
-              console.debug("HASH is the same");
-            });
-          }
-          return res.json().then((data) => {
-            data.status = res.status;
-            console.warn(data);
-            Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
-            return Promise.reject(data);
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "force-cache", mode: "same-origin" }) // force-cache or only-if-cached
+    .then((res1) => {
+      if (res1.status !== 200) return Promise.reject(res1);
+
+      const age = (Date.now() - new Date(res1.headers.get("date", 0)).getTime()) / 1000;
+
+      return res1.json().then((data1) => {
+        callback(data1.data);
+        if (age < 60) return Promise.resolve(`Used ${age}s old data for ${endpoint}`);
+
+        return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "reload", mode: "same-origin" }).then((res2) => {
+          if (res2.status !== 200) return Promise.reject(res2);
+
+          return res2.json().then((data2) => {
+            if (data1.hash !== data2.hash) {
+              callback(data2.data);
+              return Promise.resolve(`Used cache and refresh for ${endpoint}`);
+            }
           });
         });
-      })
-  );
+      });
+    })
+    .then(
+      (result) => {
+        console.debug(result);
+      },
+      (res) => {
+        return res.json().then((data) => {
+          data.status = res.status;
+          console.warn(data);
+          Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
+          return Promise.reject(data);
+        });
+      }
+    );
 }
 
 export async function restGet1(endpoint, parameters = {}, callback, skip = 0) {
