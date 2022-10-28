@@ -64,7 +64,7 @@ const ConfigEdit = () => {
 
   // Startup
   useEffect(() => {
-    restGet("servers", {}, setServerOptions).then(() => {
+    restGet("servers", null, setServerOptions).then(() => {
       cleanUp();
     });
   }, []);

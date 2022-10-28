@@ -35,25 +35,28 @@ class RestHandler(PersistentServerConnectionApplication):
 
     def json_response(self, data, status=200):
         d = json.dumps(data, separators=(",", ":"))
-        if self.HASH is not None:
+        if status == 200:
             h = sha1(d.encode("utf8")).hexdigest()
-            if h == self.HASH:
-                return {
-                    "payload": "",
-                    "status": 304,
-                }
-            payload = f'{{"data":{d},"hash":"{h}"}}'
-        else:
-            payload = f'{{"data":{d}}}'
+            return {
+                "payload": f'{{"data":{d},"hash":"{h}"}}',
+                "status": status,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "cache-control": "max-age=86400",
+                },
+            }
         return {
-            "payload": payload,
+            "payload": f'{{"data":{d}}}',
             "status": status,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "cache-control": "no-store, max-age=0",
+            },
         }
 
     def json_error(self, context, error_code=None, error_message=None, status=500):
         self.logger.error(
-            f'mode=read app={self.APP_NAME} user={self.USER} context={status} error_code="{error_code}" error_message="{error_message}"'
+            f'file={__file__} app={self.APP_NAME} user={self.USER} context={status} error_code="{error_code}" error_message="{error_message}"'
         )
         return {
             "payload": json.dumps(

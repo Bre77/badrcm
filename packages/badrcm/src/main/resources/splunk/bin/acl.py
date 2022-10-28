@@ -1,4 +1,3 @@
-from splunk.clilib.cli_common import getMergedConf
 from splunk.rest import simpleRequest
 import json
 import sys
@@ -71,7 +70,8 @@ class configs(common.RestHandler):
                         [0, 1][s["acl"]["can_share_app"]],
                         [0, 1][s["acl"]["can_share_user"]],
                     ],
-                }
+                },
+                201,
             )
 
         return self.json_error("Method Not Allowed", 405)

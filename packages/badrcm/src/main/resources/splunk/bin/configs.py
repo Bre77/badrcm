@@ -1,4 +1,3 @@
-from splunk.clilib.cli_common import getMergedConf
 from splunk.rest import simpleRequest
 import json
 import sys
@@ -105,7 +104,7 @@ class configs(common.RestHandler):
                 )
             except Exception:
                 pass
-            return self.json_response(self.handleConf(configs, uri, token, file))
+            return self.json_response(self.handleConf(configs, uri, token, file), 201)
 
         if args["method"] == "DELETE":
             try:
