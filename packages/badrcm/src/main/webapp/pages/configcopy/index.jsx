@@ -384,12 +384,11 @@ const ConfigCopy = () => {
                           <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
                         </TallCell>
                         <TallCell>
-                          {src &&
-                            (
-                              <i>
-                                {Object.keys(src.attr).length} attributes in {src.acl.sharing} scope
-                              </i>
-                            )
+                          {src && (
+                            <i>
+                              {Object.keys(src.attr).length} attributes in {src.acl.sharing} scope
+                            </i>
+                          )}
                         </TallCell>
                         <ShortCell>
                           <Switch appearance="toggle" onClick={toggleStanza} value={[app, file, stanza]} selected={selected.has(k([app, file, stanza]))} />
