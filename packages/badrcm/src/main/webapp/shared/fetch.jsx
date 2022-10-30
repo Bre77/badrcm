@@ -40,11 +40,11 @@ const makeBody = (data) => {
   }, new URLSearchParams());
 };
 
-export async function restGet(endpoint, parameters = false, callback, skip) {
+export async function restGet(endpoint, parameters = false, callback, life = 60) {
   if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
   console.debug("REST GET", endpoint);
 
-  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "force-cache", mode: "same-origin" }) // force-cache or only-if-cached
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: life ? "force-cache" : "reload", mode: "same-origin" }) // force-cache or only-if-cached
     .then((res1) => {
       if (res1.status !== 200) return Promise.reject(res1);
 
@@ -52,7 +52,7 @@ export async function restGet(endpoint, parameters = false, callback, skip) {
 
       return res1.json().then((data1) => {
         callback(data1.data);
-        if (age < 60) return Promise.resolve(`Used ${age}s old data for ${endpoint}`);
+        if (!life || age < life) return Promise.resolve(`Used ${age}s old data for ${endpoint}`);
 
         return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "reload", mode: "same-origin" }).then((res2) => {
           if (res2.status !== 200) return Promise.reject(res2);
@@ -60,8 +60,9 @@ export async function restGet(endpoint, parameters = false, callback, skip) {
           return res2.json().then((data2) => {
             if (data1.hash !== data2.hash) {
               callback(data2.data);
-              return Promise.resolve(`Used cache and refresh for ${endpoint}`);
+              return Promise.resolve(`Used ${age}s old cache then refresh for ${endpoint}`);
             }
+            return Promise.resolve(`Used ${age}s old cache then refresh hash matched for ${endpoint}`);
           });
         });
       });

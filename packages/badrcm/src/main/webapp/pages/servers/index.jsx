@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 // Components
-import CardLayout from "@splunk/react-ui/CardLayout";
-import Card from "@splunk/react-ui/Card";
-import DL from "@splunk/react-ui/DefinitionList";
-import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 import Button from "@splunk/react-ui/Button";
-import Text from "@splunk/react-ui/Text";
+import Card from "@splunk/react-ui/Card";
+import CardLayout from "@splunk/react-ui/CardLayout";
+import ControlGroup from "@splunk/react-ui/ControlGroup";
+import DL from "@splunk/react-ui/DefinitionList";
 import Link from "@splunk/react-ui/Link";
 import RadioBar from "@splunk/react-ui/RadioBar";
-import ControlGroup from "@splunk/react-ui/ControlGroup";
+import Text from "@splunk/react-ui/Text";
+import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
-import { restGet, restChange, cleanUp } from "../../shared/fetch";
+import { restChange, restGet } from "../../shared/fetch";
 import Page from "../../shared/page";
 
 const Servers = () => {
@@ -31,7 +31,7 @@ const Servers = () => {
   const authhelp = (
     <span>
       See{" "}
-      <Link openInNewContext to={"https://docs.splunk.com/Documentation/Splunk/latest/Security/UseAuthTokens"}>
+      <Link openInNewContext to="https://docs.splunk.com/Documentation/Splunk/latest/Security/UseAuthTokens">
         Splunk Docs
       </Link>{" "}
       for help creating Auth Tokens.
@@ -40,9 +40,7 @@ const Servers = () => {
   const namehelp = <span>Include splunkd port if it's not :8089.</span>;
 
   useEffect(() => {
-    restGet("servers", {}, setServers).then(() => {
-      cleanUp();
-    });
+    restGet("servers", {}, setServers);
   }, []);
 
   async function addServer() {
@@ -56,12 +54,12 @@ const Servers = () => {
     return restChange("servers", { server: name }, { token, share })
       .then(
         () => {
-          //Success
+          // Success
           setServers(servers.concat([name]));
           setName(DEFAULT_NAME);
           setToken(DEFAULT_TOKEN);
           setShare(DEFAULT_SHARE);
-          return restGet("servers", {}, setServers, 1); // Fill cache
+          return restGet("servers", {}, setServers, 0); // Fill cache
         },
         (data) => {
           if (data.status === 400) {
@@ -70,7 +68,9 @@ const Servers = () => {
             } else {
               setNameError(data.args[0]);
             }
-          } else console.error(data);
+          } else {
+            console.error(data);
+          }
         }
       )
       .then(setRunning(false));
@@ -80,7 +80,7 @@ const Servers = () => {
     return restChange("servers", { server: value }, {}, "DELETE").then(
       () => {
         setServers(servers.filter((x) => x !== value));
-        return restGet("servers", {}, setServers, 1); // Fill cache
+        return restGet("servers", {}, setServers, 0); // Fill cache
       },
       () => {
         // No Catch
@@ -107,7 +107,7 @@ const Servers = () => {
           <ControlGroup label="Sharing">
             <RadioBar onChange={(e, { value }) => setShare(value)} value={share}>
               <RadioBar.Option value={false} label="Private" />
-              <RadioBar.Option value={true} label="Shared" />
+              <RadioBar.Option value label="Shared" />
             </RadioBar>
           </ControlGroup>
         </Card.Body>
@@ -123,6 +123,7 @@ const ServerCard = ({ name, onClick }) => {
   const [details, setDetails] = useState();
   const [running, setRunning] = useState(false);
 
+  // Startup
   useEffect(() => {
     setRunning(true);
     restGet(`servers`, { server: name }, ([apps, users, files, username, , roles]) => {
@@ -166,4 +167,4 @@ const ServerCard = ({ name, onClick }) => {
   );
 };
 
-Page(<Servers />);
+Page(<Servers />, true);

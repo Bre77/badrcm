@@ -30,4 +30,21 @@ module.exports = webpackMerge(baseConfig, {
         }),
     ],
     devtool: 'eval-source-map',
+    /*optimization: {
+        splitChunks: {
+            chunks: 'all',
+        },
+    },*/
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    name: 'shared',
+                    filename: '[name].bundle.js',
+                    chunks: 'initial',
+                    minChunks: 2
+                }
+            }
+        }
+    }
 });

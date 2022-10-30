@@ -185,7 +185,6 @@ class configs(common.RestHandler):
                         value = self.makebool(value)
                     if value == defaults[attr]:
                         continue
-
                 output[app][s["name"]]["attr"][attr] = value
 
         return output

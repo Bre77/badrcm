@@ -37,3 +37,7 @@ export const AttributeSpan = styled.span`
 export const ValueSpan = styled.span`
     color: ${props => props.theme.splunkThemeV1.colorScheme === "light" ? "#0451A5" : "#CE9178"};
 `;
+
+export const Actions = styled.div`
+  float:right;
+`;

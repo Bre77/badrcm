@@ -34,8 +34,8 @@ class RestHandler(PersistentServerConnectionApplication):
         return value
 
     def json_response(self, data, status=200):
-        d = json.dumps(data, separators=(",", ":"))
         if status == 200:
+            d = json.dumps(data, separators=(",", ":"))
             h = sha1(d.encode("utf8")).hexdigest()
             return {
                 "payload": f'{{"data":{d},"hash":"{h}"}}',
@@ -46,7 +46,7 @@ class RestHandler(PersistentServerConnectionApplication):
                 },
             }
         return {
-            "payload": f'{{"data":{d}}}',
+            "payload": json.dumps(data, separators=(",", ":")),
             "status": status,
             "headers": {
                 "Content-Type": "application/json",

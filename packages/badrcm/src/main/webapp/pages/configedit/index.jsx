@@ -12,20 +12,29 @@ import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONT
 import { cleanUp, restChange, restGet } from "../../shared/fetch";
 import { isort, isort0, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import Page from "../../shared/page";
-import { AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
+import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
 // Splunk UI
 import Dashboard from "@splunk/react-icons/Dashboard";
+import Download from "@splunk/react-icons/Download";
+import External from "@splunk/react-icons/External";
 import Globe from "@splunk/react-icons/Globe";
+import Remove from "@splunk/react-icons/Remove";
 import User from "@splunk/react-icons/User";
+import Warning from "@splunk/react-icons/Warning";
+import Button from "@splunk/react-ui/Button";
+import Clickable from "@splunk/react-ui/Clickable";
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
+import Dropdown from "@splunk/react-ui/Dropdown";
 import Multiselect from "@splunk/react-ui/Multiselect";
 import Number from "@splunk/react-ui/Number";
+import P from "@splunk/react-ui/Paragraph";
 import Select from "@splunk/react-ui/Select";
 import Switch from "@splunk/react-ui/Switch";
 import Table from "@splunk/react-ui/Table";
 import Text from "@splunk/react-ui/Text";
+import Tooltip from "@splunk/react-ui/Tooltip";
 
 const ConfigEdit = () => {
   // Constants
@@ -134,7 +143,8 @@ const ConfigEdit = () => {
               user: usercontext[z],
               file: file,
             },
-            (config) => setServerConfig[z]((prev) => prev.merge({ [file]: config }))
+            (config) => setServerConfig[z]((prev) => prev.merge({ [file]: config })),
+            15
           ).then(
             () => setLoading[z](-1),
             (e) => {
@@ -540,7 +550,12 @@ const ConfigEdit = () => {
                   if (!server[z] || !context || !context.apps[app]) return <Table.Cell key={z}></Table.Cell>;
                   return (
                     <Table.Cell key={z}>
-                      {context.apps[app].label} {context.apps[app].version}
+                      {context.apps[app].label} {context.apps[app].version}{" "}
+                      <Actions>
+                        <Tooltip content="Download file contents">
+                          <Download />
+                        </Tooltip>
+                      </Actions>
                     </Table.Cell>
                   );
                 })}
@@ -567,6 +582,7 @@ const ConfigEdit = () => {
                           <i>
                             {Object.keys(content.attr).length} attributes in {content.acl.sharing} scope
                           </i>
+                          <StanzaActions server={server[z]} app={app} file={file} stanza={stanza} />
                         </Table.Cell>
                       );
                     })}
@@ -605,6 +621,43 @@ const ConfigInput = ({ value, handle, disabled, metadata }) => {
         <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={!metadata.same} />
       </ShortCell>
     );
+};
+
+const StanzaActions = ({ server, app, file, stanza, appcontext, usercontext, setConfig }) => {
+  const [moveopen, setMoveOpen] = useState(false);
+  const [deleteopen, setDeleteOpen] = useState(false);
+
+  const move = (
+    <Clickable>
+      <External screenReaderText="Move" hideDefaultTooltip />
+    </Clickable>
+  );
+
+  const remove = (
+    <Clickable>
+      <Remove hideDefaultTooltip />
+    </Clickable>
+  );
+
+  return (
+    <Actions>
+      <Tooltip content="Move stanza to another app.">
+        <Dropdown toggle={move} retainFocus>
+          <StyledContainer>Select App</StyledContainer>
+        </Dropdown>
+      </Tooltip>
+      <Tooltip content="Remove stanza completely.">
+        <Dropdown toggle={remove} retainFocus>
+          <StyledContainer>
+            <Warning size={2} />
+            <br />
+            <P>Are you sure you want to delete stanza [{stanza}]?</P>
+            <Button>Delete</Button>
+          </StyledContainer>
+        </Dropdown>
+      </Tooltip>
+    </Actions>
+  );
 };
 
 Page(
