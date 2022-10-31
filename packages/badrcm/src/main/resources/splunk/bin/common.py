@@ -2,7 +2,6 @@ from splunk.persistconn.application import PersistentServerConnectionApplication
 from splunk.rest import simpleRequest
 import json
 import logging
-from hashlib import sha1
 
 
 class RestHandler(PersistentServerConnectionApplication):
@@ -34,24 +33,10 @@ class RestHandler(PersistentServerConnectionApplication):
         return value
 
     def json_response(self, data, status=200):
-        if status == 200:
-            d = json.dumps(data, separators=(",", ":"))
-            h = sha1(d.encode("utf8")).hexdigest()
-            return {
-                "payload": f'{{"data":{d},"hash":"{h}"}}',
-                "status": status,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "cache-control": "max-age=86400",
-                },
-            }
         return {
             "payload": json.dumps(data, separators=(",", ":")),
             "status": status,
-            "headers": {
-                "Content-Type": "application/json",
-                "cache-control": "no-store, max-age=0",
-            },
+            "headers": {"Content-Type": "application/json"},
         }
 
     def json_error(self, context, error_code=None, error_message=None, status=500):

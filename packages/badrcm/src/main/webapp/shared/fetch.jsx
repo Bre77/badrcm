@@ -13,20 +13,6 @@ const local = window.localStorage;
 // Helpers
 const Toast = makeCreateToast(Toaster);
 
-export const cleanUp = () => {
-  /*Object.entries(local).forEach(([key, value]) => {
-    if (key.endsWith("time")) {
-      if (parseInt(value, 10) < Date.now() - lifespan) {
-        let path = key.slice(0, -5);
-        console.log(`Removing ${path}`);
-        local.removeItem(`${path}|data`);
-        local.removeItem(`${path}|hash`);
-        local.removeItem(`${path}|time`);
-      }
-    }
-  });*/
-};
-
 const makeParameters = (parameters = []) => {
   //parameters["v"] = version;
   return Object.entries(parameters)
@@ -39,6 +25,20 @@ const makeBody = (data) => {
     return form;
   }, new URLSearchParams());
 };
+
+export async function fetchGet(endpoint, parameters = false) {
+  if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, defaultFetchInit).then((res) => {
+    res.json().then((data) => {
+      if (res.ok) return data;
+
+      data.status = res.status;
+      console.warn(data);
+      Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
+      return Promise.reject(data);
+    });
+  });
+}
 
 export async function restGet(endpoint, parameters = false, callback, life = 60) {
   if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
