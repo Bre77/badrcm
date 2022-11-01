@@ -31,3 +31,5 @@ export const localLoad = (key, fallback = null) => {
   }
 };
 export const localDel = (key) => window.localStorage.removeItem(key);
+
+export const latest = (results) => results.reduce((x, { dataUpdatedAt }) => Math.max(x, dataUpdatedAt), 0);

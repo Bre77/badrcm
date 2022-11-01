@@ -7,7 +7,7 @@ import { COLUMN_INDEX, MAX_COLUMNS } from "./const";
 
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
-import { isort, isort0, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
+import { isort, isort0, latest, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import { useServer, useServerContexts, useServers } from "../../shared/hooks";
 
 // Splunk UI
@@ -64,7 +64,7 @@ const Files = ({ files, setFiles, servers }) => {
         .flatMap((result) => result.data.files)
         .filter((file) => !COMMON_FILES.includes(file))
     ).sort(isort);
-  }, [results]);
+  }, [latest(results)]);
 
   return (
     <ControlGroup label="Config Files" labelPosition="left">
@@ -105,7 +105,7 @@ const Apps = ({ apps, setApps, servers }) => {
           { [SYSTEM_APP_CONTEXT.name]: SYSTEM_APP_CONTEXT.label }
         )
     ).sort(isort);
-  }, [results]); //[...results.map((x) => x.data)]
+  }, [latest(results)]); //[...results.map((x) => x.data)]
 
   return (
     <ControlGroup label="Apps" labelPosition="left">
