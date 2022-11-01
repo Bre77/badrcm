@@ -21,26 +21,29 @@ export const useServer = (server, options = {}) =>
 export const useServerContexts = (servers, options = {}) => {
   return useQueries({
     queries: servers.map((server) => {
-      return {
-        queryKey: ["servers", server],
-        queryFn: () => fetchGet("servers", { server }),
-        initialData: BASE_CONTEXT,
-        ...options,
-      };
+      return server
+        ? {
+            queryKey: ["servers", server],
+            queryFn: () => fetchGet("servers", { server }),
+            initialData: BASE_CONTEXT,
+            ...options,
+          }
+        : { queryKey: ["servers", "null"], queryFn: () => Promise.resolve(null) };
     }),
   });
 };
 
-export const useServerConfigs = (files, columns, options = {}) => {
+export const useServerConfigs = (columns, files, options = {}) => {
   return useQueries({
-    queries: columns.flatMap(({ server, appcontext, usercontext }) =>
-      files.map((file) => {
-        return {
-          queryKey: ["configs", server, file, appcontext, usercontext],
-          queryFn: () => fetchGet("servers", { server, app: appcontext, user: usercontext, file }),
-          initialData: BASE_CONTEXT,
-          ...options,
-        };
+    queries: files.flatMap((file) =>
+      columns.map(({ server, appcontext, usercontext }) => {
+        return server
+          ? {
+              queryKey: ["configs", server, file, appcontext, usercontext],
+              queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
+              ...options,
+            }
+          : { queryKey: ["configs", "null"], queryFn: () => Promise.resolve(null) };
       })
     ),
   });
