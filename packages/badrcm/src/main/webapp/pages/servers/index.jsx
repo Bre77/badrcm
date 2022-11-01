@@ -14,50 +14,37 @@ import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
 import { fetchGet, restChange } from "../../shared/fetch";
+import { useServer, useServers } from "../../shared/hooks";
 import Page from "../../shared/page";
 
 const Servers = () => {
-  const { data } = useQuery(
-    ["servers"],
-    () => {
-      return fetchGet("servers");
-    },
-    { initialData: [] }
-  );
+  const { data } = useServers();
 
   return (
     <CardLayout cardMinWidth={400} wrapCards>
       {data.map((server) => (
         <Card key={server}>
-          <ServerCard name={server} key={server} />
+          <ServerCard server={server} key={server} />
         </Card>
-      ))}{" "}
+      ))}
       <Card>
-        <AddServerCard servers={data} />
+        <AddServerCard />
       </Card>
     </CardLayout>
   );
 };
 
-const ServerCard = ({ name }) => {
+const ServerCard = ({ server }) => {
   const queryClient = useQueryClient();
 
-  const { isLoading, data } = useQuery(["server", name], () =>
-    fetchGet("servers", { server: name }).then(([apps, users, files, username, , roles]) => ({
-      username,
-      roles: roles.length <= 4 ? roles.join(", ") : `${roles.slice(0, 3).join(", ")} (+${roles.length - 3} more)`,
-      apps: Object.keys(apps).length,
-      users: Object.keys(users).length,
-      files: Object.keys(files).length,
-    }))
-  );
+  const { isLoading, data } = useServer(server);
 
   const removeServer = (e, { value }) => {
     return restChange("servers", { server: value }, {}, "DELETE").then(
       () => {
         queryClient.setQueryData(
           ["servers"],
-          datafilter((server) => server !== value)
+          data.filter((server) => server !== value)
         );
         queryClient.invalidateQueries(["servers"]);
       },
@@ -69,7 +56,7 @@ const ServerCard = ({ name }) => {
 
   return (
     <>
-      <Card.Header title={name} />
+      <Card.Header title={server} />
       <Card.Body>
         {isLoading ? (
           <WaitSpinner />
@@ -78,19 +65,21 @@ const ServerCard = ({ name }) => {
             <DL.Term>Username</DL.Term>
             <DL.Description>{data.username}</DL.Description>
             <DL.Term>Roles</DL.Term>
-            <DL.Description>{data.roles}</DL.Description>
+            <DL.Description>
+              {data.roles.length <= 4 ? data.roles.join(", ") : `${data.roles.slice(0, 3).join(", ")} (+${data.roles.length - 3} more)`}
+            </DL.Description>
             <DL.Term>App Count</DL.Term>
-            <DL.Description>{data.apps}</DL.Description>
+            <DL.Description>{Object.keys(data.apps).length}</DL.Description>
             <DL.Term>User Count</DL.Term>
-            <DL.Description>{data.users}</DL.Description>
+            <DL.Description>{Object.keys(data.users).length}</DL.Description>
             <DL.Term>Conf Types</DL.Term>
-            <DL.Description>{data.files}</DL.Description>
+            <DL.Description>{Object.keys(data.files).length}</DL.Description>
           </DL>
         )}
       </Card.Body>
-      {name === "local" ? null : (
+      {server === "local" ? null : (
         <Card.Footer showBorder={false}>
-          <Button label="Remove" appearance="default" onClick={removeServer} value={name} />
+          <Button label="Remove" appearance="default" onClick={removeServer} value={server} />
         </Card.Footer>
       )}
     </>
@@ -98,17 +87,18 @@ const ServerCard = ({ name }) => {
 };
 
 // Seperate out the add server card here
-const AddServerCard = ({ servers }) => {
+const AddServerCard = () => {
   const queryClient = useQueryClient();
+  const { data: servers } = useServers();
 
-  const DEFAULT_NAME = "";
+  const DEFAULT_SERVER = "";
   const DEFAULT_TOKEN = "";
   const DEFAULT_SHARE = false;
 
-  const [name, setName] = useState(DEFAULT_NAME);
+  const [server, setServer] = useState(DEFAULT_SERVER);
   const [token, setToken] = useState(DEFAULT_TOKEN);
   const [share, setShare] = useState(DEFAULT_SHARE);
-  const [nameerror, setNameError] = useState();
+  const [servererror, setServerError] = useState();
   const [tokenerror, setTokenError] = useState();
   const [running, setRunning] = useState(false);
 
@@ -121,23 +111,23 @@ const AddServerCard = ({ servers }) => {
       for help creating Auth Tokens.
     </span>
   );
-  const namehelp = <span>Include splunkd port if it's not :8089.</span>;
+  const serverhelp = <span>Include splunkd port if it's not :8089.</span>;
 
   async function addServer() {
     setTokenError();
-    if (servers.includes(name)) {
-      setNameError("Already exists, please delete existing server first.");
+    if (servers.includes(server)) {
+      setServerError("Already exists, please delete existing server first.");
       return Promise.resolve();
     }
-    setNameError();
+    setServerError();
     setRunning(true);
-    return restChange("servers", { server: name }, { token, share })
+    return restChange("servers", { server }, { token, share })
       .then(
         () => {
           // Success
-          queryClient.setQueryData(["servers"], servers.concat([name]));
+          queryClient.setQueryData(["servers"], servers.concat([server]));
           queryClient.invalidateQueries(["servers"]);
-          setName(DEFAULT_NAME);
+          setServer(DEFAULT_SERVER);
           setToken(DEFAULT_TOKEN);
           setShare(DEFAULT_SHARE);
         },
@@ -146,7 +136,7 @@ const AddServerCard = ({ servers }) => {
             if (data.class === "AuthenticationFailed") {
               setTokenError("Authentication failed, check Splunk Hostname and Auth Token.");
             } else {
-              setNameError(data.args[0]);
+              setServerError(data.args[0]);
             }
           } else {
             console.error(data);
@@ -160,8 +150,8 @@ const AddServerCard = ({ servers }) => {
     <>
       <Card.Header title="Add New Server" />
       <Card.Body>
-        <ControlGroup label="Splunk Hostname" help={nameerror || namehelp} error={!!nameerror}>
-          <Text placeholder="stack.splunkcloud.com[:8089]" value={name} onChange={(e, { value }) => setName(value)} />
+        <ControlGroup label="Splunk Hostname" help={servererror || serverhelp} error={!!servererror}>
+          <Text placeholder="stack.splunkcloud.com[:8089]" value={server} onChange={(e, { value }) => setServer(value)} />
         </ControlGroup>
         <ControlGroup label="Auth Token" help={tokenerror || authhelp} error={!!tokenerror}>
           <Text value={token} onChange={(e, { value }) => setToken(value)} passwordVisibilityToggle />
@@ -174,7 +164,7 @@ const AddServerCard = ({ servers }) => {
         </ControlGroup>
       </Card.Body>
       <Card.Footer showBorder={false}>
-        <Button label="Add" appearance="primary" onClick={addServer} disabled={running || name.length < 3 || token.length < 100} />
+        <Button label="Add" appearance="primary" onClick={addServer} disabled={running || server.length < 3 || token.length < 100} />
       </Card.Footer>
     </>
   );

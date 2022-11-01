@@ -29,7 +29,7 @@ const makeBody = (data) => {
 export async function fetchGet(endpoint, parameters = false) {
   if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
   return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, defaultFetchInit).then((res) => {
-    res.json().then((data) => {
+    return res.json().then((data) => {
       if (res.ok) return data;
 
       data.status = res.status;
@@ -51,18 +51,15 @@ export async function restGet(endpoint, parameters = false, callback, life = 60)
       const age = (Date.now() - new Date(res1.headers.get("date", 0)).getTime()) / 1000;
 
       return res1.json().then((data1) => {
-        callback(data1.data);
+        callback(data1);
         if (!life || age < life) return Promise.resolve(`Used ${age}s old data for ${endpoint}`);
 
         return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, { ...defaultFetchInit, cache: "reload", mode: "same-origin" }).then((res2) => {
           if (res2.status !== 200) return Promise.reject(res2);
 
           return res2.json().then((data2) => {
-            if (data1.hash !== data2.hash) {
-              callback(data2.data);
-              return Promise.resolve(`Used ${age}s old cache then refresh for ${endpoint}`);
-            }
-            return Promise.resolve(`Used ${age}s old cache then refresh hash matched for ${endpoint}`);
+            callback(data2);
+            return Promise.resolve(`Used ${age}s old cache then refresh for ${endpoint}`);
           });
         });
       });

@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useCallback, useReducer } from "react";
 
 // Sorting
 export const isort = (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }); // Case insensitive sort
@@ -8,14 +8,8 @@ export const dedup = (a) => Array.from(new Set(a));
 
 // State
 export const tupleSplit = (states) => [states.map((x) => x[0]), states.map((x) => x[1])];
-export const wrapSetValue =
-  (f) =>
-  (_, { value }) =>
-    f(value);
-export const wrapSetValues =
-  (f) =>
-  (_, { values }) =>
-    f(values);
+export const wrapSetValue = (f) => useCallback((_, { value }) => f(value), [f]);
+export const wrapSetValues = (f) => useCallback((_, { values }) => f(values), [f]);
 
 // Local Storage
 export const localSave = (key) => (value) => {
@@ -24,9 +18,8 @@ export const localSave = (key) => (value) => {
 };
 
 export const useLocal = (key, fallback) =>
-  useReducer((value) => {
-    if (value === null) window.localStorage.removeItem(key);
-    window.localStorage.setItem(key, JSON.stringify(value));
+  useReducer((prev, value) => {
+    value === null ? window.localStorage.removeItem(key) : window.localStorage.setItem(key, JSON.stringify(value));
     return value;
   }, localLoad(key, fallback));
 

@@ -264,7 +264,14 @@ class servers(common.RestHandler):
                 f"Request to {uri}/services/authentication/current-context threw error {e}"
             )
 
-        return [apps, users, files, username, realname, roles]
+        return {
+            "apps": apps,
+            "users": users,
+            "files": files,
+            "username": username,
+            "realname": realname,
+            "roles": roles,
+        }
 
     def rolerecursive(self, all_roles, new_roles, my_roles):
         for role in new_roles:

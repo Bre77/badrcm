@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useReducer, useState } from "react";
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { restChange, restGet } from "../../shared/fetch";
-import { isort, isort0, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
+import { isort, isort0, tupleSplit, useLocal, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import Page from "../../shared/page";
 import { AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
@@ -25,21 +25,21 @@ const ConfigCopy = () => {
   const COLUMN_INDEX = [0, 1];
 
   // State - Page Selectors
-  const [filefilter, setFileFilter] = useState(localLoad("BADRCM_copyfilefilter", ["props", "transforms"])); //
-  const handleFileFilter = wrapSetValues(localSave(setFileFilter, "BADRCM_copyfilefilter"));
-  const [appfilter, setAppFilter] = useState(localLoad("BADRCM_copyappfilter", ["search"]));
-  const handleAppFilter = wrapSetValues(localSave(setAppFilter, "BADRCM_copyappfilter"));
+  const [filefilter, setFileFilter] = useLocal("BADRCM_copyfilefilter", ["props", "transforms"]); //
+  const handleFileFilter = wrapSetValues(setFileFilter);
+  const [appfilter, setAppFilter] = useLocal("BADRCM_copyappfilter", ["search"]);
+  const handleAppFilter = wrapSetValues(setAppFilter);
 
   const [fileoptions, setFileOptions] = useState(Set());
   const [appoptions, setAppOptions] = useState(Map());
 
   // State - Column Selector
-  const [server, setServer] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_copyserver${z}`))));
-  const handleServer = setServer.map((f, z) => wrapSetValue(localSave(f, `BADRCM_copyserver${z}`)));
-  const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_copyappcontext${z}`, DEFAULT_APP_CONTEXT.name))));
-  const handleAppContext = setAppContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_copyappcontext${z}`)));
-  const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map((z) => useState(localLoad(`BADRCM_copyusercontext${z}`, SYSTEM_USER_CONTEXT.name))));
-  const handleUserContext = setUserContext.map((f, z) => wrapSetValue(localSave(f, `BADRCM_copyusercontext${z}`)));
+  const [server, setServer] = tupleSplit(COLUMN_INDEX.map((z) => useLocal(`BADRCM_copyserver${z}`)));
+  const handleServer = setServer.map((f, z) => wrapSetValue(f));
+  const [appcontext, setAppContext] = tupleSplit(COLUMN_INDEX.map((z) => useLocal(`BADRCM_copyappcontext${z}`, DEFAULT_APP_CONTEXT.name)));
+  const handleAppContext = setAppContext.map((f, z) => wrapSetValue(f));
+  const [usercontext, setUserContext] = tupleSplit(COLUMN_INDEX.map((z) => useLocal(`BADRCM_copyusercontext${z}`, SYSTEM_USER_CONTEXT.name)));
+  const handleUserContext = setUserContext.map((f, z) => wrapSetValue(f));
   const [error, setError] = tupleSplit(COLUMN_INDEX.map(() => useState(false)));
   const [loading, setLoading] = tupleSplit(COLUMN_INDEX.map(() => useReducer((prev, change) => prev + change, 0)));
 
@@ -65,7 +65,7 @@ const ConfigCopy = () => {
       setLoading[z](1);
       setServerContext[z](null);
       setServerConfig[z](Map());
-      restGet("servers", { server: s }, ([apps, users, files, username, realname]) => {
+      restGet("servers", { server: s }, ({ apps, users, files, username, realname }) => {
         //username, realname, roles
         for (const [app, [label]] of Object.entries(apps)) {
           apps[app] = label;
@@ -78,12 +78,10 @@ const ConfigCopy = () => {
         if (![...Object.keys(apps), DEFAULT_APP_CONTEXT.name, SYSTEM_APP_CONTEXT.name].includes(appcontext[z])) {
           console.log("Resetting App Context", z, appcontext[z], "didnt exist");
           setAppContext[z](DEFAULT_APP_CONTEXT.name);
-          localDel(`BADRCM_copyappcontext${z}`);
         }
         if (![...Object.keys(users), SYSTEM_USER_CONTEXT.name].includes(usercontext[z])) {
           console.log("Resetting User Context", z, usercontext[z], "didnt exist");
           setUserContext[z](SYSTEM_USER_CONTEXT.name);
-          localDel(`BADRCM_copyusercontext${z}`);
         }
 
         setServerContext[z]({ apps, users, files, username, realname });

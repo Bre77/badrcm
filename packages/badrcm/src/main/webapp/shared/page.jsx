@@ -1,14 +1,19 @@
-import React, { useState } from "react";
 import layout from "@splunk/react-page";
-import { getUserTheme } from "@splunk/splunk-utils/themes";
-import { createGlobalStyle } from "styled-components";
-import variables from "@splunk/themes/variables";
 import ToastMessages from "@splunk/react-toast-notifications/ToastMessages";
-import Modal from "@splunk/react-ui/Modal";
-import Button from "@splunk/react-ui/Button";
-import P from "@splunk/react-ui/Paragraph";
-import Link from "@splunk/react-ui/Link";
 import { AnimationToggleProvider } from "@splunk/react-ui/AnimationToggle";
+import Button from "@splunk/react-ui/Button";
+import Link from "@splunk/react-ui/Link";
+import Modal from "@splunk/react-ui/Modal";
+import P from "@splunk/react-ui/Paragraph";
+import { getUserTheme } from "@splunk/splunk-utils/themes";
+import variables from "@splunk/themes/variables";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
+//import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { compress, decompress } from "lz-string";
+import React, { useState } from "react";
+import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
     body {
@@ -18,12 +23,12 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Disclaimer = () => {
-  const [open, setOpen] = useState(!window.localStorage.getItem("badrcm_disclaimer"));
+  const [open, setOpen] = useState(!window.localStorage.getItem("BADRCM_disclaimer"));
 
   const close = () => {
     console.log("Accepted Disclaimer");
     setOpen(false);
-    window.localStorage.setItem("badrcm_disclaimer", Date.now());
+    window.localStorage.setItem("BADRCM_disclaimer", Date.now());
   };
   return (
     <Modal open={open} initialFocus="container" style={{ width: "600px" }}>
@@ -63,6 +68,26 @@ const Disclaimer = () => {
     </Modal>
   );
 };
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+      retry: process.env.NODE_ENV === "production",
+      refetchOnWindowFocus: process.env.NODE_ENV === "production",
+    },
+  },
+});
+
+persistQueryClient({
+  queryClient,
+  persister: createSyncStoragePersister({
+    storage: window.localStorage,
+    key: "BADRCM_cache",
+    retry: removeOldestQuery,
+    serialize: (data) => compress(JSON.stringify(data)),
+    deserialize: (data) => JSON.parse(decompress(data)),
+  }),
+});
 
 export default (component, animate = false) =>
   getUserTheme()
@@ -70,7 +95,10 @@ export default (component, animate = false) =>
       layout(
         <>
           <GlobalStyle />
-          <AnimationToggleProvider enabled={animate}>{component}</AnimationToggleProvider>
+
+          <QueryClientProvider client={queryClient}>
+            <AnimationToggleProvider enabled={animate}>{component}</AnimationToggleProvider>
+          </QueryClientProvider>
           <ToastMessages />
           <Disclaimer />
         </>,

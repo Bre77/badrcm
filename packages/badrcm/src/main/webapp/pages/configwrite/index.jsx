@@ -4,8 +4,8 @@ import debounce from "lodash.debounce";
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 
 // Shared
-import { cleanUp, restChange, restGet } from "../../shared/fetch";
-import { localDel, localLoad, localSave, wrapSetValue } from "../../shared/helpers";
+import { restChange, restGet } from "../../shared/fetch";
+import { useLocal, wrapSetValue } from "../../shared/helpers";
 import Page from "../../shared/page";
 import { AttributeSpan, StanzaSpan, StyledContainer, ValueSpan } from "../../shared/styles";
 
@@ -30,16 +30,16 @@ const ConfigWrite = () => {
   const confString = (entities) => entities.map(([a, v]) => `${a} = ${v}`).join("\n");
 
   // Selected Data
-  const [server, setServer] = useState(localLoad("BADRCM_writeserver"));
-  const handleServer = wrapSetValue(localSave(setServer, "BADRCM_writeserver"));
-  const [app, setApp] = useState(localLoad("BADRCM_writeapp"));
-  const handleApp = wrapSetValue(localSave(setApp, "BADRCM_writeapp"));
-  const [user, setUser] = useState(localLoad("BADRCM_writeuser"));
-  const handleUser = wrapSetValue(localSave(setUser, "BADRCM_writeuser"));
-  const [file, setFile] = useState(localLoad("BADRCM_writefile"));
-  const handleFile = wrapSetValue(localSave(setFile, "BADRCM_writefile"));
-  const [stanza, setStanza] = useState(localLoad("BADRCM_writestanza", ""));
-  const handleStanza = wrapSetValue(localSave(setStanza, "BADRCM_writestanza"));
+  const [server, setServer] = useLocal("BADRCM_writeserver");
+  const handleServer = wrapSetValue(setServer);
+  const [app, setApp] = useLocal("BADRCM_writeapp");
+  const handleApp = wrapSetValue(setApp);
+  const [user, setUser] = useLocal("BADRCM_writeuser");
+  const handleUser = wrapSetValue(setUser);
+  const [file, setFile] = useLocal("BADRCM_writefile");
+  const handleFile = wrapSetValue(setFile);
+  const [stanza, setStanza] = useLocal("BADRCM_writestanza", "");
+  const handleStanza = wrapSetValue(setStanza);
 
   // State - Loaded Data
   const [serveroptions, setServerOptions] = useState([]);
@@ -63,9 +63,7 @@ const ConfigWrite = () => {
 
   // Effect - Startup
   useEffect(() => {
-    restGet("servers", {}, setServerOptions).then(() => {
-      cleanUp();
-    });
+    restGet("servers", {}, setServerOptions);
   }, []);
 
   // Effect - Get Server Contexts
@@ -76,7 +74,7 @@ const ConfigWrite = () => {
     setLoading(1);
     setServerContext(null);
     setConfig(Map());
-    restGet("servers", { server }, ([apps, users, files]) => {
+    restGet("servers", { server }, ({ apps, users, files }) => {
       // , username, realname, roles
       for (const [app, [label]] of Object.entries(apps)) {
         apps[app] = label;
@@ -88,18 +86,15 @@ const ConfigWrite = () => {
       // Check App and User contexts are valid before changing context
       if (app && ![...Object.keys(apps), SYSTEM_APP_CONTEXT.name].includes(app)) {
         console.log("Resetting App Context", app, "didnt exist");
-        setApp();
-        localDel(`BADRCM_writeapp`);
+        setApp(null);
       }
       if (user && ![...Object.keys(users), SYSTEM_USER_CONTEXT.name].includes(user)) {
         console.log("Resetting User Context", user, "didnt exist");
-        setUser();
-        localDel(`BADRCM_writeuser`);
+        setUser(null);
       }
       if (file && !files.includes(file)) {
         console.log("Resetting File Context", file, "didnt exist");
-        setFile();
-        localDel(`BADRCM_writefile`);
+        setFile(null);
       }
 
       setServerContext({ apps, users, files });
