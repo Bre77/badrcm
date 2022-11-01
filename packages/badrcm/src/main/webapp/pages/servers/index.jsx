@@ -13,8 +13,8 @@ import Text from "@splunk/react-ui/Text";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
-import { fetchGet, restChange } from "../../shared/fetch";
-import { useServer, useServers } from "../../shared/hooks";
+import { restChange } from "../../shared/fetch";
+import { useContext, useServers } from "../../shared/hooks";
 import Page from "../../shared/page";
 
 const Servers = () => {
@@ -37,7 +37,7 @@ const Servers = () => {
 const ServerCard = ({ server }) => {
   const queryClient = useQueryClient();
 
-  const { isLoading, data } = useServer(server);
+  const { isLoading, data } = useContext(server);
 
   const removeServer = (e, { value }) => {
     return restChange("servers", { server: value }, {}, "DELETE").then(
@@ -53,12 +53,12 @@ const ServerCard = ({ server }) => {
       }
     );
   };
-
+  console.log(server, isLoading, data);
   return (
     <>
       <Card.Header title={server} />
       <Card.Body>
-        {isLoading ? (
+        {isLoading || !data ? (
           <WaitSpinner />
         ) : (
           <DL termWidth={100}>

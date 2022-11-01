@@ -9,8 +9,8 @@ import { getUserTheme } from "@splunk/splunk-utils/themes";
 import variables from "@splunk/themes/variables";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
-//import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { compress, decompress } from "lz-string";
 import React, { useState } from "react";
 import { createGlobalStyle } from "styled-components";
@@ -98,6 +98,7 @@ export default (component, animate = false) =>
 
           <QueryClientProvider client={queryClient}>
             <AnimationToggleProvider enabled={animate}>{component}</AnimationToggleProvider>
+            <ReactQueryDevtools />
           </QueryClientProvider>
           <ToastMessages />
           <Disclaimer />

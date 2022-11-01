@@ -20,5 +20,8 @@
   ],
   "engines": {
     "node": ">=8"
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6"
   }
 }

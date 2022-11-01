@@ -3,48 +3,34 @@ import { fetchGet } from "./fetch";
 
 const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
-export const useServers = (options = {}) =>
-  useQuery(
-    ["servers"],
-    () => {
-      return fetchGet("servers");
-    },
-    { initialData: [], ...options }
-  );
+export const useServers = (options = {}) => useQuery(["servers"], () => fetchGet("servers"), { placeholderData: [], ...options });
+export const useContext = (server, options = {}) =>
+  useQuery(["servers", server || null], () => (server ? fetchGet("servers", { server }) : BASE_CONTEXT), options);
 
-export const useServer = (server, options = {}) =>
-  useQuery(["server", server], () => fetchGet("servers", { server }), {
-    initialData: BASE_CONTEXT,
-    ...options,
-  });
-
-export const useServerContexts = (servers, options = {}) => {
-  return useQueries({
-    queries: servers.map((server) => {
-      return server
+export const useContexts = (servers, options = {}) =>
+  useQueries({
+    queries: servers.map((server) =>
+      server
         ? {
             queryKey: ["servers", server],
             queryFn: () => fetchGet("servers", { server }),
-            initialData: BASE_CONTEXT,
             ...options,
           }
-        : { queryKey: ["servers", "null"], queryFn: () => Promise.resolve(null) };
-    }),
+        : { queryKey: ["servers", null], queryFn: () => Promise.resolve(null) }
+    ),
   });
-};
 
-export const useServerConfigs = (columns, files, options = {}) => {
-  return useQueries({
+export const useConfigs = (columns, files, options = {}) =>
+  useQueries({
     queries: files.flatMap((file) =>
-      columns.map(({ server, appcontext, usercontext }) => {
-        return server
+      columns.map(({ server, appcontext, usercontext }) =>
+        server
           ? {
               queryKey: ["configs", server, file, appcontext, usercontext],
               queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
               ...options,
             }
-          : { queryKey: ["configs", "null"], queryFn: () => Promise.resolve(null) };
-      })
+          : { queryKey: ["configs", null], queryFn: () => Promise.resolve(null) }
+      )
     ),
   });
-};

@@ -8,7 +8,7 @@ import { COLUMN_INDEX, MAX_COLUMNS } from "./const";
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { isort, isort0, latest, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
-import { useServer, useServerContexts, useServers } from "../../shared/hooks";
+import { useContext, useContexts, useServers } from "../../shared/hooks";
 
 // Splunk UI
 import Dashboard from "@splunk/react-icons/Dashboard";
@@ -53,7 +53,7 @@ export default ({ files, setFiles, apps, setApps, count, setCount, columns }) =>
 };
 
 const Files = ({ files, setFiles, servers }) => {
-  const results = useServerContexts(servers);
+  const results = useContexts(servers);
   const handleFile = wrapSetValues(setFiles);
 
   const fileoptions = useMemo(() => {
@@ -84,7 +84,7 @@ const Files = ({ files, setFiles, servers }) => {
 };
 
 const Apps = ({ apps, setApps, servers }) => {
-  const results = useServerContexts(servers);
+  const results = useContexts(servers);
   const handleApp = wrapSetValues(setApps);
 
   const appoptions = useMemo(() => {
@@ -132,7 +132,7 @@ export const Column = ({ column }) => {
   const handleUserContext = wrapSetValue(column.setUserContext);
 
   const servers = useServers();
-  const context = useServer(column.server, {
+  const context = useContext(column.server, {
     onSuccess: (data) => {
       console.log("Check Context");
       if (![...Object.keys(data.apps), DEFAULT_APP_CONTEXT.name, SYSTEM_APP_CONTEXT.name].includes(column.appcontext)) {
@@ -161,7 +161,7 @@ export const Column = ({ column }) => {
             <Select.Option key={s} label={s} value={s} />
           ))}
           <Select.Divider />
-          <Select.Option label="None" value="" />
+          <Select.Option label="None" value={false} />
         </Select>
       </ControlGroup>
       <ControlGroup label="App Context" labelPosition="left" tooltip="Changes which app shared config is shown">
@@ -178,7 +178,7 @@ export const Column = ({ column }) => {
           <Select.Option label="All Apps" description="-" value={DEFAULT_APP_CONTEXT.name} />
           <Select.Option label="None / Global Only" description="system" value={SYSTEM_APP_CONTEXT.name} />
           <Select.Heading>Specific App (Not Recommended)</Select.Heading>
-          {context.data.apps && Object.entries(context.data.apps).map(([id, [label]]) => <Select.Option key={id} label={label} description={id} value={id} />)}
+          {context.data?.apps && Object.entries(context.data.apps).map(([id, [label]]) => <Select.Option key={id} label={label} description={id} value={id} />)}
         </Select>
       </ControlGroup>
       <ControlGroup label="User Context" labelPosition="left" tooltip="Changes which private user config is shown, and which user will own any created config">
@@ -193,9 +193,9 @@ export const Column = ({ column }) => {
         >
           <Select.Heading>General</Select.Heading>
           <Select.Option label="No Private Config" description="nobody" value={SYSTEM_USER_CONTEXT.name} />
-          {context.data.username && <Select.Option label={context.data.realname} value={context.data.username} description={context.data.username} />}
+          {context.data?.username && <Select.Option label={context.data.realname} value={context.data.username} description={context.data.username} />}
           <Select.Heading>All Users</Select.Heading>
-          {context.data.users &&
+          {context.data?.users &&
             Object.entries(context.data.users).map(([username, [realname]]) => (
               <Select.Option key={username} label={realname} description={username} value={username} />
             ))}

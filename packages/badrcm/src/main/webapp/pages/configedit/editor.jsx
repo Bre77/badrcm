@@ -8,7 +8,7 @@ import { COLUMN_INDEX, MAX_COLUMNS } from "./const";
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { cleanUp, restChange, restGet } from "../../shared/fetch";
 import { isort, isort0, latest, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
-import { useServerConfigs, useServerContexts } from "../../shared/hooks";
+import { useConfigs, useContexts } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
 // Splunk UI
@@ -35,8 +35,8 @@ import Tooltip from "@splunk/react-ui/Tooltip";
 
 export default ({ apps, files, columns }) => {
   console.log(apps, files, columns);
-  const contexts = useServerContexts(columns.map((x) => x.server));
-  const configs = useServerConfigs(columns, files);
+  const contexts = useContexts(columns.map((x) => x.server));
+  const configs = useConfigs(columns, files);
 
   const table = useMemo(() => {
     console.debug("Expensive Config Table");
@@ -110,15 +110,11 @@ export default ({ apps, files, columns }) => {
   console.log(table);
 
   // Methods
-  const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) =>
-    useCallback(
-      (inputvalue) => {
-        restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: fixedvalue || inputvalue }).then((config) =>
-          setServerConfig[z]((prev) => prev.mergeIn([file, app, stanza], config[app][stanza]))
-        );
-      },
-      [z, file, app, stanza, key, fixedvalue]
+  const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
+    restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: fixedvalue || inputvalue }).then((config) =>
+      setServerConfig[z]((prev) => prev.mergeIn([file, app, stanza], config[app][stanza]))
     );
+  };
 
   const handleAclChangeFactory =
     (z, file, app, stanza, key) =>
