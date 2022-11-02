@@ -1,36 +1,20 @@
-import { QueryClient, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Map, Set } from "immutable";
-import { debounce, filter, hasIn } from "lodash";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 
-import { COLUMN_INDEX, MAX_COLUMNS } from "./const";
+import { MAX_COLUMNS } from "./const";
 
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
-import { isort, isort0, latest, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
+import { isort, latest, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import { useContext, useContexts, useServers } from "../../shared/hooks";
 
 // Splunk UI
-import Dashboard from "@splunk/react-icons/Dashboard";
-import Download from "@splunk/react-icons/Download";
-import External from "@splunk/react-icons/External";
-import Globe from "@splunk/react-icons/Globe";
-import Remove from "@splunk/react-icons/Remove";
-import User from "@splunk/react-icons/User";
-import Warning from "@splunk/react-icons/Warning";
-import Button from "@splunk/react-ui/Button";
-import Clickable from "@splunk/react-ui/Clickable";
+
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
-import Dropdown from "@splunk/react-ui/Dropdown";
 import Multiselect from "@splunk/react-ui/Multiselect";
 import Number from "@splunk/react-ui/Number";
-import P from "@splunk/react-ui/Paragraph";
 import Select from "@splunk/react-ui/Select";
-import Switch from "@splunk/react-ui/Switch";
-import Table from "@splunk/react-ui/Table";
-import Text from "@splunk/react-ui/Text";
-import Tooltip from "@splunk/react-ui/Tooltip";
 
 export default ({ files, setFiles, apps, setApps, count, setCount, columns }) => {
   const servers = [...new Set(columns.map((column) => column?.server).filter((server) => server))];
