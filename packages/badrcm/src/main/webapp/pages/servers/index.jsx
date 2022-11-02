@@ -42,10 +42,7 @@ const ServerCard = ({ server }) => {
   const removeServer = (e, { value }) => {
     return restChange("servers", { server: value }, {}, "DELETE").then(
       () => {
-        queryClient.setQueryData(
-          ["servers"],
-          data.filter((server) => server !== value)
-        );
+        queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server !== value));
         queryClient.invalidateQueries(["servers"]);
       },
       () => {
@@ -125,7 +122,7 @@ const AddServerCard = () => {
       .then(
         () => {
           // Success
-          queryClient.setQueryData(["servers"], servers.concat([server]));
+          queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
           queryClient.invalidateQueries(["servers"]);
           setServer(DEFAULT_SERVER);
           setToken(DEFAULT_TOKEN);

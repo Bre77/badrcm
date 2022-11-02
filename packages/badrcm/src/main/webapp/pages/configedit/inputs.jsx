@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Map, Set } from "immutable";
 import { debounce, filter, hasIn } from "lodash";
 import React, { useMemo, useState } from "react";

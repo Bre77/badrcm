@@ -145,7 +145,7 @@ export async function restChange(endpoint, parameters = {}, body, method = "POST
     body: makeBody(body),
   }).then((res) => {
     if (status.includes(res.status)) {
-      return res.status === 204 ? Promise.resolve() : res.json().then((j) => j.data);
+      return res.status === 204 ? Promise.resolve() : res.json();
     }
     return res.json().then((data) => {
       data.status = res.status;

@@ -1,14 +1,12 @@
 import { smartTrim } from "@splunk/ui-utils/format";
-import { debounce, hasIn } from "lodash";
+import { useQueryClient } from "@tanstack/react-query";
+import { debounce } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { COLUMN_INDEX, MAX_COLUMNS } from "./const";
-
 // Shared
-import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
-import { cleanUp, restChange, restGet } from "../../shared/fetch";
-import { isort, isort0, latest, localDel, localLoad, localSave, tupleSplit, wrapSetValue, wrapSetValues } from "../../shared/helpers";
-import { useConfigs, useContexts } from "../../shared/hooks";
+import { restChange } from "../../shared/fetch";
+import { isort0, latest } from "../../shared/helpers";
+import { useConfigs, useContext, useContexts } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
 // Splunk UI
@@ -16,13 +14,12 @@ import Dashboard from "@splunk/react-icons/Dashboard";
 import Download from "@splunk/react-icons/Download";
 import External from "@splunk/react-icons/External";
 import Globe from "@splunk/react-icons/Globe";
+import Plus from "@splunk/react-icons/Plus";
 import Remove from "@splunk/react-icons/Remove";
 import User from "@splunk/react-icons/User";
 import Warning from "@splunk/react-icons/Warning";
 import Button from "@splunk/react-ui/Button";
 import Clickable from "@splunk/react-ui/Clickable";
-import ColumnLayout from "@splunk/react-ui/ColumnLayout";
-import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Dropdown from "@splunk/react-ui/Dropdown";
 import Multiselect from "@splunk/react-ui/Multiselect";
 import Number from "@splunk/react-ui/Number";
@@ -33,8 +30,10 @@ import Table from "@splunk/react-ui/Table";
 import Text from "@splunk/react-ui/Text";
 import Tooltip from "@splunk/react-ui/Tooltip";
 
+const closeReasons = ["clickAway", "escapeKey", "toggleClick"];
+
 export default ({ apps, files, columns }) => {
-  console.log(apps, files, columns);
+  const queryClient = useQueryClient();
   const contexts = useContexts(columns.map((x) => x.server));
   const configs = useConfigs(columns, files);
 
@@ -43,8 +42,9 @@ export default ({ apps, files, columns }) => {
     const count = columns.length;
     const x = configs.reduce((x, { data }, y) => {
       if (!data) return x;
-      const z = ~~(y / count); // Column Index
-      const file = files[y % count]; // File
+      const z = y % count; // Column Index
+      const file = files[~~(y / count)]; // File
+      console.log(x, y, z, file, files, configs, contexts);
 
       return Object.entries(data).reduce((x, [app, stanzas]) => {
         if (!apps.includes(app)) return x;
@@ -64,7 +64,9 @@ export default ({ apps, files, columns }) => {
             x[attr] ||= {
               cols: Array(count).fill(),
               diff: false,
+              text: false,
             };
+
             x[attr].cols[z] = value;
             x[attr].diff ||= !x[attr].cols.includes(value);
             x[attr].text ||= typeof value === "string";
@@ -92,44 +94,49 @@ export default ({ apps, files, columns }) => {
             acl,
             Object.entries(attr)
               .sort(isort0)
-              .map(([attr, { cols, diff }]) => [`${key}|${stanza}|${attr}`, attr, cols, diff]),
+              .map(([attr, { cols, diff, text }]) => [`${key}|${stanza}|${attr}`, attr, cols, diff, text]),
           ]),
       ]);
-
-    /*return Object.entries(x)
-      .sort(isort0)
-      .map(([parent, { cols, stanzas }]) => ({
-        parent,
-        cols,
-        stanzas: Object.entries(stanzas)
-          .sort(isort0)
-          .map(([stanza, { cols, acl, attr }]) => ({ stanza, cols, acl, attr: Object.entries(attr).sort(isort0) })),
-      }));*/
   }, [latest(contexts), latest(configs)]);
 
-  console.log(table);
+  const users = useMemo(() => {
+    return contexts.map(
+      (context) =>
+        context.data && Object.entries(context.data.users).map(([username, [realname]]) => <Select.Option key={username} label={realname} value={username} />)
+    );
+  }, [latest(contexts)]);
+
+  const roles = useMemo(() => {
+    return contexts.map((context) => context.data && context.data.roles.map((role) => <Multiselect.Option key={role} label={role} value={role} />));
+  }, [latest(contexts)]);
 
   // Methods
   const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
-    restChange("configs", { server: server[z], file, user: usercontext[z], app, stanza }, { [key]: fixedvalue || inputvalue }).then((config) =>
-      setServerConfig[z]((prev) => prev.mergeIn([file, app, stanza], config[app][stanza]))
-    );
+    const { server, usercontext, appcontext } = columns[z];
+    restChange("configs", { server, file, user: usercontext, app, stanza }, { [key]: fixedvalue !== null ? fixedvalue : inputvalue }).then((config) => {
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        prev[app][stanza] = config[app][stanza];
+        return prev;
+      });
+      //queryClient.invalidateQueries(["configs", server, file, appcontext, usercontext]);
+    });
   };
 
   const handleAclChangeFactory =
-    (z, file, app, stanza, key) =>
+    (current, z, file, app, stanza, key) =>
     (_, { value, values }) => {
-      console.log("ACL", z, file, app, stanza, key, value || values);
-      const current = serverconfig[z].getIn([file, app, stanza, "acl"]);
+      const { server, usercontext, appcontext } = columns[z];
       return restChange(
         "acl",
-        { server: server[z], file, user: usercontext[z], app, stanza },
+        { server, file, user: usercontext, app, stanza },
         { sharing: current.sharing, owner: current.owner, "perms.read": current.readers, "perms.write": current.writers, [key]: value || values }
       ).then((acls) => {
-        setServerConfig[z]((prev) => {
-          console.log(prev, file, app, stanza, "acl", acls);
-          return prev.setIn([file, app, stanza, "acl"], acls);
+        queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+          console.log(prev[app][stanza].acl, acls);
+          prev[app][stanza].acl = acls;
+          return prev;
         });
+        //queryClient.invalidateQueries(["configs", server, file, appcontext, usercontext]);
       });
     };
 
@@ -141,7 +148,13 @@ export default ({ apps, files, columns }) => {
       {acls.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
-            <Select inline disabled={!acl.change} value={acl.sharing} onChange={handleAclChangeFactory(z, file, app, stanza, "sharing")} error={!acls.sharing}>
+            <Select
+              inline
+              disabled={!acl.change}
+              value={acl.sharing}
+              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "sharing")}
+              error={!acls.sharing}
+            >
               <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
               <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
               <Select.Option disabled={!acl.share[2]} label="User" value="user" icon={<User />} />
@@ -157,11 +170,9 @@ export default ({ apps, files, columns }) => {
       {acls.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
-            <Select inline disabled={!acl.change} value={acl.owner} onChange={handleAclChangeFactory(z, file, app, stanza, "owner")} error={!acls.owner}>
+            <Select inline disabled={!acl.change} value={acl.owner} onChange={handleAclChangeFactory(acl, z, file, app, stanza, "owner")} error={!acls.owner}>
               <Select.Option label="Nobody" value="nobody" />
-              {contexts[z]?.users?.map((username, realname) => (
-                <Select.Option label={realname} value={username} />
-              ))}
+              {users[z]}
             </Select>
           </ShortCell>
         ) : (
@@ -178,13 +189,11 @@ export default ({ apps, files, columns }) => {
             <Multiselect
               disabled={!acl.change}
               values={acl.readers}
-              onChange={handleAclChangeFactory(z, file, app, stanza, "perms.read")}
+              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.read")}
               error={!acls.readers}
             >
               <Multiselect.Option label="Everyone" value="*" />
-              {contexts[z]?.roles?.map((role) => (
-                <Multiselect.Option key={role} label={role} value={role} />
-              ))}
+              {roles[z]}
             </Multiselect>
           </ShortCell>
         ) : (
@@ -200,13 +209,11 @@ export default ({ apps, files, columns }) => {
             <Multiselect
               disabled={!acl.change}
               values={acl.writers}
-              onChange={handleAclChangeFactory(z, file, app, stanza, "perms.write")}
+              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.write")}
               error={!acls.writers}
             >
               <Multiselect.Option label="Everyone" value="*" />
-              {contexts[z]?.roles?.map((role) => (
-                <Multiselect.Option key={role} label={role} value={role} />
-              ))}
+              {roles[z]}
             </Multiselect>
           </ShortCell>
         ) : (
@@ -220,7 +227,7 @@ export default ({ apps, files, columns }) => {
         <Table.Cell key={z}></Table.Cell>
       ))}
     </Table.Row>,
-    ...attrs.map(([key, attr, cols, diff, type]) => (
+    ...attrs.map(([key, attr, cols, diff, text]) => (
       <Table.Row key={key}>
         <TallCell align="right" truncate>
           <AttributeSpan>{attr}</AttributeSpan>
@@ -231,11 +238,11 @@ export default ({ apps, files, columns }) => {
           if (value === undefined)
             return (
               <TallCell key={z}>
-                <CreateLink onClick={handleConfigChangeFactory(z, file, app, stanza, attr, metadata.text ? "" : "false")}>Create Attribute</CreateLink>
+                <CreateLink onClick={handleConfigChangeFactory(z, file, app, stanza, attr, text ? "" : "false")}>Create Attribute</CreateLink>
               </TallCell>
             );
           return (
-            <ConfigInput key={z} value={value} diff={diff} type={type} disabled={!acl.write} handle={handleConfigChangeFactory(z, file, app, stanza, attr)} />
+            <ConfigInput key={z} value={value} diff={diff} text={text} disabled={!acl.write} handle={handleConfigChangeFactory(z, file, app, stanza, attr)} />
           );
         })}
       </Table.Row>
@@ -260,15 +267,10 @@ export default ({ apps, files, columns }) => {
               </b>
             </Table.Cell>
             {appcols.map((appcol, z) => {
-              console.log(appcol);
               return appcol ? (
                 <Table.Cell key={z}>
                   {appcol[0]} {appcol[2]}
-                  <Actions>
-                    <Tooltip content="Download file contents">
-                      <Download />
-                    </Tooltip>
-                  </Actions>
+                  <ParentActions column={columns[z]} app={app} file={file} />
                 </Table.Cell>
               ) : (
                 <Table.Cell key={z}></Table.Cell>
@@ -294,7 +296,7 @@ export default ({ apps, files, columns }) => {
                   return (
                     <Table.Cell key={z}>
                       <i>{summary}</i>
-                      <StanzaActions server={columns[z].server} app={app} file={file} stanza={stanza} />
+                      <StanzaActions column={columns[z]} app={app} file={file} stanza={stanza} />
                     </Table.Cell>
                   );
                 })}
@@ -330,9 +332,14 @@ const ConfigInput = ({ value, handle, disabled, diff, text }) => {
   );
 };
 
-const StanzaActions = ({ server, app, file, stanza, appcontext, usercontext, setConfig }) => {
-  const [moveopen, setMoveOpen] = useState(false);
-  const [deleteopen, setDeleteOpen] = useState(false);
+const StanzaActions = ({ column, app, file, stanza }) => {
+  const { data } = useContext(column.server);
+
+  const add = (
+    <Clickable>
+      <Plus screenReaderText="Add Attribute" hideDefaultTooltip />
+    </Clickable>
+  );
 
   const move = (
     <Clickable>
@@ -345,23 +352,73 @@ const StanzaActions = ({ server, app, file, stanza, appcontext, usercontext, set
       <Remove hideDefaultTooltip />
     </Clickable>
   );
-
   return (
     <Actions>
+      <Tooltip content="Add new attribute.">
+        <Dropdown toggle={add} retainFocus closeReasons={closeReasons}>
+          <StyledContainer>
+            <P>
+              Add a new attribute to <StanzaSpan>[{stanza}]</StanzaSpan> in{" "}
+              <b>
+                {app}/{file}.conf
+              </b>
+            </P>
+            <Text inline placeholder="Attribute (required)" />
+            <Text inline placeholder="Value (optional)" />
+            <Button inline>Add</Button>
+          </StyledContainer>
+        </Dropdown>
+      </Tooltip>
       <Tooltip content="Move stanza to another app.">
-        <Dropdown toggle={move} retainFocus>
-          <StyledContainer>Select App</StyledContainer>
+        <Dropdown toggle={move} retainFocus closeReasons={closeReasons}>
+          <StyledContainer>
+            <P>
+              Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{app}</b> to:
+            </P>
+            <Multiselect>
+              {data && Object.entries(data.apps).map(([name, [label]]) => <Multiselect.Option key={name} label={label} value={name} />)}
+            </Multiselect>
+          </StyledContainer>
         </Dropdown>
       </Tooltip>
       <Tooltip content="Remove stanza completely.">
-        <Dropdown toggle={remove} retainFocus>
+        <Dropdown toggle={remove} retainFocus closeReasons={closeReasons}>
           <StyledContainer>
             <Warning size={2} />
             <br />
-            <P>Are you sure you want to delete stanza [{stanza}]?</P>
+            <P>
+              Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?
+            </P>
             <Button>Delete</Button>
           </StyledContainer>
         </Dropdown>
+      </Tooltip>
+    </Actions>
+  );
+};
+
+const ParentActions = ({ column, app, file }) => {
+  const { data } = useContext(column.server);
+  const add = (
+    <Clickable>
+      <Plus screenReaderText="Add Attribute" hideDefaultTooltip />
+    </Clickable>
+  );
+  return (
+    <Actions>
+      <Tooltip content="Add new stanza.">
+        <Dropdown toggle={add} retainFocus closeReasons={closeReasons}>
+          <StyledContainer>
+            <P>
+              Add a new stanza to {app}/{file}.conf
+            </P>
+            <Text inline placeholder="Stanza Name (required)" />
+            <Button inline>Create Stanza</Button>
+          </StyledContainer>
+        </Dropdown>
+      </Tooltip>
+      <Tooltip content="Download file contents">
+        <Download />
       </Tooltip>
     </Actions>
   );

@@ -1,7 +1,7 @@
-import styled from 'styled-components';
-import { variables, mixins } from '@splunk/themes';
-import Table from '@splunk/react-ui/Table';
 import Link from '@splunk/react-ui/Link';
+import Table from '@splunk/react-ui/Table';
+import { mixins, variables } from '@splunk/themes';
+import styled from 'styled-components';
 
 export const StyledContainer = styled.div`
     ${mixins.reset('inline')};
@@ -40,4 +40,7 @@ export const ValueSpan = styled.span`
 
 export const Actions = styled.div`
   float:right;
+  span {
+    padding-left: 4px;
+  }
 `;
