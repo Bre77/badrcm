@@ -13,7 +13,6 @@ import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, Sty
 import Dashboard from "@splunk/react-icons/Dashboard";
 import Download from "@splunk/react-icons/Download";
 import External from "@splunk/react-icons/External";
-
 import Globe from "@splunk/react-icons/Globe";
 import Plus from "@splunk/react-icons/Plus";
 import Remove from "@splunk/react-icons/Remove";

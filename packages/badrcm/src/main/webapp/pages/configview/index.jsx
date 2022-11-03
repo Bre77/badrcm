@@ -2,7 +2,7 @@ import React from "react";
 
 // Main Components
 import Inputs from "../../shared/inputs";
-import Editor from "./editor";
+import Viewer from "./viewer";
 
 // Shared
 import { COLUMN_INDEX, DEFAULT_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
@@ -10,7 +10,7 @@ import { useLocal } from "../../shared/helpers";
 import Page from "../../shared/page";
 import { StyledContainer } from "../../shared/styles";
 
-const ConfigEdit = () => {
+const ConfigView = () => {
   // State - Page Selectors
   const [files, setFiles] = useLocal("BADRCM_editfilefilter", ["props", "transforms"]); //
   const [apps, setApps] = useLocal("BADRCM_editappfilter", ["search"]);
@@ -38,9 +38,9 @@ const ConfigEdit = () => {
     <StyledContainer>
       <Inputs {...{ files, setFiles, apps, setApps, count, setCount, columns }} />
       <br />
-      <Editor {...{ apps, files, columns }} />
+      <Viewer {...{ apps, files, columns }} />
     </StyledContainer>
   );
 };
 
-Page(<ConfigEdit />);
+Page(<ConfigView />);
