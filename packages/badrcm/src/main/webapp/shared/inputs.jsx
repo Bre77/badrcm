@@ -10,12 +10,12 @@ import Number from "@splunk/react-ui/Number";
 import Select from "@splunk/react-ui/Select";
 
 // Shared
-import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
-import { isort, latest, wrapSetValue, wrapSetValues } from "../../shared/helpers";
-import { useContext, useContexts, useServers } from "../../shared/hooks";
+import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "./const";
+import { isort, latest, wrapSetValue, wrapSetValues } from "./helpers";
+import { useContext, useContexts, useServers } from "./hooks";
 
 // Local
-import { MAX_COLUMNS } from "./const";
+import { MAX_COLUMNS } from "../pages/configedit/const";
 
 export default ({ files, setFiles, apps, setApps, count, setCount, columns }) => {
   const servers = [...new Set(columns.map((column) => column?.server).filter((server) => server))];
@@ -94,7 +94,14 @@ const Apps = ({ apps, setApps, servers }) => {
 
   return (
     <ControlGroup label="Apps" labelPosition="left">
-      <Multiselect inline values={apps} onChange={handleApp} placeholder={`All ${appoptions.size} apps`} noOptionsMessage="Select at least one server first">
+      <Multiselect
+        inline
+        values={apps}
+        onChange={handleApp}
+        placeholder={`You must select 1 or more files`}
+        error={!apps.length}
+        noOptionsMessage="Select at least one server first"
+      >
         {appoptions.map((label, id) => <Multiselect.Option key={id} label={label} value={id} />).toList()}
       </Multiselect>
     </ControlGroup>

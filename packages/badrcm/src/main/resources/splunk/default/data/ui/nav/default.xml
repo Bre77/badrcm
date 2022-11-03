@@ -1,10 +1,11 @@
 <nav>
   <view name="servers" default="true"/>
+  <view name="configview"/>
   <view name="configedit"/>
   <view name="configcopy"/>
   <view name="configwrite"/>
-  <view name="configdelete"/>
   <view name="apps"/>
   <view name="indexes"/>
+  <view name="options"/>
   <a href="https://github.com/Bre77/badrcm/issues" target="_blank">Get Support</a>
 </nav>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<view template="badrcm:/templates/options.html" type="html">
+	<label>Options</label>
+</view>

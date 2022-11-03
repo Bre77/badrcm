@@ -379,7 +379,7 @@ const ConfigCopy = () => {
                     return (
                       <Table.Row key={key} expansionRow={getConfigRows(app, file, stanza, attrs)}>
                         <TallCell align="right" truncate>
-                          <StanzaSpan>[{stanza.substring(0, 30)}]</StanzaSpan>
+                          <StanzaSpan>[{smartTrim(stanza, 30)}]</StanzaSpan>
                         </TallCell>
                         <TallCell>
                           {src && (

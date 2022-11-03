@@ -30,15 +30,13 @@ const Disclaimer = () => {
     setOpen(false);
     window.localStorage.setItem("BADRCM_disclaimer", Date.now());
   };
+  // prettier-ignore
   return (
     <Modal open={open} initialFocus="container" style={{ width: "600px" }}>
       <Modal.Header title="Disclaimer" />
       <Modal.Body>
         <P>
-          This application is offered under the Splunk general terms for third party applications avaliable at{" "}
-          <Link to="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" openInNewContext>
-            https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party
-          </Link>
+          This application is offered under the Splunk general terms for third party applications avaliable at <Link to="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" openInNewContext>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</Link>
         </P>
         <P>
           Brett Adams' Dangerous REST Configuration Manager (BADRCM) allows administrators to read, write, and modify Splunk configuration to the fullest extent
@@ -54,11 +52,7 @@ const Disclaimer = () => {
           provide.
         </P>
         <P>
-          The{" "}
-          <Link to="https://bre77.au/" openInNewContext>
-            developer of this application
-          </Link>{" "}
-          accepts no responsibility or liability for damages or downtime that you may incur of any kind.
+          The <Link to="https://bre77.au/" openInNewContext>developer of this application</Link> accepts no responsibility or liability for damages or downtime that you may incur of any kind.
         </P>
       </Modal.Body>
       <Modal.Footer>

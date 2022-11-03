@@ -1,8 +1,8 @@
 import React from "react";
 
 // Main Components
+import Inputs from "../../shared/inputs";
 import Editor from "./editor";
-import Inputs from "./inputs";
 
 import { COLUMN_INDEX } from "./const";
 
