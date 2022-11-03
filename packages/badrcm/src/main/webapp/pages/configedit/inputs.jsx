@@ -116,6 +116,8 @@ export const Column = ({ column }) => {
   const handleAppContext = wrapSetValue(column.setAppContext);
   const handleUserContext = wrapSetValue(column.setUserContext);
 
+  //! There is a bug here where the server changes way before the context can be validated. I may need to handle this internally until context is updated
+
   const servers = useServers();
   const context = useContext(column.server, {
     onSuccess: (data) => {

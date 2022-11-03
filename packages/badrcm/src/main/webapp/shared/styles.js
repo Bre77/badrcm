@@ -1,3 +1,4 @@
+import Flag from "@splunk/react-icons/Flag";
 import Link from '@splunk/react-ui/Link';
 import Table from '@splunk/react-ui/Table';
 import WaitSpinner from '@splunk/react-ui/WaitSpinner';
@@ -55,4 +56,9 @@ export const TextSpinner = styled(WaitSpinner)`
 
 export const SwitchSpinner = styled(WaitSpinner)`
 svg{padding: 2px 2px 0 0}
+`
+
+export const RedFlag = styled(Flag)`
+    color: 'red';
+    float:left;
 `

@@ -7,12 +7,13 @@ import React, { useCallback, useEffect, useMemo, useReducer, useState } from "re
 import { restChange } from "../../shared/fetch";
 import { isort0, latest, wrapSetValue } from "../../shared/helpers";
 import { useConfig, useConfigs, useContext, useContexts, useMutateConfig } from "../../shared/hooks";
-import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
+import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
 import Dashboard from "@splunk/react-icons/Dashboard";
 import Download from "@splunk/react-icons/Download";
 import External from "@splunk/react-icons/External";
+
 import Globe from "@splunk/react-icons/Globe";
 import Plus from "@splunk/react-icons/Plus";
 import Remove from "@splunk/react-icons/Remove";
@@ -55,14 +56,14 @@ export default ({ apps, files, columns }) => {
         x[key].stanzas = Object.entries(stanzas).reduce((x, [stanza, content]) => {
           x[stanza] ||= {
             cols: Array(count).fill(),
-            acl: { cols: Array(count).fill(), diff: { sharing: false, owner: false, readers: false, writers: false } },
+            acls: Array(count).fill(),
             attr: {},
           };
           x[stanza].cols[z] = `${Object.keys(content.attr).length} attributes in ${content.acl.sharing} scope`;
-          x[stanza].acl.cols[z] = content.acl;
+          x[stanza].acls[z] = content.acl;
 
-          x[stanza].acl.diff.sharing ||= !x[stanza].acl.cols.map((acl) => acl?.sharing).includes(content.acl.sharing);
-          x[stanza].acl.diff.owner ||= !x[stanza].acl.cols.map((acl) => acl?.owner).includes(content.acl.owner);
+          //x[stanza].acl.diff.sharing ||= !x[stanza].acl.cols.map((acl) => acl?.sharing).includes(content.acl.sharing);
+          //x[stanza].acl.diff.owner ||= !x[stanza].acl.cols.map((acl) => acl?.owner).includes(content.acl.owner);
 
           x[stanza].attr = Object.entries(content.attr).reduce((x, [attr, value]) => {
             x[attr] ||= {
@@ -72,7 +73,6 @@ export default ({ apps, files, columns }) => {
             };
 
             x[attr].cols[z] = value;
-            x[attr].diff ||= !x[attr].cols.includes(value);
             x[attr].text ||= typeof value === "string";
             return x;
           }, x[stanza].attr);
@@ -91,14 +91,20 @@ export default ({ apps, files, columns }) => {
         cols,
         Object.entries(stanzas)
           .sort(isort0)
-          .map(([stanza, { cols, acl, attr }]) => [
+          .map(([stanza, { cols, acls, attr }]) => [
             `${key}|${stanza}`,
             stanza,
             cols,
-            acl,
+            {
+              cols: acls,
+              diff: {
+                sharing: new Set(acls.filter((c) => c !== undefined).map((c) => c.sharing)).size !== 1,
+                owner: new Set(acls.filter((c) => c !== undefined).map((c) => c.owner)).size !== 1,
+              },
+            },
             Object.entries(attr)
               .sort(isort0)
-              .map(([attr, { cols, diff, text }]) => [`${key}|${stanza}|${attr}`, attr, cols, diff, text]),
+              .map(([attr, { cols, text }]) => [`${key}|${stanza}|${attr}`, attr, cols, new Set(cols.filter((v) => v !== undefined)).size !== 1, text]),
           ]),
       ]);
   }, [latest(contexts), latest(configs), apps]);
@@ -115,7 +121,7 @@ export default ({ apps, files, columns }) => {
   }, [latest(contexts)]);
 
   // Methods
-  const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
+  /*const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
     const { server, usercontext, appcontext } = columns[z];
     restChange("configs", { server, file, user: usercontext, app, stanza }, { [key]: fixedvalue !== null ? fixedvalue : inputvalue }).then((config) => {
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
@@ -124,7 +130,7 @@ export default ({ apps, files, columns }) => {
       });
       //queryClient.invalidateQueries(["configs", server, file, appcontext, usercontext]);
     });
-  };
+  };*/
 
   const handleAclChangeFactory =
     (current, z, file, app, stanza, key) =>
@@ -240,6 +246,7 @@ export default ({ apps, files, columns }) => {
     ...attrs.map(([key, attr, cols, diff, text]) => (
       <Table.Row key={key}>
         <TallCell align="right" truncate>
+          {diff && <RedFlag screenReaderText="Values are different" />}
           <AttributeSpan>{attr}</AttributeSpan>
         </TallCell>
         {cols.map((value, z) => {
@@ -247,7 +254,7 @@ export default ({ apps, files, columns }) => {
           if (value === undefined)
             return (
               <TallCell key={z}>
-                <CreateLink onClick={handleConfigChangeFactory(z, file, app, stanza, attr, text ? "" : "false")}>Create Attribute</CreateLink>
+                <CreateAttribute {...{ column: columns[z], file, app, stanza, attr, text }} />
               </TallCell>
             );
           return <ConfigInput {...{ key: z, column: columns[z], value, diff, text, file, app, stanza, attr, disabled: !acls.cols[z].write }} />;
@@ -300,7 +307,7 @@ export default ({ apps, files, columns }) => {
                   if (!summary)
                     return (
                       <Table.Cell key={z}>
-                        <CreateLink onClick={handleConfigChangeFactory(z, file, app, "", "name", stanza)}>Create Stanza</CreateLink>
+                        <CreateStanza column={columns[z]} app={app} file={file} stanza={stanza} />
                       </Table.Cell>
                     );
                   return (
@@ -324,14 +331,14 @@ export default ({ apps, files, columns }) => {
 };
 
 const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text, file, app, stanza, attr, disabled }) => {
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza);
+
   const [internalvalue, setInternalValue] = useState(value); //
   const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);
   const inputHandle = (e, { value }) => {
     setInternalValue(value);
     text ? deboundedHandle({ [attr]: value }) : change.mutate({ [attr]: value });
   };
-
-  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza);
 
   useEffect(() => {
     setInternalValue(value);
@@ -344,10 +351,40 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
   ) : (
     <ShortCell>
       <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={change.isError}>
-        {change.isLoading && <WaitSpinner />} //! Needs CSS work to avoid bumping height and keeping middle
+        {change.isLoading && <WaitSpinner />}
       </Switch>
     </ShortCell>
-  );
+  ); //! Needs CSS work to avoid bumping height and keeping middle
+};
+
+const CreateStanza = ({ column: { server, appcontext, usercontext }, app, file, stanza }) => {
+  const queryClient = useQueryClient();
+  const create = useMutation({
+    mutationFn: (body) => {
+      return restChange("configs", { server, user: usercontext, app, file, stanza: "" }, { name: stanza });
+    },
+    onSuccess: (config) => {
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        prev[app][stanza] = config[app][stanza];
+        return prev;
+      });
+    },
+  });
+
+  return create.isLoading ? <WaitSpinner /> : <CreateLink onClick={create.mutate}>Create Stanza</CreateLink>;
+};
+
+const CreateAttribute = ({ column: { server, appcontext, usercontext }, app, file, stanza, attr, text }) => {
+  const queryClient = useQueryClient();
+
+  const handleClick = () => {
+    queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+      prev[app][stanza].attr[attr] = text ? "" : false;
+      return prev;
+    });
+  };
+
+  return <CreateLink onClick={handleClick}>Create Attribute</CreateLink>;
 };
 
 const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, file }) => {
@@ -374,9 +411,9 @@ const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, fil
             </b>
           </P>
           <ControlGroup label="Stanza" labelWidth={60}>
-            <Text value={stanza} onChange={handleStanza} error={!stanza} />
+            <Text value={stanza} onChange={handleStanza} error={change.isError} />
           </ControlGroup>
-          <ControlGroup label="" labelWidth={60}>
+          <ControlGroup label="" labelWidth={60} help={change.error}>
             <Button disabled={!stanza} onClick={handleClick} error={change.isError}>
               {change.isLoading ? <WaitSpinner /> : "Create Stanza"}
             </Button>
@@ -425,15 +462,16 @@ const ActionDownload = ({ column, app, file }) => {
 };
 
 const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza, () => {
+    setAttr("");
+    setValue("");
+  });
+
   const [attr, setAttr] = useState("");
   const handleAttr = wrapSetValue(setAttr);
   const [value, setValue] = useState("");
   const handleValue = wrapSetValue(setValue);
-
-  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza, attr, value, () => {
-    setAttr("");
-    setValue("");
-  });
+  const handleButton = () => change.mutate({ [attr]: value });
 
   const toggle = (
     <Clickable>
@@ -452,13 +490,13 @@ const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file,
             </b>
           </P>
           <ControlGroup label="Attribute" labelWidth={60}>
-            <Text value={attr} onChange={handleAttr} error={!attr} />
+            <Text value={attr} onChange={handleAttr} error={change.isError} />
           </ControlGroup>
           <ControlGroup label="Value" labelWidth={60}>
-            <Text value={value} onChange={handleValue} error={!value} />
+            <Text value={value} onChange={handleValue} error={change.isError} />
           </ControlGroup>
-          <ControlGroup label="" labelWidth={60}>
-            <Button disabled={!attr || !value || change.isLoading} onClick={change.mutate} error={!!change.error}>
+          <ControlGroup label="" labelWidth={60} help={change.error}>
+            <Button disabled={!attr || !value || change.isLoading} onClick={handleButton} error={change.isError}>
               {change.isLoading ? <WaitSpinner /> : "Add"}
             </Button>
           </ControlGroup>
@@ -469,11 +507,12 @@ const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file,
 };
 
 const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const queryClient = useQueryClient();
   const [target, setTarget] = useState(app);
   const handleTarget = wrapSetValue(setTarget);
 
   const { data } = useContext(server);
-  const move = useMutation({
+  const change = useMutation({
     mutationFn: (target) => {
       return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target });
     },
@@ -498,12 +537,16 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
           <P>
             Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{target}</b> to:
           </P>
-          <Select onChange={handleTarget}>
-            {data && Object.entries(data.apps).map(([name, [label]]) => <Select.Option key={name} label={label} value={name} />)}
-          </Select>
-          <Button disabled={target !== app} onClick={move.mutate} error={move.isError}>
-            {move.isLoading ? <WaitSpinner /> : "Move"}
-          </Button>
+          <ControlGroup label="App">
+            <Select onChange={handleTarget} error={change.isError}>
+              {data && Object.entries(data.apps).map(([name, [label]]) => <Select.Option key={name} label={label} value={name} />)}
+            </Select>
+          </ControlGroup>
+          <ControlGroup>
+            <Button disabled={target !== app} onClick={change.mutate} error={change.isError}>
+              {change.isLoading ? <WaitSpinner /> : "Move"}
+            </Button>
+          </ControlGroup>
         </StyledContainer>
       </Dropdown>
     </Tooltip>
@@ -520,7 +563,7 @@ const StanzaDeleteStanza = ({ column, app, file, stanza }) => {
   return (
     <Tooltip content="Remove stanza completely.">
       <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
-        <StyledContainer style={{ "text-align": "center" }}>
+        <StyledContainer style={{ textAlign: "center" }}>
           <Warning size={2} style={{ padding: "5px" }} />
           <P>
             Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?

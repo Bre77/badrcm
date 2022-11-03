@@ -58,7 +58,6 @@ export const useMutateConfig = (server, usercontext, appcontext, app, file, stan
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body) => {
-      console.log(body);
       return restChange("configs", { server, user: usercontext, app, file, stanza }, body);
     },
     onSuccess: (config) => {
