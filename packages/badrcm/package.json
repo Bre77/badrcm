@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@splunk/react-toast-notifications": "^0.11.0",
+    "@splunk/react-ui": "^4.14.0",
     "@tanstack/query-sync-storage-persister": "^4.13.4",
     "@tanstack/react-query": "^4.13.5",
     "@tanstack/react-query-devtools": "^4.13.5",
@@ -28,7 +29,7 @@
     "@splunk/babel-preset": "^3.0.0",
     "@splunk/eslint-config": "^4.0.0",
     "@splunk/react-page": "^6.0.2",
-    "@splunk/react-ui": "^4.12.1",
+    "@splunk/react-ui": "^4.14.0",
     "@splunk/splunk-utils": "^2.2.3",
     "@splunk/stylelint-config": "^4.0.0",
     "@splunk/themes": "^0.13.0",

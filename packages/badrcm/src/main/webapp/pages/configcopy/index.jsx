@@ -12,7 +12,7 @@ import Page from "../../shared/page";
 import { AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 
 // Splunk UI
-import Button from "@splunk/react-ui/Button";[name, [label]]
+import Button from "@splunk/react-ui/Button";
 import ColumnLayout from "@splunk/react-ui/ColumnLayout";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Multiselect from "@splunk/react-ui/Multiselect";

@@ -1248,6 +1248,19 @@
     lodash "^4.17.14"
     prop-types "^15.6.2"
 
+"@splunk/react-icons@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@splunk/react-icons/-/react-icons-3.3.0.tgz#08fc2b15866fed0db4ee45fcbf961157c2ec20a5"
+  integrity sha512-w/0sD0YBX2Zui1GtgLPXNEB83dda1XQI1DYK5aNJU3F+qlzPdbFmPu7jEuM/FQG/XUSgT4t8b3i54jWs/O7GYQ==
+  dependencies:
+    "@splunk/ui-utils" "^1.5.1"
+    "@types/lodash" "^4.14.156"
+    "@types/react" "^16.9.38"
+    "@types/react-dom" "^16.9.8"
+    "@types/styled-components" "^5.1.0"
+    lodash "^4.17.14"
+    prop-types "^15.6.2"
+
 "@splunk/react-page@^6.0.2":
   version "6.0.2"
   resolved "https://registry.npmjs.org/@splunk/react-page/-/react-page-6.0.2.tgz"
@@ -1273,12 +1286,40 @@
     prop-types "^15.6.2"
     react-flip-move "^3.0.1"
 
-"@splunk/react-ui@^4.12.0", "@splunk/react-ui@^4.12.1", "@splunk/react-ui@^4.8.0":
+"@splunk/react-ui@^4.12.0", "@splunk/react-ui@^4.8.0":
   version "4.13.0"
   resolved "https://registry.npmjs.org/@splunk/react-ui/-/react-ui-4.13.0.tgz"
   integrity sha512-7zOOy+18VAtZ0ElfGDBrYliDIcjETT3ID4TrOa69nqkmtvf1YdbPVbiqCu0gCg5UqMRVFgzljiiNgKDro97eTg==
   dependencies:
     "@splunk/react-icons" "^3.2.0"
+    "@splunk/themes" "^0.13.0"
+    "@splunk/ui-utils" "^1.5.1"
+    "@types/commonmark" "^0.27.0"
+    "@types/lodash" "^4.14.156"
+    "@types/react" "^16.9.38"
+    "@types/react-dom" "^16.9.8"
+    "@types/react-resize-detector" "^3.1.1"
+    "@types/styled-components" "^5.1.0"
+    "@types/tinycolor2" "^1.4.2"
+    axe-html-reporter "^2.2.3"
+    commonmark "^0.27.0"
+    commonmark-react-renderer "^4.3.2"
+    decimal.js-light "^2.2.3"
+    lodash "^4.17.14"
+    moment "^2.22.2"
+    prop-types "^15.6.2"
+    react-resize-detector "^3.2.1"
+    react-sortable-hoc "^1.11.0"
+    react-spring "^9.2.4"
+    tinycolor2 "^1.4.1"
+    use-typed-event-listener "^3.0.0"
+
+"@splunk/react-ui@^4.14.0":
+  version "4.14.0"
+  resolved "https://registry.yarnpkg.com/@splunk/react-ui/-/react-ui-4.14.0.tgz#b76d1620558db1bf7bd5f3c7338214849fae7068"
+  integrity sha512-3Cu78J4r53j0T3gNjKSuEhI1coDIfBgBoKmSNUfC/zenLl4DfEzVbjjZiJOywkm7gvVviTr7zNLPK+ZNlVpTnA==
+  dependencies:
+    "@splunk/react-icons" "^3.3.0"
     "@splunk/themes" "^0.13.0"
     "@splunk/ui-utils" "^1.5.1"
     "@types/commonmark" "^0.27.0"
