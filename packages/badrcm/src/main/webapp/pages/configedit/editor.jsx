@@ -537,13 +537,13 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
           <P>
             Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{target}</b> to:
           </P>
-          <ControlGroup label="App">
-            <Select onChange={handleTarget} error={change.isError}>
+          <ControlGroup label="App" labelWidth={60}>
+            <Select onChange={handleTarget} error={change.isError} value={target}>
               {data && Object.entries(data.apps).map(([name, [label]]) => <Select.Option key={name} label={label} value={name} />)}
             </Select>
           </ControlGroup>
-          <ControlGroup>
-            <Button disabled={target !== app} onClick={change.mutate} error={change.isError}>
+          <ControlGroup label=" " labelWidth={60} help={change.error}>
+            <Button disabled={target === app} onClick={change.mutate} error={change.isError}>
               {change.isLoading ? <WaitSpinner /> : "Move"}
             </Button>
           </ControlGroup>
