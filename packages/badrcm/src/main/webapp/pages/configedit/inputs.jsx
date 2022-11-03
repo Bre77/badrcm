@@ -1,20 +1,21 @@
 import { Map, Set } from "immutable";
 import React, { useMemo } from "react";
 
-import { MAX_COLUMNS } from "./const";
+// Splunk UI
+import { AnimationToggleProvider } from "@splunk/react-ui/AnimationToggle";
+import ColumnLayout from "@splunk/react-ui/ColumnLayout";
+import ControlGroup from "@splunk/react-ui/ControlGroup";
+import Multiselect from "@splunk/react-ui/Multiselect";
+import Number from "@splunk/react-ui/Number";
+import Select from "@splunk/react-ui/Select";
 
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { isort, latest, wrapSetValue, wrapSetValues } from "../../shared/helpers";
 import { useContext, useContexts, useServers } from "../../shared/hooks";
 
-// Splunk UI
-
-import ColumnLayout from "@splunk/react-ui/ColumnLayout";
-import ControlGroup from "@splunk/react-ui/ControlGroup";
-import Multiselect from "@splunk/react-ui/Multiselect";
-import Number from "@splunk/react-ui/Number";
-import Select from "@splunk/react-ui/Select";
+// Local
+import { MAX_COLUMNS } from "./const";
 
 export default ({ files, setFiles, apps, setApps, count, setCount, columns }) => {
   const servers = [...new Set(columns.map((column) => column?.server).filter((server) => server))];
@@ -131,7 +132,7 @@ export const Column = ({ column }) => {
   });
 
   return (
-    <>
+    <AnimationToggleProvider enabled={false}>
       <ControlGroup label="Server" labelPosition="left">
         <Select
           inline
@@ -185,6 +186,6 @@ export const Column = ({ column }) => {
             ))}
         </Select>
       </ControlGroup>
-    </>
+    </AnimationToggleProvider>
   );
 };

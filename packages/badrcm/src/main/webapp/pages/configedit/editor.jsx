@@ -1,13 +1,13 @@
 import { smartTrim } from "@splunk/ui-utils/format";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { debounce } from "lodash";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 
 // Shared
 import { restChange } from "../../shared/fetch";
-import { isort0, latest } from "../../shared/helpers";
-import { useConfigs, useContext, useContexts } from "../../shared/hooks";
-import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
+import { isort0, latest, wrapSetValue } from "../../shared/helpers";
+import { useConfig, useConfigs, useContext, useContexts, useMutateConfig } from "../../shared/hooks";
+import { Actions, AttributeSpan, CreateLink, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
 import Dashboard from "@splunk/react-icons/Dashboard";
@@ -20,15 +20,16 @@ import User from "@splunk/react-icons/User";
 import Warning from "@splunk/react-icons/Warning";
 import Button from "@splunk/react-ui/Button";
 import Clickable from "@splunk/react-ui/Clickable";
+import ControlGroup from "@splunk/react-ui/ControlGroup";
 import Dropdown from "@splunk/react-ui/Dropdown";
 import Multiselect from "@splunk/react-ui/Multiselect";
-import Number from "@splunk/react-ui/Number";
 import P from "@splunk/react-ui/Paragraph";
 import Select from "@splunk/react-ui/Select";
 import Switch from "@splunk/react-ui/Switch";
 import Table from "@splunk/react-ui/Table";
 import Text from "@splunk/react-ui/Text";
 import Tooltip from "@splunk/react-ui/Tooltip";
+import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 const closeReasons = ["clickAway", "escapeKey", "toggleClick"];
 
@@ -44,7 +45,6 @@ export default ({ apps, files, columns }) => {
       if (!data) return x;
       const z = y % count; // Column Index
       const file = files[~~(y / count)]; // File
-      console.log(x, y, z, file, files, configs, contexts);
 
       return Object.entries(data).reduce((x, [app, stanzas]) => {
         if (!apps.includes(app)) return x;
@@ -55,11 +55,15 @@ export default ({ apps, files, columns }) => {
         x[key].stanzas = Object.entries(stanzas).reduce((x, [stanza, content]) => {
           x[stanza] ||= {
             cols: Array(count).fill(),
-            acl: Array(count).fill(),
+            acl: { cols: Array(count).fill(), diff: { sharing: false, owner: false, readers: false, writers: false } },
             attr: {},
           };
           x[stanza].cols[z] = `${Object.keys(content.attr).length} attributes in ${content.acl.sharing} scope`;
-          x[stanza].acl[z] = content.acl;
+          x[stanza].acl.cols[z] = content.acl;
+
+          x[stanza].acl.diff.sharing ||= !x[stanza].acl.cols.map((acl) => acl?.sharing).includes(content.acl.sharing);
+          x[stanza].acl.diff.owner ||= !x[stanza].acl.cols.map((acl) => acl?.owner).includes(content.acl.owner);
+
           x[stanza].attr = Object.entries(content.attr).reduce((x, [attr, value]) => {
             x[attr] ||= {
               cols: Array(count).fill(),
@@ -97,7 +101,7 @@ export default ({ apps, files, columns }) => {
               .map(([attr, { cols, diff, text }]) => [`${key}|${stanza}|${attr}`, attr, cols, diff, text]),
           ]),
       ]);
-  }, [latest(contexts), latest(configs)]);
+  }, [latest(contexts), latest(configs), apps]);
 
   const users = useMemo(() => {
     return contexts.map(
@@ -145,7 +149,7 @@ export default ({ apps, files, columns }) => {
     <Table.Row>
       <TallCell align="right">Sharing</TallCell>
 
-      {acls.map((acl, z) => {
+      {acls.cols.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
             <Select
@@ -153,7 +157,7 @@ export default ({ apps, files, columns }) => {
               disabled={!acl.change}
               value={acl.sharing}
               onChange={handleAclChangeFactory(acl, z, file, app, stanza, "sharing")}
-              error={!acls.sharing}
+              error={acls.diff.sharing}
             >
               <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
               <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
@@ -167,10 +171,16 @@ export default ({ apps, files, columns }) => {
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|owner`}>
       <TallCell align="right">Owner</TallCell>
-      {acls.map((acl, z) => {
+      {acls.cols.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
-            <Select inline disabled={!acl.change} value={acl.owner} onChange={handleAclChangeFactory(acl, z, file, app, stanza, "owner")} error={!acls.owner}>
+            <Select
+              inline
+              disabled={!acl.change}
+              value={acl.owner}
+              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "owner")}
+              error={acls.diff.owner}
+            >
               <Select.Option label="Nobody" value="nobody" />
               {users[z]}
             </Select>
@@ -183,14 +193,14 @@ export default ({ apps, files, columns }) => {
     <Table.Row key={`${app}|${file}|${stanza}|readers`}>
       <TallCell align="right">Read Roles</TallCell>
 
-      {acls.map((acl, z) => {
+      {acls.cols.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
             <Multiselect
               disabled={!acl.change}
               values={acl.readers}
               onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.read")}
-              error={!acls.readers}
+              error={acls.diff.readers}
             >
               <Multiselect.Option label="Everyone" value="*" />
               {roles[z]}
@@ -203,14 +213,14 @@ export default ({ apps, files, columns }) => {
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|writers`}>
       <TallCell align="right">Write Roles</TallCell>
-      {acls.map((acl, z) => {
+      {acls.cols.map((acl, z) => {
         return acl ? (
           <ShortCell key={z}>
             <Multiselect
               disabled={!acl.change}
               values={acl.writers}
               onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.write")}
-              error={!acls.writers}
+              error={acls.diff.writers}
             >
               <Multiselect.Option label="Everyone" value="*" />
               {roles[z]}
@@ -223,7 +233,7 @@ export default ({ apps, files, columns }) => {
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|break`}>
       <Table.Cell></Table.Cell>
-      {acls.map((_, z) => (
+      {acls.cols.map((_, z) => (
         <Table.Cell key={z}></Table.Cell>
       ))}
     </Table.Row>,
@@ -233,17 +243,14 @@ export default ({ apps, files, columns }) => {
           <AttributeSpan>{attr}</AttributeSpan>
         </TallCell>
         {cols.map((value, z) => {
-          const acl = acls[z];
-          if (!acl) return <TallCell key={z}></TallCell>;
+          if (!acls.cols[z]) return <TallCell key={z}></TallCell>;
           if (value === undefined)
             return (
               <TallCell key={z}>
                 <CreateLink onClick={handleConfigChangeFactory(z, file, app, stanza, attr, text ? "" : "false")}>Create Attribute</CreateLink>
               </TallCell>
             );
-          return (
-            <ConfigInput key={z} value={value} diff={diff} text={text} disabled={!acl.write} handle={handleConfigChangeFactory(z, file, app, stanza, attr)} />
-          );
+          return <ConfigInput {...{ key: z, column: columns[z], value, diff, text, file, app, stanza, attr, disabled: !acls.cols[z].write }} />;
         })}
       </Table.Row>
     )),
@@ -270,7 +277,10 @@ export default ({ apps, files, columns }) => {
               return appcol ? (
                 <Table.Cell key={z}>
                   {appcol[0]} {appcol[2]}
-                  <ParentActions column={columns[z]} app={app} file={file} />
+                  <Actions>
+                    <ActionDownload column={columns[z]} app={app} file={file} />
+                    <ActionAddStanza column={columns[z]} app={app} file={file} />
+                  </Actions>
                 </Table.Cell>
               ) : (
                 <Table.Cell key={z}></Table.Cell>
@@ -296,7 +306,11 @@ export default ({ apps, files, columns }) => {
                   return (
                     <Table.Cell key={z}>
                       <i>{summary}</i>
-                      <StanzaActions column={columns[z]} app={app} file={file} stanza={stanza} />
+                      <Actions>
+                        <StanzaDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                        <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                        <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
+                      </Actions>
                     </Table.Cell>
                   );
                 })}
@@ -309,13 +323,15 @@ export default ({ apps, files, columns }) => {
   );
 };
 
-const ConfigInput = ({ value, handle, disabled, diff, text }) => {
+const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text, file, app, stanza, attr, disabled }) => {
   const [internalvalue, setInternalValue] = useState(value); //
-  const deboundedHandle = useCallback(debounce(handle, 1000), []);
+  const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);
   const inputHandle = (e, { value }) => {
     setInternalValue(value);
-    deboundedHandle(value);
+    text ? deboundedHandle({ [attr]: value }) : change.mutate({ [attr]: value });
   };
+
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza);
 
   useEffect(() => {
     setInternalValue(value);
@@ -323,103 +339,195 @@ const ConfigInput = ({ value, handle, disabled, diff, text }) => {
 
   return text ? (
     <ShortCell>
-      <Text value={internalvalue} onChange={inputHandle} disabled={disabled} error={diff} />
+      <Text value={internalvalue} onChange={inputHandle} disabled={disabled} error={change.isError} endAdornment={change.isLoading && <TextSpinner />} />
     </ShortCell>
   ) : (
     <ShortCell>
-      <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={diff} />
+      <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={change.isError}>
+        {change.isLoading && <WaitSpinner />} //! Needs CSS work to avoid bumping height and keeping middle
+      </Switch>
     </ShortCell>
   );
 };
 
-const StanzaActions = ({ column, app, file, stanza }) => {
-  const { data } = useContext(column.server);
+const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, file }) => {
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, "");
 
-  const add = (
+  const [stanza, setStanza] = useState("");
+  const handleStanza = wrapSetValue(setStanza);
+  const handleClick = () => {
+    change.mutate({ name: stanza });
+  };
+  const toggle = (
+    <Clickable>
+      <Plus screenReaderText="Add Stanza" hideDefaultTooltip />
+    </Clickable>
+  );
+  return (
+    <Tooltip content="Add new stanza.">
+      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+        <StyledContainer>
+          <P>
+            Add a new stanza to{" "}
+            <b>
+              {app}/{file}.conf
+            </b>
+          </P>
+          <ControlGroup label="Stanza" labelWidth={60}>
+            <Text value={stanza} onChange={handleStanza} error={!stanza} />
+          </ControlGroup>
+          <ControlGroup label="" labelWidth={60}>
+            <Button disabled={!stanza} onClick={handleClick} error={change.isError}>
+              {change.isLoading ? <WaitSpinner /> : "Create Stanza"}
+            </Button>
+          </ControlGroup>
+        </StyledContainer>
+      </Dropdown>
+    </Tooltip>
+  );
+};
+
+const ActionDownload = ({ column, app, file }) => {
+  const { data } = useConfig(column, file);
+
+  const toggle = (
+    <Clickable>
+      <Download screenReaderText="Download config file" hideDefaultTooltip />
+    </Clickable>
+  );
+
+  const createDownload = () => {
+    const config = Object.entries(data[app])
+      .map(
+        ([stanza, { attr }]) =>
+          `[${stanza}]\n${Object.entries(attr)
+            .map(([k, v]) => `${k} = ${v}`)
+            .join("\n")}`
+      )
+      .join("\n\n");
+    const link = document.createElement("a");
+    link.download = `${file}.conf`;
+    link.href = URL.createObjectURL(new Blob([config], { type: "text/plain" }));
+    link.click();
+  };
+
+  return (
+    <Tooltip content="Download as file">
+      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+        <StyledContainer>
+          <Button appearance="primary" onClick={createDownload} disabled={!data}>
+            Download {file}.conf
+          </Button>
+        </StyledContainer>
+      </Dropdown>
+    </Tooltip>
+  );
+};
+
+const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const [attr, setAttr] = useState("");
+  const handleAttr = wrapSetValue(setAttr);
+  const [value, setValue] = useState("");
+  const handleValue = wrapSetValue(setValue);
+
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza, attr, value, () => {
+    setAttr("");
+    setValue("");
+  });
+
+  const toggle = (
     <Clickable>
       <Plus screenReaderText="Add Attribute" hideDefaultTooltip />
     </Clickable>
   );
 
-  const move = (
+  return (
+    <Tooltip content="Add new attribute.">
+      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+        <StyledContainer>
+          <P>
+            Add a new attribute to <StanzaSpan>[{stanza}]</StanzaSpan> in{" "}
+            <b>
+              {app}/{file}.conf
+            </b>
+          </P>
+          <ControlGroup label="Attribute" labelWidth={60}>
+            <Text value={attr} onChange={handleAttr} error={!attr} />
+          </ControlGroup>
+          <ControlGroup label="Value" labelWidth={60}>
+            <Text value={value} onChange={handleValue} error={!value} />
+          </ControlGroup>
+          <ControlGroup label="" labelWidth={60}>
+            <Button disabled={!attr || !value || change.isLoading} onClick={change.mutate} error={!!change.error}>
+              {change.isLoading ? <WaitSpinner /> : "Add"}
+            </Button>
+          </ControlGroup>
+        </StyledContainer>
+      </Dropdown>
+    </Tooltip>
+  );
+};
+
+const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const [target, setTarget] = useState(app);
+  const handleTarget = wrapSetValue(setTarget);
+
+  const { data } = useContext(server);
+  const move = useMutation({
+    mutationFn: (target) => {
+      return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target });
+    },
+    onSuccess: (config) => {
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        delete prev[app][stanza];
+        prev[target][stanza] = config[target][stanza];
+        return prev;
+      });
+    },
+  });
+
+  const toggle = (
     <Clickable>
       <External screenReaderText="Move" hideDefaultTooltip />
     </Clickable>
   );
+  return (
+    <Tooltip content="Move stanza to another app.">
+      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+        <StyledContainer>
+          <P>
+            Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{target}</b> to:
+          </P>
+          <Select onChange={handleTarget}>
+            {data && Object.entries(data.apps).map(([name, [label]]) => <Select.Option key={name} label={label} value={name} />)}
+          </Select>
+          <Button disabled={target !== app} onClick={move.mutate} error={move.isError}>
+            {move.isLoading ? <WaitSpinner /> : "Move"}
+          </Button>
+        </StyledContainer>
+      </Dropdown>
+    </Tooltip>
+  );
+};
 
-  const remove = (
+const StanzaDeleteStanza = ({ column, app, file, stanza }) => {
+  const toggle = (
     <Clickable>
       <Remove hideDefaultTooltip />
     </Clickable>
   );
-  return (
-    <Actions>
-      <Tooltip content="Add new attribute.">
-        <Dropdown toggle={add} retainFocus closeReasons={closeReasons}>
-          <StyledContainer>
-            <P>
-              Add a new attribute to <StanzaSpan>[{stanza}]</StanzaSpan> in{" "}
-              <b>
-                {app}/{file}.conf
-              </b>
-            </P>
-            <Text inline placeholder="Attribute (required)" />
-            <Text inline placeholder="Value (optional)" />
-            <Button inline>Add</Button>
-          </StyledContainer>
-        </Dropdown>
-      </Tooltip>
-      <Tooltip content="Move stanza to another app.">
-        <Dropdown toggle={move} retainFocus closeReasons={closeReasons}>
-          <StyledContainer>
-            <P>
-              Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{app}</b> to:
-            </P>
-            <Multiselect>
-              {data && Object.entries(data.apps).map(([name, [label]]) => <Multiselect.Option key={name} label={label} value={name} />)}
-            </Multiselect>
-          </StyledContainer>
-        </Dropdown>
-      </Tooltip>
-      <Tooltip content="Remove stanza completely.">
-        <Dropdown toggle={remove} retainFocus closeReasons={closeReasons}>
-          <StyledContainer>
-            <Warning size={2} />
-            <br />
-            <P>
-              Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?
-            </P>
-            <Button>Delete</Button>
-          </StyledContainer>
-        </Dropdown>
-      </Tooltip>
-    </Actions>
-  );
-};
 
-const ParentActions = ({ column, app, file }) => {
-  const { data } = useContext(column.server);
-  const add = (
-    <Clickable>
-      <Plus screenReaderText="Add Attribute" hideDefaultTooltip />
-    </Clickable>
-  );
   return (
-    <Actions>
-      <Tooltip content="Add new stanza.">
-        <Dropdown toggle={add} retainFocus closeReasons={closeReasons}>
-          <StyledContainer>
-            <P>
-              Add a new stanza to {app}/{file}.conf
-            </P>
-            <Text inline placeholder="Stanza Name (required)" />
-            <Button inline>Create Stanza</Button>
-          </StyledContainer>
-        </Dropdown>
-      </Tooltip>
-      <Tooltip content="Download file contents">
-        <Download />
-      </Tooltip>
-    </Actions>
+    <Tooltip content="Remove stanza completely.">
+      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+        <StyledContainer style={{ "text-align": "center" }}>
+          <Warning size={2} style={{ padding: "5px" }} />
+          <P>
+            Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?
+          </P>
+          <Button>Delete</Button>
+        </StyledContainer>
+      </Dropdown>
+    </Tooltip>
   );
 };

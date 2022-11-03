@@ -1,6 +1,6 @@
 import layout from "@splunk/react-page";
 import ToastMessages from "@splunk/react-toast-notifications/ToastMessages";
-import { AnimationToggleProvider } from "@splunk/react-ui/AnimationToggle";
+
 import Button from "@splunk/react-ui/Button";
 import Link from "@splunk/react-ui/Link";
 import Modal from "@splunk/react-ui/Modal";
@@ -97,7 +97,7 @@ export default (component, animate = false) =>
           <GlobalStyle />
 
           <QueryClientProvider client={queryClient}>
-            <AnimationToggleProvider enabled={animate}>{component}</AnimationToggleProvider>
+            {component}
             <ReactQueryDevtools />
           </QueryClientProvider>
           <ToastMessages />

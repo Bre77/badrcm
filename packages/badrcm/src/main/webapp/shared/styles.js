@@ -1,5 +1,6 @@
 import Link from '@splunk/react-ui/Link';
 import Table from '@splunk/react-ui/Table';
+import WaitSpinner from '@splunk/react-ui/WaitSpinner';
 import { mixins, variables } from '@splunk/themes';
 import styled from 'styled-components';
 
@@ -44,3 +45,14 @@ export const Actions = styled.div`
     padding-left: 4px;
   }
 `;
+
+export const TextSpinner = styled(WaitSpinner)`
+    padding-right: 8px;
+    svg{
+        vertical-align: middle
+    }
+`
+
+export const SwitchSpinner = styled(WaitSpinner)`
+svg{padding: 2px 2px 0 0}
+`
