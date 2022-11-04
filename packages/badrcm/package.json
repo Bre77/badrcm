@@ -52,6 +52,7 @@
     "shelljs": "^0.8.5",
     "styled-components": "5.1.1",
     "stylelint": "^13.0.0",
+    "terser-webpack-plugin": "4",
     "webpack": "^4.16.2",
     "webpack-cli": "^3.1.0",
     "webpack-merge": "^4.1.3"
