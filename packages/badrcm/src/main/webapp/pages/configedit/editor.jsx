@@ -4,8 +4,9 @@ import { debounce } from "lodash";
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 
 // Shared
+import { SPLUNK_CLOUD_BLACKLIST } from "../../shared/const";
 import { restChange } from "../../shared/fetch";
-import { isort0, latest, wrapSetValue } from "../../shared/helpers";
+import { isort0, latest, options, wrapSetValue } from "../../shared/helpers";
 import { useConfig, useConfigs, useContext, useContexts, useMutateConfig } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
@@ -32,6 +33,7 @@ import Tooltip from "@splunk/react-ui/Tooltip";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 const closeReasons = ["clickAway", "escapeKey", "toggleClick"];
+const sort = options.sort ? isort0 : undefined;
 
 export default ({ apps, files, columns }) => {
   const queryClient = useQueryClient();
@@ -59,6 +61,14 @@ export default ({ apps, files, columns }) => {
             attr: {},
           };
           x[stanza].cols[z] = `${Object.keys(content.attr).length} attributes in ${content.acl.sharing} scope`;
+
+          // SPLUNK CLOUD COMPLIANCE
+          if (options.cloudsafe && columns[z].server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file)) {
+            console.log("SPLUNK CLOUD COMPLIANCE MODE ACTIVATED");
+            content.acl.write = 0;
+            content.acl.change = 0;
+          }
+
           x[stanza].acls[z] = content.acl;
 
           //x[stanza].acl.diff.sharing ||= !x[stanza].acl.cols.map((acl) => acl?.sharing).includes(content.acl.sharing);
@@ -82,14 +92,14 @@ export default ({ apps, files, columns }) => {
     }, {});
 
     return Object.entries(x)
-      .sort(isort0)
+      .sort(sort)
       .map(([key, { app, file, cols, stanzas }]) => [
         key,
         app,
         file,
         cols,
         Object.entries(stanzas)
-          .sort(isort0)
+          .sort(sort)
           .map(([stanza, { cols, acls, attr }]) => [
             `${key}|${stanza}`,
             stanza,
@@ -102,11 +112,11 @@ export default ({ apps, files, columns }) => {
               },
             },
             Object.entries(attr)
-              .sort(isort0)
+              .sort(sort)
               .map(([attr, { cols, text }]) => [`${key}|${stanza}|${attr}`, attr, cols, new Set(cols.filter((v) => v !== undefined)).size !== 1, text]),
           ]),
       ]);
-  }, [latest(contexts), latest(configs), apps]);
+  }, [latest(contexts), latest(configs), apps, columns]);
 
   const users = useMemo(() => {
     return contexts.map(
@@ -256,7 +266,8 @@ export default ({ apps, files, columns }) => {
                 <CreateAttribute {...{ column: columns[z], file, app, stanza, attr, text }} />
               </TallCell>
             );
-          return <ConfigInput {...{ key: z, column: columns[z], value, diff, text, file, app, stanza, attr, disabled: !acls.cols[z].write }} />;
+          const write = acls.cols[z].write;
+          return <ConfigInput {...{ key: z, column: columns[z], value, diff, text, file, app, stanza, attr, write }} />;
         })}
       </Table.Row>
     )),
@@ -329,8 +340,10 @@ export default ({ apps, files, columns }) => {
   );
 };
 
-const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text, file, app, stanza, attr, disabled }) => {
+const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text, file, app, stanza, attr, write }) => {
   const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza);
+
+  console.log(attr, write);
 
   const [internalvalue, setInternalValue] = useState(value); //
   const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);
@@ -345,11 +358,11 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
 
   return text ? (
     <ShortCell>
-      <Text value={internalvalue} onChange={inputHandle} disabled={disabled} error={change.isError} endAdornment={change.isLoading && <TextSpinner />} />
+      <Text value={internalvalue} onChange={inputHandle} disabled={!write} error={change.isError} endAdornment={change.isLoading && <TextSpinner />} />
     </ShortCell>
   ) : (
     <ShortCell>
-      <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={disabled} error={change.isError}>
+      <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={!write} error={change.isError}>
         {change.isLoading && <WaitSpinner />}
       </Switch>
     </ShortCell>
