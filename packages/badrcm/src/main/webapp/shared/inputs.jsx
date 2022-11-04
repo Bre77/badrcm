@@ -53,7 +53,7 @@ const Files = ({ files, setFiles, servers }) => {
 
   return (
     <ControlGroup label="Config Files" labelPosition="left">
-      <Multiselect inline values={files} onChange={handleFile} placeholder={`You must select 1 or more files`} error={!files.length}>
+      <Multiselect inline values={files} onChange={handleFile} placeholder={`You must select 1 or more file`} error={!files.length}>
         <Select.Heading>Common Files</Select.Heading>
         {COMMON_FILES.map((file) => (
           <Multiselect.Option key={file} label={file} value={file} />
@@ -98,7 +98,7 @@ const Apps = ({ apps, setApps, servers }) => {
         inline
         values={apps}
         onChange={handleApp}
-        placeholder={`You must select 1 or more files`}
+        placeholder={`You must select 1 or more app`}
         error={!apps.length}
         noOptionsMessage="Select at least one server first"
       >

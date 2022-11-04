@@ -1,4 +1,3 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useReducer } from "react";
 
 // Components
@@ -10,7 +9,7 @@ import Switch from "@splunk/react-ui/Switch";
 import Tooltip from "@splunk/react-ui/Tooltip";
 
 // Shared
-import { localDel, useLocal, wrapSetValue } from "../../shared/helpers";
+import { localSave, options, wrapSetValue } from "../../shared/helpers";
 import Page from "../../shared/page";
 
 /*const useLocalOption = (key, fallback) =>
@@ -21,17 +20,12 @@ import Page from "../../shared/page";
   }, window.localStorage.getItem(key) || fallback);*/
 
 const Options = () => {
-  const [sort, setNoSort] = useLocal("BADRCM_option_sort", true);
-  const handleSort = wrapSetValue(setNoSort);
-  const [full, setFull] = useLocal("BADRCM_option_full", true);
-  const handleFull = wrapSetValue(setFull);
-  const [cloud, setCloud] = useLocal("BADRCM_option_cloud", true);
-  const handleCloud = (_, { value }) => {
-    setCloud(value);
-    !value && localDel("BADRCM_disclaimer");
-  };
-  const [dangerous, setDangerous] = useLocal("BADRCM_option_dangerous", true);
-  const handleDangerous = wrapSetValue(setDangerous);
+  const [ops, setOps] = useReducer((prev, value) => {
+    const x = { ...prev, ...value };
+    localSave("BADRCM_options", x);
+    return x;
+  }, options);
+  const handleOps = wrapSetValue(setOps);
 
   return (
     <CardLayout cardMaxWidth={400} wrapCards>
@@ -41,18 +35,15 @@ const Options = () => {
           These are saved to your browsers local storage, and only modify your experience with the app locally.
           <br />
           <br />
-          <Switch appearance="toggle" selected={sort} value={!sort} onClick={handleSort}>
+          <Switch appearance="toggle" selected={ops.sort} value={{ sort: !ops.sort }} onClick={handleOps}>
             Case Insensitive Sort <Tooltip content="Helps find things alphabetically, instead of Splunk's ASCII sort." />
           </Switch>
-          <Switch appearance="toggle" selected={full} value={!full} onClick={handleFull}>
+          <Switch appearance="toggle" selected={ops.fullmode} value={{ fullmode: !ops.fullmode }} onClick={handleOps}>
             Full Featured Mode <Tooltip content="Can improve page performance by removing secondary functions like add, move, remove, and delete." />
           </Switch>
-          <Switch appearance="toggle" selected={cloud} value={!cloud} onClick={handleCloud}>
+          <Switch appearance="toggle" selected={ops.cloudsafe} value={{ cloudsafe: !ops.cloudsafe }} onClick={handleOps}>
             Splunk Cloud Compliance{" "}
             <Tooltip content="Certain features are disabled when targeting Splunk Cloud to keep Splunk happy, but they dont have to be." />
-          </Switch>
-          <Switch appearance="toggle" selected={dangerous} value={!dangerous} onClick={handleDangerous}>
-            Dangerous Mode <Tooltip content="The oposite of Safe Mode, enables write and delete." />
           </Switch>
         </Card.Body>
       </Card>
@@ -61,3 +52,8 @@ const Options = () => {
 };
 
 Page(<Options />);
+/*<RadioBar onChange={handleOps} value={ops.sort}>
+            <RadioBar.Option value={{ sort: "isort" }} label="Case Insensitive" />
+            <RadioBar.Option value={{ sort: "sort" }} label="Case Sensitive" />
+            <RadioBar.Option value={{ sort: "nosort" }} label="None" />
+          </RadioBar>*/

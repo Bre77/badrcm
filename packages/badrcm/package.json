@@ -21,6 +21,7 @@
     "@tanstack/react-query-devtools": "^4.13.5",
     "@tanstack/react-query-persist-client": "^4.13.5",
     "immutable": "^4.1.0",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "lz-string": "^1.4.4"
   },

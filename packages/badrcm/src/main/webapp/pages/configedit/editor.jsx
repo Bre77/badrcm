@@ -64,7 +64,7 @@ export default ({ apps, files, columns }) => {
 
           // SPLUNK CLOUD COMPLIANCE
           if (options.cloudsafe && columns[z].server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file)) {
-            console.log("SPLUNK CLOUD COMPLIANCE MODE ACTIVATED");
+            console.debug("Splunk Cloud Compliance has been enforced");
             content.acl.write = 0;
             content.acl.change = 0;
           }
@@ -342,8 +342,6 @@ export default ({ apps, files, columns }) => {
 
 const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text, file, app, stanza, attr, write }) => {
   const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza);
-
-  console.log(attr, write);
 
   const [internalvalue, setInternalValue] = useState(value); //
   const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);

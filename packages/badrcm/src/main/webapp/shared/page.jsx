@@ -83,13 +83,12 @@ persistQueryClient({
   }),
 });
 
-export default (component, animate = false) =>
+export default (component) =>
   getUserTheme()
     .then((theme) => {
       layout(
         <>
           <GlobalStyle />
-
           <QueryClientProvider client={queryClient}>
             {component}
             <ReactQueryDevtools />

@@ -4,6 +4,7 @@ import { useReducer } from "react";
 export const isort = (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }); // Case insensitive sort
 export const isort0 = (a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: "base" });
 export const isort1 = (a, b) => a[1].localeCompare(b[1], undefined, { sensitivity: "base" });
+export const nosort = (a, b) => 0;
 export const dedup = (a) => Array.from(new Set(a));
 
 // State
@@ -18,10 +19,7 @@ export const wrapSetValues =
     f(values);
 
 // Local Storage
-export const localSave = (key) => (value) => {
-  f(value);
-  window.localStorage.setItem(key, JSON.stringify(value));
-};
+export const localSave = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
 
 // ? Should this be in Hooks
 export const useLocal = (key, fallback) =>
@@ -41,3 +39,5 @@ export const localLoad = (key, fallback = null) => {
 export const localDel = (key) => window.localStorage.removeItem(key);
 
 export const latest = (results) => results.reduce((x, { dataUpdatedAt }) => Math.max(x, dataUpdatedAt), 0);
+
+export const options = { sort: true, fullmode: true, cloudsafe: true, ...localLoad("BADRCM_options", {}) };
