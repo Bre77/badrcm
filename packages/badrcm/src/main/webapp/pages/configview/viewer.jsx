@@ -38,6 +38,7 @@ export default ({ apps, files, columns }) => {
         x[key].stanzas = Object.entries(stanzas).reduce((x, [stanza, content]) => {
           x[stanza] ||= { attr: {}, cols: Array(count).fill(false) };
           x[stanza].cols[z] = true;
+          x[stanza].key = `${app}|${file}|${stanza}`;
           x[stanza].attr = Object.entries(content.attr).reduce((x, [attr, value]) => {
             x[attr] ||= Array(count).fill(null);
             x[attr][z] = value;
@@ -57,16 +58,16 @@ export default ({ apps, files, columns }) => {
         file,
         Object.entries(stanzas)
           .sort(sort)
-          .reduce((out, [stanza, { attr, cols }]) => {
+          .reduce((out, [stanza, { attr, cols, key }]) => {
             const attrs = Object.entries(attr).sort(sort);
             cols.forEach((present, z) => {
               out[z] = out[z].concat(
-                present && <StanzaSpan>[{stanza}]</StanzaSpan>,
-                <br />,
+                present && <StanzaSpan key={key}>[{stanza}]</StanzaSpan>,
+                <br key={key + "."} />,
                 ...attrs.map(([attr, values]) => [
                   !!present && values[z] !== null && (
                     <>
-                      <AttributeSpan>{attr}</AttributeSpan> = {values[z]}
+                      <AttributeSpan key={key + z}>{attr}</AttributeSpan> = {values[z]}
                     </>
                   ),
                   <br />,

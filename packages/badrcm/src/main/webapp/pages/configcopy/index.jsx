@@ -134,10 +134,10 @@ const ConfigCopy = () => {
     }, [servercontext[z], appcontext[z], usercontext[z], filefilter]);
   });
 
-  // Get Config keys
+  // Get Config
   const debouncedServerContext = useCallback(
     debounce((serverconfig, appfilter, filefilter) => {
-      console.log("EFFECT Config Keys");
+      console.debug("EFFECT Config Merge");
 
       const configdict = serverconfig[1].reduce((src, apps, file) => {
         for (const [app, stanzas] of Object.entries(apps)) {
