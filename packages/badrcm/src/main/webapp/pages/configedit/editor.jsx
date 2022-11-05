@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useState } from "re
 // Shared
 import { SPLUNK_CLOUD_BLACKLIST } from "../../shared/const";
 import { restChange } from "../../shared/fetch";
-import { isort0, latest, options, wrapSetValue } from "../../shared/helpers";
+import { isort0, latest, options, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
 import { useConfig, useConfigs, useContext, useContexts, useMutateConfig } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
@@ -63,7 +63,7 @@ export default ({ apps, files, columns }) => {
           x[stanza].cols[z] = `${Object.keys(content.attr).length} attributes in ${content.acl.sharing} scope`;
 
           // SPLUNK CLOUD COMPLIANCE
-          if (options.cloudsafe && columns[z].server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file)) {
+          if (cloudUnsafe(columns[z].server,file)) {
             console.debug("Splunk Cloud Compliance has been enforced");
             content.acl.write = 0;
             content.acl.change = 0;
@@ -255,7 +255,7 @@ export default ({ apps, files, columns }) => {
     ...attrs.map(([key, attr, cols, diff, text]) => (
       <Table.Row key={key}>
         <TallCell align="right" truncate>
-          {diff && <RedFlag screenReaderText="Values are different" />}
+          {options.fullmode && diff && <RedFlag screenReaderText="Values are different" />}
           <AttributeSpan>{attr}</AttributeSpan>
         </TallCell>
         {cols.map((value, z) => {
@@ -294,10 +294,12 @@ export default ({ apps, files, columns }) => {
               return appcol ? (
                 <Table.Cell key={z}>
                   {appcol[0]} {appcol[2]}
-                  <Actions>
-                    <ActionDownload column={columns[z]} app={app} file={file} />
-                    <ActionAddStanza column={columns[z]} app={app} file={file} />
-                  </Actions>
+                  {options.fullmode && (
+                    <Actions>
+                      <ActionDownload column={columns[z]} app={app} file={file} />
+                      <ActionAddStanza column={columns[z]} app={app} file={file} />
+                    </Actions>
+                  )}
                 </Table.Cell>
               ) : (
                 <Table.Cell key={z}></Table.Cell>
@@ -323,11 +325,13 @@ export default ({ apps, files, columns }) => {
                   return (
                     <Table.Cell key={z}>
                       <i>{summary}</i>
-                      <Actions>
-                        <ActionDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
-                        <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
-                        <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
-                      </Actions>
+                      {options.fullmode && (
+                        <Actions>
+                          <ActionDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                          <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                          <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
+                        </Actions>
+                      )}
                     </Table.Cell>
                   );
                 })}
@@ -568,11 +572,11 @@ const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, 
 
   const change = useMutation({
     mutationFn: () => restChange("configs", { server, user: usercontext, app, file, stanza }, {}, "DELETE"),
-    onSuccess: (config) => 
+    onSuccess: (config) =>
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
         delete prev[app][stanza];
         return prev;
-      })
+      }),
   });
 
   const toggle = (

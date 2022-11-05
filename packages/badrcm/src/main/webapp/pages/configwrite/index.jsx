@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useReducer, useState } from "react";
 
 // Shared
 import { restChange, restGet } from "../../shared/fetch";
-import { useLocal, wrapSetValue } from "../../shared/helpers";
+import { options, useLocal, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
 import Page from "../../shared/page";
 import { AttributeSpan, StanzaSpan, StyledContainer, ValueSpan } from "../../shared/styles";
 
@@ -289,7 +289,7 @@ const ConfigWrite = () => {
             <StanzaSpan>[{stanza}]</StanzaSpan>
             <ConfigDisplay value={currentConfig} />
           </ColumnLayout.Column>
-          {config.getIn([app, stanza, "acl", "can_write"]) === false ? (
+          {(config.getIn([app, stanza, "acl", "can_write"]) === false || cloudUnsafe(server,app)) ? (
             <ColumnLayout.Column>
               <Heading level={3}>You do not have access to change this stanza</Heading>
             </ColumnLayout.Column>

@@ -1,4 +1,5 @@
 import { useReducer } from "react";
+import { SPLUNK_CLOUD_BLACKLIST } from "./const";
 
 // Sorting
 export const isort = (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }); // Case insensitive sort
@@ -41,3 +42,5 @@ export const localDel = (key) => window.localStorage.removeItem(key);
 export const latest = (results) => results.reduce((x, { dataUpdatedAt }) => Math.max(x, dataUpdatedAt), 0);
 
 export const options = { sort: true, fullmode: true, cloudsafe: true, ...localLoad("BADRCM_options", {}) };
+
+export const cloudUnsafe = (server, file) => options.cloudsafe && server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file)
