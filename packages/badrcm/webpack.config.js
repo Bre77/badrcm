@@ -30,7 +30,7 @@ module.exports = webpackMerge(baseConfig, {
             ],
         }),
     ],
-    devtool: process.env.NODE_ENV !== 'production' && 'eval-source-map',
+    devtool: "source-map",
     optimization: {
         minimize: true,
         minimizer: [new TerserPlugin()],
