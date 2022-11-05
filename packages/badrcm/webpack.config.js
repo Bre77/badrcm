@@ -5,6 +5,8 @@ const webpackMerge = require('webpack-merge');
 const baseConfig = require('@splunk/webpack-configs/base.config').default;
 const TerserPlugin = require("terser-webpack-plugin");
 
+var DEBUG = process.env.NODE_ENV !== 'production';
+
 // Set up an entry config by iterating over the files in the pages directory.
 const entries = fs
     .readdirSync(path.join(__dirname, 'src/main/webapp/pages'))
@@ -30,9 +32,9 @@ module.exports = webpackMerge(baseConfig, {
             ],
         }),
     ],
-    devtool: "source-map",
+    devtool: DEBUG ? "eval-source-map" : "source-map",
     optimization: {
-        minimize: true,
+        minimize: !DEBUG,
         minimizer: [new TerserPlugin()],
         splitChunks: {
             cacheGroups: {
