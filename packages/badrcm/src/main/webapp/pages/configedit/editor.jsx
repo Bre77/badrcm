@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useState } from "re
 import { SPLUNK_CLOUD_BLACKLIST } from "../../shared/const";
 import { restChange } from "../../shared/fetch";
 import { isort0, latest, options, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
-import { useConfig, useConfigs, useContext, useContexts, useMutateConfig } from "../../shared/hooks";
+import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, useMutateConfig } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
@@ -37,8 +37,8 @@ const sort = options.sort ? isort0 : undefined;
 
 export default ({ apps, files, columns }) => {
   const queryClient = useQueryClient();
-  const contexts = useContexts(columns.map((x) => x.server));
-  const configs = useConfigs(columns, files);
+  const contexts = useQueriesContext(columns.map((x) => x.server));
+  const configs = useQueriesConfig(columns, files);
 
   const table = useMemo(() => {
     console.debug("Expensive Config Table");
@@ -439,7 +439,7 @@ const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, fil
 };
 
 const ActionDownload = ({ column, app, file }) => {
-  const { data } = useConfig(column, file);
+  const { data } = useQueryConfig(column, file);
 
   const toggle = (
     <Clickable>
@@ -525,7 +525,7 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
   const [target, setTarget] = useState(app);
   const handleTarget = wrapSetValue(setTarget);
 
-  const { data } = useContext(server);
+  const { data } = useQueryContext(server);
   const change = useMutation({
     mutationFn: (target) => {
       return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target });

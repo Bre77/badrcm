@@ -24,6 +24,8 @@ import Typography from "@splunk/react-ui/Typography";
 const ConfigCopy = () => {
   const COLUMN_INDEX = [0, 1];
 
+  
+
   // State - Page Selectors
   const [filefilter, setFileFilter] = useLocal("BADRCM_copyfilefilter", ["props", "transforms"]); //
   const handleFileFilter = wrapSetValues(setFileFilter);

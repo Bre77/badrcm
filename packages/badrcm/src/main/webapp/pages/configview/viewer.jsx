@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useState } from "re
 
 // Shared
 import { isort0, latest, nosort, options } from "../../shared/helpers";
-import { useConfigs } from "../../shared/hooks";
+import { useQueriesConfig } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
@@ -20,7 +20,7 @@ import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 const sort = options.sort ? isort0 : undefined;
 
 export default ({ apps, files, columns }) => {
-  const configs = useConfigs(columns, files);
+  const configs = useQueriesConfig(columns, files);
 
   const table = useMemo(() => {
     console.debug("Expensive Config Table");

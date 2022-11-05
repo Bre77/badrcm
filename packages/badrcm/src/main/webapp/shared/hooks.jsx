@@ -4,7 +4,7 @@ import { fetchGet, restChange } from "./fetch";
 //const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
 export const useServers = (options = {}) => useQuery(["servers"], () => fetchGet("servers"), { placeholderData: [], ...options });
-export const useContext = (server, options = {}) =>
+export const useQueryContext = (server, options = {}) =>
   useQuery(
     server
       ? {
@@ -15,7 +15,7 @@ export const useContext = (server, options = {}) =>
       : { queryKey: ["servers", null], queryFn: () => Promise.resolve(null) }
   );
 
-export const useContexts = (servers, options = {}) =>
+export const useQueriesContext = (servers, options = {}) =>
   useQueries({
     queries: servers.map((server) =>
       server
@@ -28,7 +28,7 @@ export const useContexts = (servers, options = {}) =>
     ),
   });
 
-export const useConfig = ({ server, appcontext, usercontext }, file, options = {}) =>
+export const useQueryConfig = ({ server, appcontext, usercontext }, file, options = {}) =>
   useQuery(
     server
       ? {
@@ -39,7 +39,7 @@ export const useConfig = ({ server, appcontext, usercontext }, file, options = {
       : { queryKey: ["configs", null], queryFn: () => Promise.resolve(null) }
   );
 
-export const useConfigs = (columns, files, options = {}) =>
+export const useQueriesConfig = (columns, files, options = {}) =>
   useQueries({
     queries: files.flatMap((file) =>
       columns.map(({ server, appcontext, usercontext }) =>

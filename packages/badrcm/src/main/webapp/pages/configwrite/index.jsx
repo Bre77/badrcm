@@ -20,14 +20,12 @@ import TextArea from "@splunk/react-ui/TextArea";
 import Typography from "@splunk/react-ui/Typography";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
-import { config, username } from "@splunk/splunk-utils/config";
+import { username } from "@splunk/splunk-utils/config";
 
 const ConfigWrite = () => {
   const SYSTEM_APP_CONTEXT = { name: "system", label: "System" };
   const SYSTEM_USER_CONTEXT = { name: "nobody", realname: "Nobody" };
   const COMMON_FILES = ["props", "transforms", "eventtypes", "inputs", "outputs", "server"]; //'app', 'authentication', 'authorize', 'collections', 'commands', 'datamodels',  'fields', 'global-banner', 'health', 'indexes', 'limits', 'macros', 'passwords', 'savedsearches', 'serverclass', 'tags', 'web']
-
-  const confString = (entities) => entities.map(([a, v]) => `${a} = ${v}`).join("\n");
 
   // Selected Data
   const [server, setServer] = useLocal("BADRCM_writeserver");
