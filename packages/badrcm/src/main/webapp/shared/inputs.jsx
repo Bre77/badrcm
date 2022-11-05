@@ -12,7 +12,7 @@ import Select from "@splunk/react-ui/Select";
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "./const";
 import { isort, latest, wrapSetValue, wrapSetValues } from "./helpers";
-import { useQueryContext, useQueriesContext, useServers } from "./hooks";
+import { useQueryContext, useQueriesContext, useQueryServers } from "./hooks";
 
 // Local
 import { MAX_COLUMNS } from "../pages/configedit/const";
@@ -23,9 +23,9 @@ export default ({ files, setFiles, apps, setApps, count, setCount, columns }) =>
     <ColumnLayout divider="vertical">
       <ColumnLayout.Row>
         <ColumnLayout.Column>
-          <Files {...{ files, setFiles, servers }} />
-          <Apps {...{ apps, setApps, servers }} />
-          <Count {...{ count, setCount }} />
+          {setFiles && <Files {...{ files, setFiles, servers }} />}
+          {setApps && <Apps {...{ apps, setApps, servers }} />}
+          {setCount && <Count {...{ count, setCount }} />}
         </ColumnLayout.Column>
         {columns.map((column, z) => (
           <ColumnLayout.Column key={z}>
@@ -125,7 +125,7 @@ export const Column = ({ column }) => {
 
   //! There is a bug here where the server changes way before the context can be validated. I may need to handle this internally until context is updated
 
-  const servers = useServers();
+  const servers = useQueryServers();
   const context = useQueryContext(column.server, {
     onSuccess: (data) => {
       console.log("Check Context");
