@@ -33,15 +33,7 @@ module.exports = webpackMerge(baseConfig, {
     //devtool: 'eval-source-map',
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({
-            parallel: true,
-            sourceMap: true,
-            terserOptions: {
-                format: {
-                  comments: false,
-                },
-              },
-          })],
+        minimizer: [new TerserPlugin()],
         splitChunks: {
             cacheGroups: {
                 commons: {
