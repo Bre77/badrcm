@@ -324,7 +324,7 @@ export default ({ apps, files, columns }) => {
                     <Table.Cell key={z}>
                       <i>{summary}</i>
                       <Actions>
-                        <StanzaDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                        <ActionDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
                         <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
                         <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
                       </Actions>
@@ -563,7 +563,18 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
   );
 };
 
-const StanzaDeleteStanza = ({ column, app, file, stanza }) => {
+const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const queryClient = useQueryClient();
+
+  const change = useMutation({
+    mutationFn: () => restChange("configs", { server, user: usercontext, app, file, stanza }, {}, "DELETE"),
+    onSuccess: (config) => 
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        delete prev[app][stanza];
+        return prev;
+      })
+  });
+
   const toggle = (
     <Clickable>
       <Remove hideDefaultTooltip />
@@ -578,7 +589,9 @@ const StanzaDeleteStanza = ({ column, app, file, stanza }) => {
           <P>
             Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?
           </P>
-          <Button>Delete</Button>
+          <Button onClick={change.mutate} disabled={change.isLoading} error={change.isError}>
+            Delete
+          </Button>
         </StyledContainer>
       </Dropdown>
     </Tooltip>
