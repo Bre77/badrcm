@@ -3,7 +3,7 @@ import { fetchGet, restChange } from "./fetch";
 
 //const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
-export const useServers = (options = {}) => useQuery(["servers"], () => fetchGet("servers"), { placeholderData: [], ...options });
+export const useQueryServers = (options = {}) => useQuery(["servers"], () => fetchGet("servers"), { placeholderData: [], ...options });
 export const useQueryContext = (server, options = {}) =>
   useQuery(
     server
