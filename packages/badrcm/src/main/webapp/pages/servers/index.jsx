@@ -14,11 +14,11 @@ import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
 import { restChange } from "../../shared/fetch";
-import { useQueryContext, useServers } from "../../shared/hooks";
+import { useQueryContext, useQueryServers } from "../../shared/hooks";
 import Page from "../../shared/page";
 
 const Servers = () => {
-  const { data } = useServers();
+  const { data } = useQueryServers();
 
   return (
     <CardLayout cardMinWidth={400} wrapCards>
@@ -86,7 +86,7 @@ const ServerCard = ({ server }) => {
 // Seperate out the add server card here
 const AddServerCard = () => {
   const queryClient = useQueryClient();
-  const { data: servers } = useServers();
+  const { data: servers } = useQueryServers();
 
   const DEFAULT_SERVER = "";
   const DEFAULT_TOKEN = "";
