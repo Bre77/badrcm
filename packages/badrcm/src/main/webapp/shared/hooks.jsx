@@ -61,10 +61,16 @@ export const useMutateConfig = (server, usercontext, appcontext, app, file, stan
       return restChange("configs", { server, user: usercontext, app, file, stanza }, body);
     },
     onSuccess: (config) => {
-      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
-        prev[app][stanza] = config[app][stanza];
-        return prev;
-      });
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) =>
+        Object.entries(config).reduce(
+          (prev, [app, stanzas]) =>
+            Object.entries(stanzas).reduce((prev, [stanza, content]) => {
+              prev[app][stanza] = content;
+              return prev;
+            }, prev),
+          prev
+        )
+      );
       success && success();
     },
   });
