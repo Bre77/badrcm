@@ -37,7 +37,7 @@ export default ({ files, setFiles, apps, setApps, count, setCount, columns }) =>
   );
 };
 
-const Files = ({ files, setFiles, servers }) => {
+export const Files = ({ files, setFiles, servers }) => {
   const results = useQueriesContext(servers);
   const handleFile = wrapSetValues(setFiles);
 
@@ -68,7 +68,7 @@ const Files = ({ files, setFiles, servers }) => {
   );
 };
 
-const Apps = ({ apps, setApps, servers }) => {
+export const Apps = ({ apps, setApps, servers }) => {
   const results = useQueriesContext(servers);
   const handleApp = wrapSetValues(setApps);
 
@@ -108,7 +108,7 @@ const Apps = ({ apps, setApps, servers }) => {
   );
 };
 
-const Count = ({ count, setCount }) => {
+export const Count = ({ count, setCount }) => {
   const handleCount = wrapSetValue(setCount);
 
   return (
@@ -123,7 +123,7 @@ export const Column = ({ column }) => {
   const handleAppContext = wrapSetValue(column.setAppContext);
   const handleUserContext = wrapSetValue(column.setUserContext);
 
-  //! There is a bug here where the server changes way before the context can be validated. I may need to handle this internally until context is updated
+  //! There is a bug here where the server changes before the context can be validated. I may need to handle this internally until context is updated
 
   const servers = useQueryServers();
   const context = useQueryContext(column.server, {
