@@ -49,7 +49,7 @@ class move(common.RestHandler):
                 s = json.loads(content)["entry"][0]
             except Exception as e:
                 return self.json_error(
-                    f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}/acl failed",
+                    f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}/move failed",
                     e.__class__.__name__,
                     str(e),
                 )

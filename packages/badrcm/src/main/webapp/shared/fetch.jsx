@@ -94,7 +94,7 @@ export async function restChange(endpoint, parameters = {}, body, method = "POST
       data.status = res.status;
       console.warn(data);
       Toast({ message: data.error_message, type: TOAST_TYPES.ERROR, autoDismiss: false });
-      return Promise.reject(data);
+      return Promise.reject(data.error_message);
     });
   });
 }

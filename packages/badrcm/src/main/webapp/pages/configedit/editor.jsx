@@ -1,7 +1,7 @@
 import { smartTrim } from "@splunk/ui-utils/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { debounce } from "lodash";
-import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Shared
 import { SPLUNK_CLOUD_BLACKLIST } from "../../shared/const";
@@ -63,7 +63,7 @@ export default ({ apps, files, columns }) => {
           x[stanza].cols[z] = `${Object.keys(content.attr).length} attributes in ${content.acl.sharing} scope`;
 
           // SPLUNK CLOUD COMPLIANCE
-          if (cloudUnsafe(columns[z].server,file)) {
+          if (cloudUnsafe(columns[z].server, file)) {
             console.debug("Splunk Cloud Compliance has been enforced");
             content.acl.write = 0;
             content.acl.change = 0;
@@ -350,6 +350,7 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
   const [internalvalue, setInternalValue] = useState(value); //
   const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);
   const inputHandle = (e, { value }) => {
+    console.log(value);
     setInternalValue(value);
     text ? deboundedHandle({ [attr]: value }) : change.mutate({ [attr]: value });
   };
@@ -372,25 +373,17 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
 };
 
 const CreateStanza = ({ column: { server, appcontext, usercontext }, app, file, stanza }) => {
-  const queryClient = useQueryClient();
-  const create = useMutation({
-    mutationFn: (body) => {
-      return restChange("configs", { server, user: usercontext, app, file, stanza: "" }, { name: stanza });
-    },
-    onSuccess: (config) => {
-      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
-        prev[app][stanza] = config[app][stanza];
-        return prev;
-      });
-    },
-  });
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, "");
+  const handleClick = () => {
+    change.mutate({ name: stanza });
+  };
 
-  return create.isLoading ? <WaitSpinner /> : <CreateLink onClick={create.mutate}>Create Stanza</CreateLink>;
+  return change.isLoading ? <WaitSpinner /> : <CreateLink onClick={handleClick}>Create Stanza</CreateLink>;
 };
 
 const CreateAttribute = ({ column: { server, appcontext, usercontext }, app, file, stanza, attr, text }) => {
+  // This component doesnt actually change anything on the server.
   const queryClient = useQueryClient();
-
   const handleClick = () => {
     queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
       prev[app][stanza].attr[attr] = text ? "" : false;
@@ -402,7 +395,11 @@ const CreateAttribute = ({ column: { server, appcontext, usercontext }, app, fil
 };
 
 const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, file }) => {
-  const change = useMutateConfig(server, usercontext, appcontext, app, file, "");
+  const dropdownRef = useRef(null);
+  const change = useMutateConfig(server, usercontext, appcontext, app, file, "", () => {
+    setStanza("");
+    dropdownRef.current.handleToggleClick();
+  });
 
   const [stanza, setStanza] = useState("");
   const handleStanza = wrapSetValue(setStanza);
@@ -416,7 +413,7 @@ const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, fil
   );
   return (
     <Tooltip content="Add new stanza.">
-      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+      <Dropdown toggle={toggle} ref={dropdownRef} retainFocus closeReasons={closeReasons}>
         <StyledContainer>
           <P>
             Add a new stanza to{" "}
@@ -439,6 +436,7 @@ const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, fil
 };
 
 const ActionDownload = ({ column, app, file }) => {
+  const dropdownRef = useRef(null);
   const { data } = useQueryConfig(column, file);
 
   const toggle = (
@@ -460,11 +458,12 @@ const ActionDownload = ({ column, app, file }) => {
     link.download = `${file}.conf`;
     link.href = URL.createObjectURL(new Blob([config], { type: "text/plain" }));
     link.click();
+    dropdownRef.current.handleToggleClick();
   };
 
   return (
     <Tooltip content="Download as file">
-      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+      <Dropdown toggle={toggle} ref={dropdownRef} retainFocus closeReasons={closeReasons}>
         <StyledContainer>
           <Button appearance="primary" onClick={createDownload} disabled={!data}>
             Download {file}.conf
@@ -476,9 +475,11 @@ const ActionDownload = ({ column, app, file }) => {
 };
 
 const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const dropdownRef = useRef(null);
   const change = useMutateConfig(server, usercontext, appcontext, app, file, stanza, () => {
     setAttr("");
     setValue("");
+    dropdownRef.current.handleToggleClick();
   });
 
   const [attr, setAttr] = useState("");
@@ -495,7 +496,7 @@ const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file,
 
   return (
     <Tooltip content="Add new attribute.">
-      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+      <Dropdown toggle={toggle} ref={dropdownRef} retainFocus closeReasons={closeReasons}>
         <StyledContainer>
           <P>
             Add a new attribute to <StanzaSpan>[{stanza}]</StanzaSpan> in{" "}
@@ -521,19 +522,24 @@ const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file,
 };
 
 const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const dropdownRef = useRef(null);
   const queryClient = useQueryClient();
   const [target, setTarget] = useState(app);
   const handleTarget = wrapSetValue(setTarget);
 
   const { data } = useQueryContext(server);
   const change = useMutation({
-    mutationFn: (target) => {
-      return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target });
+    mutationFn: () => {
+      // The value of user is mandatory, but I cannot figure out any situation where it actually changes anything.
+      return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target, user: "nobody" });
     },
-    onSuccess: (config) => {
+    onSuccess: (acl) => {
+      dropdownRef.current.handleToggleClick();
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        console.log(prev, acl);
+        prev[target][stanza] = { attr: prev[app][stanza].attr, acl };
         delete prev[app][stanza];
-        prev[target][stanza] = config[target][stanza];
+        console.log(prev);
         return prev;
       });
     },
@@ -546,7 +552,7 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
   );
   return (
     <Tooltip content="Move stanza to another app.">
-      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+      <Dropdown toggle={toggle} ref={dropdownRef} retainFocus closeReasons={closeReasons}>
         <StyledContainer>
           <P>
             Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{target}</b> to:
@@ -568,15 +574,18 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
 };
 
 const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, file, stanza }) => {
+  const dropdownRef = useRef(null);
   const queryClient = useQueryClient();
 
   const change = useMutation({
     mutationFn: () => restChange("configs", { server, user: usercontext, app, file, stanza }, {}, "DELETE"),
-    onSuccess: (config) =>
+    onSuccess: (config) => {
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
         delete prev[app][stanza];
         return prev;
-      }),
+      });
+      dropdownRef.current.handleToggleClick();
+    },
   });
 
   const toggle = (
@@ -587,7 +596,7 @@ const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, 
 
   return (
     <Tooltip content="Remove stanza completely.">
-      <Dropdown toggle={toggle} retainFocus closeReasons={closeReasons}>
+      <Dropdown toggle={toggle} ref={dropdownRef} retainFocus closeReasons={closeReasons}>
         <StyledContainer style={{ textAlign: "center" }}>
           <Warning size={2} style={{ padding: "5px" }} />
           <P>
