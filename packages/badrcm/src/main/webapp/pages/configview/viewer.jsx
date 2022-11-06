@@ -1,5 +1,5 @@
 import { smartTrim } from "@splunk/ui-utils/format";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
 import { debounce } from "lodash";
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";

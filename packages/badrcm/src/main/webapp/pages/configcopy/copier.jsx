@@ -1,13 +1,15 @@
 /* eslint-disable */
 import { smartTrim } from "@splunk/ui-utils/format";
-import { Map, Set } from "immutable";
-import React, { useMemo, useEffect, useState } from "react";
+import { Set } from "immutable";
+import React, { useMemo, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 // Shared
 import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { isort0, options } from "../../shared/helpers";
 import { AttributeSpan, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
 import { useQueriesConfig, useQueriesContext } from "../../shared/hooks";
+import { restRaw } from "../../shared/fetch";
 
 // Splunk UI
 import Button from "@splunk/react-ui/Button";
@@ -23,7 +25,8 @@ import Play from "@splunk/react-icons/Play";
 const sort = options.sort ? isort0 : undefined;
 
 export default ({ apps, files, columns }) => {
-  const COLUMN_INDEX = [0, 1];
+  // State
+  const [selected, setSelected] = useState(Set());
 
   // Queries
   const contexts = useQueriesContext(columns.map((x) => x.server));
@@ -47,15 +50,42 @@ export default ({ apps, files, columns }) => {
       }, {}),
     [files]
   );
-  console.log(src_context, src_config, dst_context, dst_config);
 
-  const [selected, setSelected] = useState(Set());
+  // Mutation
+  const copyer = useMutation({
+    mutationFn: () => {
+      console.log(selected);
+      const tasks = selected
+        .toArray()
+        .sort()
+        .map((key) => {
+          parts = key.split("|");
+          if (parts.length == 2) {
+            const [app, file] = parts;
+            return app;
+          }
+          if (parts.length == 3) {
+            //const [app,file, stanza] = parts
+            return parts;
+          }
+          if (parts.length == 4) {
+            //const [app,file, stanza] = parts
+            return parts;
+          }
+        });
+      return restRaw("batch", { server: columns[1].server, user: columns[1].usercontext }, tasks);
+    },
+  });
 
+  // Memo
   const table = useMemo(() => {
     console.debug("EFFECT Config Merge");
 
     const configdict = files.reduce((x, file, z) => {
-      if (!dst_config[file]) return x;
+      if (!x[file] || !dst_config[file]) {
+        delete x[file];
+        return x;
+      }
       for (const [app, stanzas] of Object.entries(dst_config[file])) {
         if (!x[file][app]) continue;
         for (const [stanza, content] of Object.entries(stanzas)) {
@@ -128,14 +158,6 @@ export default ({ apps, files, columns }) => {
     });
   };
 
-  const copy = useMutation(()=>{
-    mutationFn: () => {
-      
-      return restRaw("batch", { server, user: usercontext }, tasks);
-    },
-    onSuccess: (acl) => {
-  })
-
   const getConfigRows = (app, file, stanza, attrs) => {
     return attrs.map(([attr, src, dst]) => {
       const src_text = src !== undefined ? `${src}` : "";
@@ -165,7 +187,8 @@ export default ({ apps, files, columns }) => {
 
   return (
     <>
-      <Button>Copy Selected Configuration</Button><br/>
+      <Button>Copy Selected Configuration</Button>
+      <br />
       <Table stripeRows rowExpansion="multi">
         <Table.Head>
           <Table.HeadCell>Config Copy</Table.HeadCell>

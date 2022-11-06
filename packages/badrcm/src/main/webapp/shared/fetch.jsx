@@ -86,7 +86,6 @@ export async function restGet(endpoint, parameters = false, callback, life = 60)
 export async function restPost(endpoint, parameters = {}, body) {
   return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
     ...defaultFetchInit,
-    method: method,
     body: makeBody(body),
   }).then(handleRes);
 }
@@ -99,8 +98,7 @@ export async function restDelete(endpoint, parameters = {}) {
 }
 
 export async function restRaw(endpoint, parameters = {}, body) {
-  const request = `${endpoint}?${makeParameters(parameters)}`;
-  return fetch(`${splunkdPath}/services/badrcm/${request}`, {
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
     ...defaultFetchInit,
     method: "POST",
     body,
