@@ -13,7 +13,7 @@ import Text from "@splunk/react-ui/Text";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
-import { restChange } from "../../shared/fetch";
+import { restPost, restDelete } from "../../shared/fetch";
 import { useQueryContext, useQueryServers } from "../../shared/hooks";
 import Page from "../../shared/page";
 
@@ -40,7 +40,7 @@ const ServerCard = ({ server }) => {
   const { isLoading, data } = useQueryContext(server);
 
   const removeServer = (e, { value }) => {
-    return restChange("servers", { server: value }, {}, "DELETE").then(
+    return restDelete("servers", { server: value }).then(
       () => {
         queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server !== value));
         queryClient.invalidateQueries(["servers"]);
@@ -118,7 +118,7 @@ const AddServerCard = () => {
     }
     setServerError();
     setRunning(true);
-    return restChange("servers", { server }, { token, share })
+    return restPost("servers", { server }, { token, share })
       .then(
         () => {
           // Success

@@ -18,6 +18,7 @@ import Select from "@splunk/react-ui/Select";
 import Switch from "@splunk/react-ui/Switch";
 import Table from "@splunk/react-ui/Table";
 import Typography from "@splunk/react-ui/Typography";
+import Play from "@splunk/react-icons/Play";
 
 const sort = options.sort ? isort0 : undefined;
 
@@ -127,6 +128,14 @@ export default ({ apps, files, columns }) => {
     });
   };
 
+  const copy = useMutation(()=>{
+    mutationFn: () => {
+      
+      return restRaw("batch", { server, user: usercontext }, tasks);
+    },
+    onSuccess: (acl) => {
+  })
+
   const getConfigRows = (app, file, stanza, attrs) => {
     return attrs.map(([attr, src, dst]) => {
       const src_text = src !== undefined ? `${src}` : "";
@@ -156,11 +165,12 @@ export default ({ apps, files, columns }) => {
 
   return (
     <>
+      <Button>Copy Selected Configuration</Button><br/>
       <Table stripeRows rowExpansion="multi">
         <Table.Head>
           <Table.HeadCell>Config Copy</Table.HeadCell>
           <Table.HeadCell>Source</Table.HeadCell>
-          <Table.HeadCell width={12}></Table.HeadCell>
+          <Table.HeadCell width={12}>Select</Table.HeadCell>
           <Table.HeadCell>Destination</Table.HeadCell>
         </Table.Head>
         <Table.Body>
@@ -191,8 +201,10 @@ export default ({ apps, files, columns }) => {
                     [stanza, attrs] // Stanza Row with expansion
                   ) => {
                     const key = k([app, file, stanza]);
+                    const on = selected.has(key);
                     const src = src_config[file]?.[app]?.[stanza];
                     const dst = dst_config[file]?.[app]?.[stanza];
+
                     return (
                       <Table.Row key={key} expansionRow={getConfigRows(app, file, stanza, attrs)}>
                         <TallCell align="right" truncate>

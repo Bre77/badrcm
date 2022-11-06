@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchGet, restChange } from "./fetch";
+import { fetchGet, restPost } from "./fetch";
 
 //const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
@@ -58,7 +58,7 @@ export const useMutateConfig = (server, usercontext, appcontext, app, file, stan
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body) => {
-      return restChange("configs", { server, user: usercontext, app, file, stanza }, body);
+      return restPost("configs", { server, user: usercontext, app, file, stanza }, body);
     },
     onSuccess: (config) => {
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) =>

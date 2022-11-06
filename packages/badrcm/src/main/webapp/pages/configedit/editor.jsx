@@ -4,8 +4,7 @@ import { debounce } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Shared
-import { SPLUNK_CLOUD_BLACKLIST } from "../../shared/const";
-import { restChange } from "../../shared/fetch";
+import { restPost, restDelete } from "../../shared/fetch";
 import { isort0, latest, options, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
 import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, useMutateConfig } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
@@ -132,7 +131,7 @@ export default ({ apps, files, columns }) => {
   // Methods
   /*const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
     const { server, usercontext, appcontext } = columns[z];
-    restChange("configs", { server, file, user: usercontext, app, stanza }, { [key]: fixedvalue !== null ? fixedvalue : inputvalue }).then((config) => {
+    restPost("configs", { server, file, user: usercontext, app, stanza }, { [key]: fixedvalue !== null ? fixedvalue : inputvalue }).then((config) => {
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
         prev[app][stanza] = config[app][stanza];
         return prev;
@@ -145,7 +144,7 @@ export default ({ apps, files, columns }) => {
     (current, z, file, app, stanza, key) =>
     (_, { value, values }) => {
       const { server, usercontext, appcontext } = columns[z];
-      return restChange(
+      return restPost(
         "acl",
         { server, file, user: usercontext, app, stanza },
         { sharing: current.sharing, owner: current.owner, "perms.read": current.readers, "perms.write": current.writers, [key]: value || values }
@@ -531,7 +530,7 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
   const change = useMutation({
     mutationFn: () => {
       // The value of user is mandatory, but I cannot figure out any situation where it actually changes anything.
-      return restChange("move", { server, user: usercontext, app, file, stanza }, { app: target, user: "nobody" });
+      return restPost("move", { server, user: usercontext, app, file, stanza }, { app: target, user: "nobody" });
     },
     onSuccess: (acl) => {
       dropdownRef.current.handleToggleClick();
@@ -578,7 +577,7 @@ const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, 
   const queryClient = useQueryClient();
 
   const change = useMutation({
-    mutationFn: () => restChange("configs", { server, user: usercontext, app, file, stanza }, {}, "DELETE"),
+    mutationFn: () => restDelete("configs", { server, user: usercontext, app, file, stanza }),
     onSuccess: (config) => {
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
         delete prev[app][stanza];

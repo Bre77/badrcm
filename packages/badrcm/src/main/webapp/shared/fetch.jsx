@@ -26,18 +26,22 @@ const makeBody = (data) => {
   }, new URLSearchParams());
 };
 
+const handleRes = (res) => {
+  return res.status === 204
+    ? Promise.resolve()
+    : res.json().then((data) => {
+        if (res.ok) return data;
+
+        data.status = res.status;
+        console.warn(data);
+        Toast({ message: data.error_message, type: TOAST_TYPES.ERROR, autoDismiss: false });
+        return Promise.reject(data.error_message);
+      });
+};
+
 export async function fetchGet(endpoint, parameters = false) {
   if (parameters) endpoint = `${endpoint}?${makeParameters(parameters)}`;
-  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, defaultFetchInit).then((res) => {
-    return res.json().then((data) => {
-      if (res.ok) return data;
-
-      data.status = res.status;
-      console.warn(data);
-      Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
-      return Promise.reject(data);
-    });
-  });
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}`, defaultFetchInit).then(handleRes);
 }
 
 export async function restGet(endpoint, parameters = false, callback, life = 60) {
@@ -79,22 +83,26 @@ export async function restGet(endpoint, parameters = false, callback, life = 60)
     );
 }
 
-export async function restChange(endpoint, parameters = {}, body, method = "POST", status = [200, 201, 204]) {
-  const request = `${endpoint}?${makeParameters(parameters)}`;
-  console.debug("REST", method, request);
-  return fetch(`${splunkdPath}/services/badrcm/${request}`, {
+export async function restPost(endpoint, parameters = {}, body) {
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
     ...defaultFetchInit,
     method: method,
     body: makeBody(body),
-  }).then((res) => {
-    if (status.includes(res.status)) {
-      return res.status === 204 ? Promise.resolve() : res.json();
-    }
-    return res.json().then((data) => {
-      data.status = res.status;
-      console.warn(data);
-      Toast({ message: data.error_message, type: TOAST_TYPES.ERROR, autoDismiss: false });
-      return Promise.reject(data.error_message);
-    });
-  });
+  }).then(handleRes);
+}
+
+export async function restDelete(endpoint, parameters = {}) {
+  return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
+    ...defaultFetchInit,
+    method: "DELETE",
+  }).then(handleRes);
+}
+
+export async function restRaw(endpoint, parameters = {}, body) {
+  const request = `${endpoint}?${makeParameters(parameters)}`;
+  return fetch(`${splunkdPath}/services/badrcm/${request}`, {
+    ...defaultFetchInit,
+    method: "POST",
+    body,
+  }).then(handleRes);
 }

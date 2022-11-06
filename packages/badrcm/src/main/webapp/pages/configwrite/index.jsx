@@ -4,7 +4,7 @@ import debounce from "lodash.debounce";
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 
 // Shared
-import { restChange, restGet } from "../../shared/fetch";
+import { restPost, restGet } from "../../shared/fetch";
 import { options, useLocal, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
 import Page from "../../shared/page";
 import { AttributeSpan, StanzaSpan, StyledContainer, ValueSpan } from "../../shared/styles";
@@ -193,8 +193,8 @@ const ConfigWrite = () => {
     setLoading(1);
     return (
       config.hasIn([app, stanza, "attr"])
-        ? restChange("configs", { server, file, user, app, stanza }, changes)
-        : restChange("configs", { server, file, user, app, stanza: "" }, { ...changes, name: stanza })
+        ? restPost("configs", { server, file, user, app, stanza }, changes)
+        : restPost("configs", { server, file, user, app, stanza: "" }, { ...changes, name: stanza })
     )
       .then((newdata) => setConfig(config.mergeDeep(newdata)))
       .then(() => {
@@ -287,7 +287,7 @@ const ConfigWrite = () => {
             <StanzaSpan>[{stanza}]</StanzaSpan>
             <ConfigDisplay value={currentConfig} />
           </ColumnLayout.Column>
-          {(config.getIn([app, stanza, "acl", "can_write"]) === false || cloudUnsafe(server,app)) ? (
+          {config.getIn([app, stanza, "acl", "can_write"]) === false || cloudUnsafe(server, app) ? (
             <ColumnLayout.Column>
               <Heading level={3}>You do not have access to change this stanza</Heading>
             </ColumnLayout.Column>
