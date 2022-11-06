@@ -176,19 +176,23 @@ export default ({ apps, files, columns }) => {
                       {app} / {file}.conf
                     </b>
                   </Table.Cell>
-                  <Table.Cell>{src_context.apps[app].label}</Table.Cell>
+                  <Table.Cell>
+                    {src_context.apps[app][0]} {src_context.apps[app][2]}
+                  </Table.Cell>
                   <ShortCell>
                     <Switch appearance="toggle" onClick={toggleParent} value={[app, file]} selected={selected.has(k([app, file]))} />
                   </ShortCell>
-                  <Table.Cell>{dst_context.apps[app]?.label}</Table.Cell>
+                  <Table.Cell>
+                    {dst_context.apps[app][0]} {dst_context.apps[app][2]}
+                  </Table.Cell>
                 </Table.Row>,
                 ...stanzas.map(
                   (
                     [stanza, attrs] // Stanza Row with expansion
                   ) => {
                     const key = k([app, file, stanza]);
-                    const src = src_context[file]?.[app]?.[stanza];
-                    const dst = dst_context[file]?.[app]?.[stanza];
+                    const src = src_config[file]?.[app]?.[stanza];
+                    const dst = dst_config[file]?.[app]?.[stanza];
                     return (
                       <Table.Row key={key} expansionRow={getConfigRows(app, file, stanza, attrs)}>
                         <TallCell align="right" truncate>
