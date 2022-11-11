@@ -49,7 +49,7 @@ class servers(common.RestHandler):
                     args, ["server"], ["token", "share"]
                 )
             except Exception as e:
-                return self.json_error(str(e), "args", args)
+                return self.json_error("Missing required field", 400, str(e), 400)
 
             try:
                 resp, _ = simpleRequest(

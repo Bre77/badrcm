@@ -44,7 +44,7 @@ class batch(common.RestHandler):
                 [server, user] = self.getInput(args, ["server", "user"], [])
                 tasks = json.loads(args["payload"])
             except Exception as e:
-                return self.json_error(str(e), "args", args)
+                return self.json_error("Missing required field", 400, str(e), 400)
 
             for task in tasks:
                 l = len(task)
@@ -60,7 +60,7 @@ class batch(common.RestHandler):
                             return self.json_error(
                                 f"Adding {app['name']} on {server} returned {resp.status}",
                                 resp.status,
-                                content,
+                                json.loads(content)["messages"][0]["text"],
                             )
                     except Exception as e:
                         return self.json_error(
@@ -81,7 +81,7 @@ class batch(common.RestHandler):
                             return self.json_error(
                                 f"Adding {stanza} to {app}/{conf}.conf on {server} returned {resp.status}",
                                 resp.status,
-                                content,
+                                json.loads(content)["messages"][0]["text"],
                             )
                     except Exception as e:
                         return self.json_error(
@@ -103,7 +103,7 @@ class batch(common.RestHandler):
                             return self.json_error(
                                 f"Adding attributes to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
                                 resp.status,
-                                content,
+                                json.loads(content)["messages"][0]["text"],
                             )
                     except Exception as e:
                         return self.json_error(
@@ -125,7 +125,7 @@ class batch(common.RestHandler):
                             return self.json_error(
                                 f"Adding {attr} to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
                                 resp.status,
-                                content,
+                                str(content),
                             )
                     except Exception as e:
                         return self.json_error(

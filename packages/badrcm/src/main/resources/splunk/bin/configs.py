@@ -44,7 +44,7 @@ class configs(common.RestHandler):
             try:  # Check for required input
                 [file, app, user] = self.getInput(args, ["file", "app", "user"])
             except Exception as e:
-                return self.json_error(str(e), "args", args)
+                return self.json_error("Missing required field", 400, str(e), 400)
 
             stanza = args["query"].get("stanza", "")
 
@@ -71,7 +71,7 @@ class configs(common.RestHandler):
                     args, ["file", "user", "app", "stanza"]
                 )
             except Exception as e:
-                return self.json_error(str(e), "args", args)
+                return self.json_error("Missing required field", 400, str(e), 400)
 
             stanza = urllib.parse.quote(stanza, safe="")
 
