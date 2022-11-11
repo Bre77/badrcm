@@ -1,7 +1,7 @@
 import React from "react";
 
 // Shared
-import Inputs from "../../shared/inputs";
+import Inputs from "../../components/inputs";
 import Copier from "./copier";
 import { DEFAULT_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { useLocal } from "../../shared/helpers";

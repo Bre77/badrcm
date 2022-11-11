@@ -1,6 +1,5 @@
 import layout from "@splunk/react-page";
 import ToastMessages from "@splunk/react-toast-notifications/ToastMessages";
-
 import Button from "@splunk/react-ui/Button";
 import Link from "@splunk/react-ui/Link";
 import Modal from "@splunk/react-ui/Modal";
@@ -8,12 +7,13 @@ import P from "@splunk/react-ui/Paragraph";
 import { getUserTheme } from "@splunk/splunk-utils/themes";
 import variables from "@splunk/themes/variables";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
 import { compress, decompress } from "lz-string";
 import React, { useState } from "react";
 import { createGlobalStyle } from "styled-components";
+import Progress from "@splunk/react-ui/Progress";
 
 const GlobalStyle = createGlobalStyle`
     body {
@@ -62,6 +62,12 @@ const Disclaimer = () => {
     </Modal>
   );
 };
+
+const Loading = () => {
+  const isFetching = useIsFetching();
+  return isFetching ? <Progress percentage={100} /> : <div style={{ height: "3px" }}></div>;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -90,6 +96,7 @@ export default (component) =>
         <>
           <GlobalStyle />
           <QueryClientProvider client={queryClient}>
+            <Loading />
             {component}
             <ReactQueryDevtools />
           </QueryClientProvider>

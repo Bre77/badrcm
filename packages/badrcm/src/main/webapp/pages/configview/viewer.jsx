@@ -66,13 +66,13 @@ export default ({ apps, files, columns }) => {
                 <br key={key + "."} />,
                 ...attrs.map(([attr, values]) => [
                   !!present && values[z] !== null && (
-                    <>
-                      <AttributeSpan key={key + z}>{attr}</AttributeSpan> = {values[z]}
-                    </>
+                    <span key={key + "|" + attr}>
+                      <AttributeSpan>{attr}</AttributeSpan> = {values[z]}
+                    </span>
                   ),
-                  <br />,
+                  <br key={key + "|" + attr + "."} />,
                 ]),
-                <br />
+                <br key={key + ".."} />
               );
             });
             return out;

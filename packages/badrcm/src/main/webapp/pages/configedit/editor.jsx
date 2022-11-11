@@ -48,7 +48,7 @@ export default ({ apps, files, columns }) => {
       const file = files[~~(y / count)]; // File
 
       return Object.entries(data).reduce((x, [app, stanzas]) => {
-        if (!apps.includes(app)) return x;
+        if (apps.length > 0 && !apps.includes(app)) return x;
         const key = `${app}|${file}`;
         x[key] ||= { app, file, cols: Array(count).fill(), stanzas: {} };
 

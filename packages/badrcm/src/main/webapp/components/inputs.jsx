@@ -10,9 +10,9 @@ import Number from "@splunk/react-ui/Number";
 import Select from "@splunk/react-ui/Select";
 
 // Shared
-import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "./const";
-import { isort, latest, wrapSetValue, wrapSetValues } from "./helpers";
-import { useQueryContext, useQueriesContext, useQueryServers } from "./hooks";
+import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../shared/const";
+import { isort, latest, wrapSetValue, wrapSetValues } from "../shared/helpers";
+import { useQueryContext, useQueriesContext, useQueryServers } from "../shared/hooks";
 
 // Local
 import { MAX_COLUMNS } from "../pages/configedit/const";
@@ -98,8 +98,8 @@ export const Apps = ({ apps, setApps, servers }) => {
         inline
         values={apps}
         onChange={handleApp}
-        placeholder={`You must select 1 or more app`}
-        error={!apps.length}
+        //placeholder={`You must select 1 or more app`}
+        //error={!apps.length}
         noOptionsMessage="Select at least one server first"
       >
         {appoptions.map((label, id) => <Multiselect.Option key={id} label={label} value={id} />).toList()}

@@ -10,7 +10,6 @@ import { isort0, options, latest } from "../../shared/helpers";
 import { AttributeSpan, ShortCell, StanzaSpan, TallCell } from "../../shared/styles";
 import { useQueriesConfig, useQueriesContext } from "../../shared/hooks";
 import { restRaw } from "../../shared/fetch";
-import { ConfigProgress } from "../../shared/components";
 
 // Splunk UI
 import Button from "@splunk/react-ui/Button";
@@ -223,7 +222,6 @@ export default ({ apps, files, columns }) => {
         {copyer.isLoading ? <WaitSpinner /> : "Copy Selected Configuration"}
       </Button>
       <br />
-      <ConfigProgress configs={configs} />
       <Table stripeRows rowExpansion="multi">
         <Table.Head>
           <Table.HeadCell>Config Copy</Table.HeadCell>

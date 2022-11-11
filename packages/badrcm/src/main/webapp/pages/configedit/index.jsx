@@ -1,7 +1,7 @@
 import React from "react";
 
 // Main Components
-import Inputs from "../../shared/inputs";
+import Inputs from "../../components/inputs.jsx";
 import Editor from "./editor";
 
 // Shared
