@@ -70,12 +70,12 @@ class batch(common.RestHandler):
                         )
                     continue
                 if l == 3:  # Create Stanza
-                    [app, conf, stanza] = task
+                    [app, conf, data] = task
                     try:
                         resp, content = simpleRequest(
                             f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}?output_mode=json",
                             sessionKey=token,
-                            postargs={"name": stanza},
+                            postargs=data,
                         )
                         if resp.status not in [200, 201, 409]:
                             return self.json_error(
@@ -91,13 +91,13 @@ class batch(common.RestHandler):
                         )
                     continue
                 if l == 4:  # Create/Change Attributes
-                    [app, conf, stanza, body] = task
+                    [app, conf, stanza, data] = task
                     stanza = urllib.parse.quote(stanza, safe="")
                     try:
                         resp, content = simpleRequest(
                             f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
                             sessionKey=token,
-                            postargs=body,
+                            postargs=data,
                         )
                         if resp.status not in [200, 201, 409]:
                             return self.json_error(

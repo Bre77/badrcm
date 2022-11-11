@@ -52,34 +52,55 @@ export default ({ apps, files, columns }) => {
   // Mutation
   const copyer = useMutation({
     mutationFn: () => {
-      const tasks = selected
+      const merged = selected
         .toArray()
         .sort()
-        .map((key) => {
+        .reduce((x, key) => {
           const parts = key.split("|");
           if (parts.length == 2) {
             const [app, file] = parts;
-            if (dst_context.apps[app]) return [];
-
-            return [
-              {
-                name: src_context.apps[app][0],
-                visable: !!src_context.apps[app][1],
-                label: src_context.apps[app][2],
-                author: username,
-              },
-            ]; // May create dups
+            x[app] ||= { [file]: {} };
+            x[app][file] ||= {};
+            return x;
           }
           if (parts.length == 3) {
             const [app, file, stanza] = parts;
-            if (dst_config[file]?.[app]?.[stanza]) return [];
-            return [app, file, stanza];
+            x[app][file][stanza] ||= [];
+            return x;
           }
           if (parts.length == 4) {
             const [app, file, stanza, attr] = parts;
-            return [app, file, stanza, { [attr]: src_config[file][app][stanza].attr[attr] }]; // could be merged
+            x[app][file][stanza].push(attr);
+            return x;
           }
+        }, {});
+
+      const tasks = [];
+      Object.entries(merged).forEach(([app, files]) => {
+        if (!dst_context.apps[app])
+          tasks.push([
+            {
+              name: src_context.apps[app][0],
+              visable: !!src_context.apps[app][1],
+              label: src_context.apps[app][2],
+              author: username,
+            },
+          ]);
+        Object.entries(files).forEach(([file, stanzas]) => {
+          Object.entries(stanzas).forEach(([stanza, attributes]) => {
+            const data = attributes.reduce((x, attr) => {
+              x[attr] = src_config[file][app][stanza].attr[attr];
+            }, {});
+            if (!dst_context.apps[app][stanza]) {
+              data.name = stanza;
+              tasks.push([app, file, data]);
+            } else {
+              tasks.push([app, file, stanza, data]);
+            }
+          });
         });
+      });
+
       console.log(tasks);
       return restRaw("batch", { server: columns[1].server, user: columns[1].usercontext }, tasks);
     },
@@ -196,7 +217,7 @@ export default ({ apps, files, columns }) => {
 
   return (
     <>
-      <Button inline={false} appearance="primary" onClick={copyer.mutate} disabled={selected.isEmpty() || copyer.isLoading}>
+      <Button inline={false} appearance={selected.isEmpty() ? "secondary" : "primary"} onClick={copyer.mutate} disabled={copyer.isLoading}>
         {copyer.isLoading ? <WaitSpinner /> : "Copy Selected Configuration"}
       </Button>
       <br />
