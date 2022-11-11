@@ -39,14 +39,13 @@ class batch(common.RestHandler):
             uri = f"https://{self.hostport(args['query']['server'])}"
             token = self.gettoken(args["query"]["server"])
 
-        
         if args["method"] == "POST":
             try:
-                [user, tasks] = self.getInput(args, ["user"], ["tasks"])
+                [server, user] = self.getInput(args, ["server", "user"], [])
+                tasks = json.loads(args["payload"])
             except Exception as e:
                 return self.json_error(str(e), "args", args)
 
-            tasks = json.loads(tasks)
             for task in tasks:
                 l = len(task)
                 if l == 1:  # Create App
@@ -56,12 +55,18 @@ class batch(common.RestHandler):
                             f"{uri}/services/apps/local?output_mode=json",
                             sessionKey=token,
                             postargs=app,
-                            raiseAllErrors=True,
                         )
+                        if resp.status not in [200, 201, 409]:
+                            return self.json_error(
+                                f"Adding {app['name']} on {server} returned {resp.status}",
+                                resp.status,
+                                content,
+                            )
                     except Exception as e:
                         return self.json_error(
-                            f"POST request to {uri}/services/apps/local failed",
-                            e,
+                            f"Adding {app['name']} on {server} failed",
+                            e.__class__.__name__,
+                            str(e),
                         )
                     continue
                 if l == 3:  # Create Stanza
@@ -71,37 +76,63 @@ class batch(common.RestHandler):
                             f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}?output_mode=json",
                             sessionKey=token,
                             postargs={"name": stanza},
-                            raiseAllErrors=True,
                         )
+                        if resp.status not in [200, 201, 409]:
+                            return self.json_error(
+                                f"Adding {stanza} to {app}/{conf}.conf on {server} returned {resp.status}",
+                                resp.status,
+                                content,
+                            )
                     except Exception as e:
                         return self.json_error(
-                            f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{conf} failed",
-                            e,
+                            f"Adding {stanza} to {app}/{conf}.conf on {server} failed",
+                            e.__class__.__name__,
+                            str(e),
                         )
                     continue
                 if l == 4:  # Create/Change Attributes
-                    [app, conf, stanza, attr] = task
+                    [app, conf, stanza, body] = task
                     stanza = urllib.parse.quote(stanza, safe="")
                     try:
                         resp, content = simpleRequest(
                             f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
                             sessionKey=token,
-                            postargs=attr,
-                            raiseAllErrors=True,
+                            postargs=body,
                         )
-                        # Reload
-                        try:
-                            simpleRequest(
-                                f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}/_reload",
-                                method="POST",
-                                sessionKey=token,
+                        if resp.status not in [200, 201, 409]:
+                            return self.json_error(
+                                f"Adding attributes to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
+                                resp.status,
+                                content,
                             )
-                        except Exception:
-                            pass
                     except Exception as e:
                         return self.json_error(
-                            f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza} failed",
-                            e,
+                            f"Adding attributes to {app}/{conf}.conf [{stanza}] on {server} failed",
+                            e.__class__.__name__,
+                            str(e),
                         )
                     continue
-            return {"payload": "true", "status": 200}
+                if l == 5:  # Create/Change Attribute
+                    [app, conf, stanza, attr, value] = task
+                    stanza = urllib.parse.quote(stanza, safe="")
+                    try:
+                        resp, content = simpleRequest(
+                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
+                            sessionKey=token,
+                            postargs={attr: value},
+                        )
+                        if resp.status not in [200, 201, 409]:
+                            return self.json_error(
+                                f"Adding {attr} to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
+                                resp.status,
+                                content,
+                            )
+                    except Exception as e:
+                        return self.json_error(
+                            f"Adding {attr} to {app}/{conf}.conf [{stanza}] on {server} failed",
+                            e.__class__.__name__,
+                            str(e),
+                        )
+                    continue
+            return {"payload": "", "status": 204}
+        return self.json_error("Method Not Allowed", 405)

@@ -2,29 +2,27 @@
 import { smartTrim } from "@splunk/ui-utils/format";
 import { Set } from "immutable";
 import React, { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { username } from "@splunk/splunk-utils/config";
 
 // Shared
-import { COMMON_FILES, DEFAULT_APP_CONTEXT, SYSTEM_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
-import { isort0, options } from "../../shared/helpers";
-import { AttributeSpan, ShortCell, StanzaSpan, StyledContainer, TallCell } from "../../shared/styles";
+import { isort0, options, latest } from "../../shared/helpers";
+import { AttributeSpan, ShortCell, StanzaSpan, TallCell } from "../../shared/styles";
 import { useQueriesConfig, useQueriesContext } from "../../shared/hooks";
 import { restRaw } from "../../shared/fetch";
+import { ConfigProgress } from "../../shared/components";
 
 // Splunk UI
 import Button from "@splunk/react-ui/Button";
-import ColumnLayout from "@splunk/react-ui/ColumnLayout";
-import ControlGroup from "@splunk/react-ui/ControlGroup";
-import Multiselect from "@splunk/react-ui/Multiselect";
-import Select from "@splunk/react-ui/Select";
 import Switch from "@splunk/react-ui/Switch";
 import Table from "@splunk/react-ui/Table";
 import Typography from "@splunk/react-ui/Typography";
-import Play from "@splunk/react-icons/Play";
+import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 const sort = options.sort ? isort0 : undefined;
 
 export default ({ apps, files, columns }) => {
+  const queryClient = useQueryClient();
   // State
   const [selected, setSelected] = useState(Set());
 
@@ -40,7 +38,7 @@ export default ({ apps, files, columns }) => {
         src[file] = configs[z * 2].data;
         return src;
       }, {}),
-    [files]
+    [files, latest(configs)]
   );
   const dst_config = useMemo(
     () =>
@@ -48,32 +46,50 @@ export default ({ apps, files, columns }) => {
         dst[file] = configs[z * 2 + 1].data;
         return dst;
       }, {}),
-    [files]
+    [files, latest(configs)]
   );
 
   // Mutation
   const copyer = useMutation({
     mutationFn: () => {
-      console.log(selected);
       const tasks = selected
         .toArray()
         .sort()
         .map((key) => {
-          parts = key.split("|");
+          const parts = key.split("|");
           if (parts.length == 2) {
             const [app, file] = parts;
-            return app;
+            if (dst_context.apps[app]) return [];
+
+            return [
+              {
+                name: src_context.apps[app][0],
+                visable: !!src_context.apps[app][1],
+                label: src_context.apps[app][2],
+                author: username,
+              },
+            ]; // May create dups
           }
           if (parts.length == 3) {
-            //const [app,file, stanza] = parts
-            return parts;
+            const [app, file, stanza] = parts;
+            if (dst_config[file]?.[app]?.[stanza]) return [];
+            return [app, file, stanza];
           }
           if (parts.length == 4) {
-            //const [app,file, stanza] = parts
-            return parts;
+            const [app, file, stanza, attr] = parts;
+            return [app, file, stanza, { [attr]: src_config[file][app][stanza].attr[attr] }]; // could be merged
           }
         });
+      console.log(tasks);
       return restRaw("batch", { server: columns[1].server, user: columns[1].usercontext }, tasks);
+    },
+    onSuccess: () => {
+      setSelected(Set());
+      queryClient.invalidateQueries(["servers", columns[1].server]);
+      files.forEach((file) => {
+        console.log(["configs", columns[1].server, file, columns[1].appcontext, columns[1].usercontext]);
+        queryClient.invalidateQueries(["configs", columns[1].server, file, columns[1].appcontext, columns[1].usercontext]);
+      });
     },
   });
 
@@ -89,8 +105,8 @@ export default ({ apps, files, columns }) => {
       for (const [app, stanzas] of Object.entries(dst_config[file])) {
         if (!x[file][app]) continue;
         for (const [stanza, content] of Object.entries(stanzas)) {
-          if (!x[file][app][stanza]) x[file][app][stanza] = { attr: content.attr };
-          else Object.keys(content.attr).forEach((attr) => (x[file][app][stanza].attr[attr] ||= undefined));
+          if (!x[file][app][stanza]) x[file][app][stanza] = { attr: {} };
+          Object.keys(content.attr).forEach((attr) => (x[file][app][stanza].attr[attr] ||= undefined));
         }
       }
       return x;
@@ -100,7 +116,6 @@ export default ({ apps, files, columns }) => {
       .map(([file, fileapps], z) => [file, fileapps, z])
       .sort(sort)
       .flatMap(([file, fileapps, z]) => {
-        console.log(file, fileapps, z);
         return Object.entries(fileapps)
           .filter(([app]) => apps.length === 0 || apps.includes(app))
           .sort(sort)
@@ -113,39 +128,33 @@ export default ({ apps, files, columns }) => {
                 stanza,
                 Object.entries(content.attr)
                   .sort(sort)
-                  .map(([attr, value]) => [attr, value, dst_config[file]?.[app]?.[stanza]?.attr?.[attr]]),
+                  .map(([attr, value]) => [attr, src_config[file]?.[app]?.[stanza]?.attr?.[attr], dst_config[file]?.[app]?.[stanza]?.attr?.[attr]]),
               ]),
           ]);
       });
-  });
+  }, [latest(contexts), latest(configs), apps, columns]);
 
   // Methods
   const k = (a) => a.join("|");
 
   const toggleAttribute = (_, { value, selected }) => {
-    console.log(value, selected);
     const [app, file, stanza, attr] = value;
     setSelected((prev) => {
-      console.log(prev);
       return selected ? prev.remove(k([app, file, stanza, attr])) : prev.concat([k([app, file, stanza, attr]), k([app, file, stanza]), k([app, file])]);
     });
   };
   const toggleStanza = (_, { value, selected }) => {
-    console.log(value, selected);
     const [app, file, stanza] = value;
     setSelected((prev) => {
-      console.log(prev);
       return selected
         ? prev.filter((_, key) => !key.startsWith(k([app, file, stanza])))
         : prev.concat([k([app, file]), k([app, file, stanza]), ...Object.keys(src_config[file][app][stanza].attr).map((attr) => k([app, file, stanza, attr]))]);
     });
   };
   const toggleParent = (_, { value, selected }) => {
-    console.log(value, selected);
     const [app, file] = value;
 
     setSelected((prev) => {
-      console.log(prev);
       return selected
         ? prev.filter((_, key) => !key.startsWith(k([app, file])))
         : prev.merge([
@@ -187,8 +196,11 @@ export default ({ apps, files, columns }) => {
 
   return (
     <>
-      <Button>Copy Selected Configuration</Button>
+      <Button inline={false} appearance="primary" onClick={copyer.mutate} disabled={selected.isEmpty() || copyer.isLoading}>
+        {copyer.isLoading ? <WaitSpinner /> : "Copy Selected Configuration"}
+      </Button>
       <br />
+      <ConfigProgress configs={configs} />
       <Table stripeRows rowExpansion="multi">
         <Table.Head>
           <Table.HeadCell>Config Copy</Table.HeadCell>
@@ -210,13 +222,13 @@ export default ({ apps, files, columns }) => {
                     </b>
                   </Table.Cell>
                   <Table.Cell>
-                    {src_context.apps[app][0]} {src_context.apps[app][2]}
+                    {src_context.apps?.[app]?.[0]} {src_context.apps?.[app]?.[2]}
                   </Table.Cell>
                   <ShortCell>
                     <Switch appearance="toggle" onClick={toggleParent} value={[app, file]} selected={selected.has(k([app, file]))} />
                   </ShortCell>
                   <Table.Cell>
-                    {dst_context.apps[app][0]} {dst_context.apps[app][2]}
+                    {dst_context.apps?.[app]?.[0]} {dst_context.apps?.[app]?.[2]}
                   </Table.Cell>
                 </Table.Row>,
                 ...stanzas.map(
@@ -241,7 +253,7 @@ export default ({ apps, files, columns }) => {
                           )}
                         </TallCell>
                         <ShortCell>
-                          <Switch appearance="toggle" onClick={toggleStanza} value={[app, file, stanza]} selected={selected.has(k([app, file, stanza]))} />
+                          {src_config[file][app][stanza] && <Switch appearance="toggle" onClick={toggleStanza} value={[app, file, stanza]} selected={on} />}
                         </ShortCell>
                         <TallCell>
                           {dst && (

@@ -34,8 +34,8 @@ const handleRes = (res) => {
 
         data.status = res.status;
         console.warn(data);
-        Toast({ message: data.error_message, type: TOAST_TYPES.ERROR, autoDismiss: false });
-        return Promise.reject(data.error_message);
+        Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
+        return Promise.reject(data.context);
       });
 };
 
@@ -86,6 +86,7 @@ export async function restGet(endpoint, parameters = false, callback, life = 60)
 export async function restPost(endpoint, parameters = {}, body) {
   return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
     ...defaultFetchInit,
+    method: "POST",
     body: makeBody(body),
   }).then(handleRes);
 }
@@ -101,6 +102,10 @@ export async function restRaw(endpoint, parameters = {}, body) {
   return fetch(`${splunkdPath}/services/badrcm/${endpoint}?${makeParameters(parameters)}`, {
     ...defaultFetchInit,
     method: "POST",
-    body,
+    body: JSON.stringify(body),
+    headers: {
+      ...defaultFetchInit.headers,
+      "Content-Type": "application/json",
+    },
   }).then(handleRes);
 }

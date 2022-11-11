@@ -90,7 +90,7 @@ class RestHandler(PersistentServerConnectionApplication):
         args["form"] = dict(args.get("form", []))
         args["query"] = dict(args.get("query", []))
 
-        self.HASH = args["query"].get("hash")
+        # self.HASH = args["query"].get("hash")
 
         return args
 
