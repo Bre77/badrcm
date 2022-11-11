@@ -35,7 +35,9 @@ class move(common.RestHandler):
                     args, ["file", "user", "app", "stanza"]
                 )
             except Exception as e:
-                return self.json_error("Missing required field", 400, str(e), 400)
+                return self.json_error(
+                    "Missing required field", e.__class__.__name__, str(e), 400
+                )
 
             stanza = urllib.parse.quote(stanza, safe="")
 

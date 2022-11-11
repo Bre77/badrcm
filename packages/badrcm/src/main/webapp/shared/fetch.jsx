@@ -34,8 +34,8 @@ const handleRes = (res) => {
 
         data.status = res.status;
         console.warn(data);
-        Toast({ message: data.context, type: TOAST_TYPES.ERROR, autoDismiss: false });
-        return Promise.reject(data.context);
+        Toast({ message: data.error_message, type: TOAST_TYPES.ERROR, autoDismiss: false });
+        return Promise.reject(data.error_message);
       });
 };
 

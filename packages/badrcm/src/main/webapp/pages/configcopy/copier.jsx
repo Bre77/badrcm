@@ -74,15 +74,17 @@ export default ({ apps, files, columns }) => {
             return x;
           }
         }, {});
-
+      console.log(merged);
       const tasks = [];
       Object.entries(merged).forEach(([app, files]) => {
         if (!dst_context.apps[app])
           tasks.push([
             {
-              name: src_context.apps[app][0],
-              visable: !!src_context.apps[app][1],
-              label: src_context.apps[app][2],
+              name: app,
+              label: src_context.apps[app][0],
+              description: "Created by Remote Configuration Manager Config Copy",
+              visible: !!src_context.apps[app][1],
+              version: src_context.apps[app][2],
               author: username,
             },
           ]);
@@ -90,8 +92,9 @@ export default ({ apps, files, columns }) => {
           Object.entries(stanzas).forEach(([stanza, attributes]) => {
             const data = attributes.reduce((x, attr) => {
               x[attr] = src_config[file][app][stanza].attr[attr];
+              return x;
             }, {});
-            if (!dst_context.apps[app][stanza]) {
+            if (!dst_config?.[file]?.[app]?.[stanza]) {
               data.name = stanza;
               tasks.push([app, file, data]);
             } else {
@@ -108,7 +111,6 @@ export default ({ apps, files, columns }) => {
       setSelected(Set());
       queryClient.invalidateQueries(["servers", columns[1].server]);
       files.forEach((file) => {
-        console.log(["configs", columns[1].server, file, columns[1].appcontext, columns[1].usercontext]);
         queryClient.invalidateQueries(["configs", columns[1].server, file, columns[1].appcontext, columns[1].usercontext]);
       });
     },
