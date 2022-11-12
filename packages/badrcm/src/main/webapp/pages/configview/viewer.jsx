@@ -1,13 +1,10 @@
-import { smartTrim } from "@splunk/ui-utils/format";
-import { useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
-import { debounce } from "lodash";
-import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import React, { useMemo } from "react";
 
 // Shared
-import { isort0, latest, nosort, options } from "../../shared/helpers";
+import { isort0, latest, options } from "../../shared/helpers";
 import { useQueriesConfig } from "../../shared/hooks";
-import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
+import { AttributeSpan, StanzaSpan } from "../../shared/styles";
 
 // Splunk UI
 

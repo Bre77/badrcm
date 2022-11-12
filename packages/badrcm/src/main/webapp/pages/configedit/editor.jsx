@@ -5,9 +5,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 // Shared
 import { restPost, restDelete } from "../../shared/fetch";
-import { isort0, latest, options, wrapSetValue, cloudUnsafe } from "../../shared/helpers";
+import { isort0, latest, options, wrapSetValue, cloudUnsafe, useLocal } from "../../shared/helpers";
 import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, useMutateConfig } from "../../shared/hooks";
-import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, SwitchSpinner, TallCell, TextSpinner } from "../../shared/styles";
+import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
 import Dashboard from "@splunk/react-icons/Dashboard";
@@ -30,6 +30,7 @@ import Table from "@splunk/react-ui/Table";
 import Text from "@splunk/react-ui/Text";
 import Tooltip from "@splunk/react-ui/Tooltip";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
+import Paginator from "@splunk/react-ui/Paginator";
 
 const closeReasons = ["clickAway", "escapeKey", "toggleClick"];
 const sort = options.sort ? isort0 : undefined;
@@ -38,9 +39,14 @@ export default ({ apps, files, columns }) => {
   const queryClient = useQueryClient();
   const contexts = useQueriesContext(columns.map((x) => x.server));
   const configs = useQueriesConfig(columns, files);
+  const [page, setPage] = useState(1);
+  const handlePage = (_, { page }) => setPage(page);
+  const [perpage, setPerPage] = useLocal("BADRCM_perpage", 50);
+  const handlePerPage = wrapSetValue(setPerPage);
 
+  console.log("Render");
   const table = useMemo(() => {
-    console.debug("Expensive Config Table");
+    console.debug("Expensive Config Table", latest(contexts), latest(configs), apps, columns);
     const count = columns.length;
     const x = configs.reduce((x, { data }, y) => {
       if (!data) return x;
@@ -127,18 +133,6 @@ export default ({ apps, files, columns }) => {
   const roles = useMemo(() => {
     return contexts.map((context) => context.data && context.data.roles.map((role) => <Multiselect.Option key={role} label={role} value={role} />));
   }, [latest(contexts)]);
-
-  // Methods
-  /*const handleConfigChangeFactory = (z, file, app, stanza, key, fixedvalue) => (inputvalue) => {
-    const { server, usercontext, appcontext } = columns[z];
-    restPost("configs", { server, file, user: usercontext, app, stanza }, { [key]: fixedvalue !== null ? fixedvalue : inputvalue }).then((config) => {
-      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
-        prev[app][stanza] = config[app][stanza];
-        return prev;
-      });
-      //queryClient.invalidateQueries(["configs", server, file, appcontext, usercontext]);
-    });
-  };*/
 
   const handleAclChangeFactory =
     (current, z, file, app, stanza, key) =>
@@ -272,74 +266,92 @@ export default ({ apps, files, columns }) => {
     )),
   ];
 
-  return (
-    <Table stripeRows rowExpansion="multi">
-      <Table.Head>
-        <Table.HeadCell>Config Editor</Table.HeadCell>
-        {columns.map(({ server }, z) => (
-          <Table.HeadCell key={z}>{server || "No Server Selected"}</Table.HeadCell>
-        ))}
-      </Table.Head>
-      <Table.Body>
-        {table.map(([key, app, file, appcols, stanzas]) => [
-          // App File Row
-          <Table.Row key={key}>
-            <Table.Cell>
-              <b>
-                {app} / {file}.conf
-              </b>
-            </Table.Cell>
-            {appcols.map((appcol, z) => {
-              return appcol ? (
+  const rows = table.flatMap(([key, app, file, appcols, stanzas]) => [
+    // App File Row
+    <Table.Row key={key}>
+      <Table.Cell>
+        <b>
+          {app} / {file}.conf
+        </b>
+      </Table.Cell>
+      {appcols.map((appcol, z) => {
+        return appcol ? (
+          <Table.Cell key={z}>
+            {appcol[0]} {appcol[2]}
+            {options.fullmode && (
+              <Actions>
+                <ActionDownload column={columns[z]} app={app} file={file} />
+                <ActionAddStanza column={columns[z]} app={app} file={file} />
+              </Actions>
+            )}
+          </Table.Cell>
+        ) : (
+          <Table.Cell key={z}></Table.Cell>
+        );
+      })}
+    </Table.Row>,
+    ...stanzas.map(
+      (
+        [key, stanza, stanzacols, acl, attr] // Stanza Row with expansion
+      ) => (
+        <Table.Row key={key} expansionRow={getConfigRows(app, file, stanza, attr, acl)}>
+          <Table.Cell align="right" truncate>
+            <StanzaSpan>[{smartTrim(stanza, 30)}]</StanzaSpan>
+          </Table.Cell>
+          {stanzacols.map((summary, z) => {
+            if (!appcols[z]) return <Table.Cell key={z}></Table.Cell>;
+            if (!summary)
+              return (
                 <Table.Cell key={z}>
-                  {appcol[0]} {appcol[2]}
-                  {options.fullmode && (
-                    <Actions>
-                      <ActionDownload column={columns[z]} app={app} file={file} />
-                      <ActionAddStanza column={columns[z]} app={app} file={file} />
-                    </Actions>
-                  )}
+                  <CreateStanza column={columns[z]} app={app} file={file} stanza={stanza} />
                 </Table.Cell>
-              ) : (
-                <Table.Cell key={z}></Table.Cell>
               );
-            })}
-          </Table.Row>,
-          stanzas.map(
-            (
-              [key, stanza, stanzacols, acl, attr] // Stanza Row with expansion
-            ) => (
-              <Table.Row key={key} expansionRow={getConfigRows(app, file, stanza, attr, acl)}>
-                <Table.Cell align="right" truncate>
-                  <StanzaSpan>[{smartTrim(stanza, 30)}]</StanzaSpan>
-                </Table.Cell>
-                {stanzacols.map((summary, z) => {
-                  if (!appcols[z]) return <Table.Cell key={z}></Table.Cell>;
-                  if (!summary)
-                    return (
-                      <Table.Cell key={z}>
-                        <CreateStanza column={columns[z]} app={app} file={file} stanza={stanza} />
-                      </Table.Cell>
-                    );
-                  return (
-                    <Table.Cell key={z}>
-                      <i>{summary}</i>
-                      {options.fullmode && (
-                        <Actions>
-                          <ActionDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
-                          <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
-                          <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
-                        </Actions>
-                      )}
-                    </Table.Cell>
-                  );
-                })}
-              </Table.Row>
-            )
-          ),
-        ])}
-      </Table.Body>
-    </Table>
+            return (
+              <Table.Cell key={z}>
+                <i>{summary}</i>
+                {options.fullmode && (
+                  <Actions>
+                    <ActionDeleteStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                    <ActionMoveStanza column={columns[z]} app={app} file={file} stanza={stanza} />
+                    <ActionAddAttr column={columns[z]} app={app} file={file} stanza={stanza} />
+                  </Actions>
+                )}
+              </Table.Cell>
+            );
+          })}
+        </Table.Row>
+      )
+    ),
+  ]);
+
+  return (
+    <>
+      <div style={{ paddingBottom: "8px" }}>
+        <Select value={perpage} onChange={handlePerPage}>
+          <Select.Option label="10 Per Page" value={10} />
+          <Select.Option label="20 Per Page" value={20} />
+          <Select.Option label="50 Per Page" value={50} />
+          <Select.Option label="100 Per Page" value={100} />
+        </Select>
+        <Paginator
+          alwaysShowLastPageLink
+          current={page}
+          totalPages={Math.ceil(rows.length / perpage)}
+          onChange={handlePage}
+          numPageLinks={10}
+          style={{ float: "right" }}
+        />
+      </div>
+      <Table stripeRows rowExpansion="multi">
+        <Table.Head>
+          <Table.HeadCell>Config Editor</Table.HeadCell>
+          {columns.map(({ server }, z) => (
+            <Table.HeadCell key={z}>{server || "No Server Selected"}</Table.HeadCell>
+          ))}
+        </Table.Head>
+        <Table.Body>{rows.slice((page - 1) * perpage, page * perpage)}</Table.Body>
+      </Table>
+    </>
   );
 };
 
