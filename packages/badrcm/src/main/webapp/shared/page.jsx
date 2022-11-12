@@ -1,3 +1,12 @@
+import React, { useState } from "react";
+import { createGlobalStyle } from "styled-components";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
+
+import { options } from "./helpers";
+
 import layout from "@splunk/react-page";
 import ToastMessages from "@splunk/react-toast-notifications/ToastMessages";
 import Button from "@splunk/react-ui/Button";
@@ -6,13 +15,9 @@ import Modal from "@splunk/react-ui/Modal";
 import P from "@splunk/react-ui/Paragraph";
 import { getUserTheme } from "@splunk/splunk-utils/themes";
 import variables from "@splunk/themes/variables";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
+
 import { compress, decompress } from "lz-string";
-import React, { useState } from "react";
-import { createGlobalStyle } from "styled-components";
+
 import Progress from "@splunk/react-ui/Progress";
 
 const GlobalStyle = createGlobalStyle`
@@ -72,22 +77,26 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-      retry: process.env.NODE_ENV === "production",
-      refetchOnWindowFocus: process.env.NODE_ENV === "production",
+      retry: false, //process.env.NODE_ENV === "production",
+      refetchOnMount: true,
+      staleTime: 15000,
+      //refetchOnWindowFocus: process.env.NODE_ENV === "production",
     },
   },
 });
 
-persistQueryClient({
-  queryClient,
-  persister: createSyncStoragePersister({
-    storage: window.localStorage,
-    key: "BADRCM_cache",
-    retry: removeOldestQuery,
-    serialize: (data) => compress(JSON.stringify(data)),
-    deserialize: (data) => JSON.parse(decompress(data)),
-  }),
-});
+if (options.localcache) {
+  persistQueryClient({
+    queryClient,
+    persister: createSyncStoragePersister({
+      storage: window.localStorage,
+      key: "BADRCM_cache",
+      retry: removeOldestQuery,
+      serialize: (data) => compress(JSON.stringify(data)),
+      deserialize: (data) => JSON.parse(decompress(data)),
+    }),
+  });
+}
 
 export default (component) =>
   getUserTheme()

@@ -3,10 +3,10 @@ import React, { useReducer } from "react";
 // Components
 import Card from "@splunk/react-ui/Card";
 import CardLayout from "@splunk/react-ui/CardLayout";
-import ControlGroup from "@splunk/react-ui/ControlGroup";
-import RadioBar from "@splunk/react-ui/RadioBar";
+import Button from "@splunk/react-ui/Button";
 import Switch from "@splunk/react-ui/Switch";
 import Tooltip from "@splunk/react-ui/Tooltip";
+import Link from "@splunk/react-ui/Link";
 
 // Shared
 import { localSave, options, wrapSetValue } from "../../shared/helpers";
@@ -27,6 +27,12 @@ const Options = () => {
   }, options);
   const handleOps = wrapSetValue(setOps);
 
+  const handleDeleteCache = () => window.localStorage.removeItem("BADRCM_cache");
+  const handleDeleteMemory = () =>
+    Object.keys(window.localStorage)
+      .filter((x) => x.startsWith("BADRCM_") && x !== "BADRCM_cache" && x !== "BADRCM_disclaimer")
+      .forEach((x) => window.localStorage.removeItem(x));
+
   return (
     <CardLayout cardMaxWidth={400} wrapCards>
       <Card>
@@ -45,6 +51,26 @@ const Options = () => {
             Splunk Cloud Compliance{" "}
             <Tooltip content="Certain features are disabled when targeting Splunk Cloud to keep Splunk happy, but they dont have to be." />
           </Switch>
+          <Switch appearance="toggle" selected={ops.localcache} value={{ localcache: !ops.localcache }} onClick={handleOps}>
+            Local API Cache{" "}
+            <Tooltip content="Improves page load time and reduces Splunk server load by storing API responses in your browsers Local Storage." />
+          </Switch>
+        </Card.Body>
+      </Card>
+      <Card>
+        <Card.Header title="Cache" />
+        <Card.Body>
+          This application stores user input and the results of API calls to your browsers{" "}
+          <Link openInNewContext to="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage">
+            Local Storage
+          </Link>{" "}
+          to improve page load performance, and reduces load on your Splunk servers.
+          <br />
+          <br />
+          <Button onClick={handleDeleteCache}>Delete API Cache</Button>
+          <br />
+          <br />
+          <Button onClick={handleDeleteMemory}>Delete User Inputs</Button>
         </Card.Body>
       </Card>
     </CardLayout>
