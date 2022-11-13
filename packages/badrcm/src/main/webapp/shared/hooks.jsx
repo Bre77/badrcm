@@ -3,54 +3,48 @@ import { fetchGet, restPost } from "./fetch";
 
 //const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
-export const useQueryServers = (options = {}) => useQuery(["servers"], () => fetchGet("servers"), { placeholderData: [], ...options });
+export const useQueryServers = (options = {}) =>
+  useQuery(["servers"], () => fetchGet("servers"), {
+    placeholderData: [],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    ...options,
+  });
 export const useQueryContext = (server, options = {}) =>
-  useQuery(
-    server
-      ? {
-          queryKey: ["servers", server],
-          queryFn: () => fetchGet("servers", { server }),
-          ...options,
-        }
-      : { queryKey: ["servers", null], queryFn: () => Promise.resolve(null) }
-  );
+  useQuery({
+    queryKey: ["servers", server],
+    queryFn: () => fetchGet("servers", { server }),
+    enabled: !!server,
+    ...options,
+  });
 
 export const useQueriesContext = (servers, options = {}) =>
   useQueries({
-    queries: servers.map((server) =>
-      server
-        ? {
-            queryKey: ["servers", server],
-            queryFn: () => fetchGet("servers", { server }),
-            ...options,
-          }
-        : { queryKey: ["servers", null], queryFn: () => Promise.resolve(null) }
-    ),
+    queries: servers.map((server) => ({
+      queryKey: ["servers", server],
+      queryFn: () => fetchGet("servers", { server }),
+      enabled: !!server,
+      ...options,
+    })),
   });
 
 export const useQueryConfig = ({ server, appcontext, usercontext }, file, options = {}) =>
-  useQuery(
-    server
-      ? {
-          queryKey: ["configs", server, file, appcontext, usercontext],
-          queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
-          ...options,
-        }
-      : { queryKey: ["configs", null], queryFn: () => Promise.resolve(null) }
-  );
+  useQuery({
+    queryKey: ["configs", server, file, appcontext, usercontext],
+    queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
+    enabled: !!server,
+    ...options,
+  });
 
 export const useQueriesConfig = (columns, files, options = {}) =>
   useQueries({
     queries: files.flatMap((file) =>
-      columns.map(({ server, appcontext, usercontext }) =>
-        server
-          ? {
-              queryKey: ["configs", server, file, appcontext, usercontext],
-              queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
-              ...options,
-            }
-          : { queryKey: ["configs", null], queryFn: () => Promise.resolve(null) }
-      )
+      columns.map(({ server, appcontext, usercontext }) => ({
+        queryKey: ["configs", server, file, appcontext, usercontext],
+        queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
+        enabled: !!server,
+        ...options,
+      }))
     ),
   });
 
