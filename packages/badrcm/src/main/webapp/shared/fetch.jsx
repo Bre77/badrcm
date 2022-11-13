@@ -6,15 +6,11 @@ import { defaultFetchInit } from "@splunk/splunk-utils/fetch";
 import { TOAST_TYPES } from "@splunk/react-toast-notifications/ToastConstants";
 import Toaster, { makeCreateToast } from "@splunk/react-toast-notifications/Toaster";
 
-const version = "1";
-const lifespan = 24 * 60 * 60 * 1000;
-const local = window.localStorage;
 
 // Helpers
 const Toast = makeCreateToast(Toaster);
 
 const makeParameters = (parameters = []) => {
-  //parameters["v"] = version;
   return Object.entries(parameters)
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join("&");

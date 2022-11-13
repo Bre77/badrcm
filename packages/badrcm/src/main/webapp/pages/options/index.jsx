@@ -55,6 +55,10 @@ const Options = () => {
             Local API Cache{" "}
             <Tooltip content="Improves page load time and reduces Splunk server load by storing API responses in your browsers Local Storage." />
           </Switch>
+          <Switch appearance="toggle" selected={ops.localcache} value={{ localmemory: !ops.localmemory }} onClick={handleOps}>
+            Local Input Memory{" "}
+            <Tooltip content="Improves page load time and reduces Splunk server load by storing API responses in your browsers Local Storage." />
+          </Switch>
         </Card.Body>
       </Card>
       <Card>

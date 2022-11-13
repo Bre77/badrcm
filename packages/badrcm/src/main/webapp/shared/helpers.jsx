@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import { SPLUNK_CLOUD_BLACKLIST } from "./const";
 
 // Sorting
@@ -21,13 +21,6 @@ export const wrapSetValues =
 // Local Storage
 export const localSave = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
 
-// ? Should this be in Hooks
-export const useLocal = (key, fallback) =>
-  useReducer((prev, value) => {
-    value === null ? window.localStorage.removeItem(key) : window.localStorage.setItem(key, JSON.stringify(value));
-    return value;
-  }, localLoad(key, fallback));
-
 export const localLoad = (key, fallback = null) => {
   try {
     const value = JSON.parse(window.localStorage.getItem(key));
@@ -40,6 +33,19 @@ export const localDel = (key) => window.localStorage.removeItem(key);
 
 export const latest = (results) => results.reduce((x, { dataUpdatedAt }) => Math.max(x, dataUpdatedAt), 0);
 
+export const cloudUnsafe = (server, file) => options.cloudsafe && server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file);
+
+// Options
 export const options = { sort: true, fullmode: true, cloudsafe: true, localcache: true, localinput: true, ...localLoad("BADRCM_options", {}) };
 
-export const cloudUnsafe = (server, file) => options.cloudsafe && server.includes(".splunkcloud.com") && SPLUNK_CLOUD_BLACKLIST.includes(file);
+// ? Should this be in Hooks
+export const useLocal = (key, fallback) => {
+  if (options.localinput) {
+    return useReducer((prev, value) => {
+      value === null ? window.localStorage.removeItem(key) : window.localStorage.setItem(key, JSON.stringify(value));
+      return value;
+    }, localLoad(key, fallback));
+  } else {
+    return useState(fallback);
+  }
+};

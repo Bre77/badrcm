@@ -44,7 +44,12 @@ class batch(common.RestHandler):
                 [server, user] = self.getInput(args, ["server", "user"], [])
                 tasks = json.loads(args["payload"])
             except Exception as e:
-                return self.json_error("Missing required field", 400, str(e), 400)
+                return self.json_error(
+                    "Missing one of the required fields: server, user",
+                    "Internal",
+                    str(e),
+                    400,
+                )
 
             for task in tasks:
                 l = len(task)

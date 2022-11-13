@@ -128,15 +128,9 @@ export const Column = ({ column }) => {
   const servers = useQueryServers();
   const context = useQueryContext(column.server, {
     onSuccess: (data) => {
-      console.log("Check Context");
-      if (![...Object.keys(data.apps), DEFAULT_APP_CONTEXT.name, SYSTEM_APP_CONTEXT.name].includes(column.appcontext)) {
-        console.log("Resetting App Context", column.appcontext, "didnt exist");
-        column.setAppContext(DEFAULT_APP_CONTEXT.name);
-      }
-      if (![...Object.keys(data.users), SYSTEM_USER_CONTEXT.name].includes(column.usercontext)) {
-        console.log("Resetting User Context", column.usercontext, "didnt exist");
-        column.setUserContext(SYSTEM_USER_CONTEXT.name);
-      }
+      if (column.appcontext && ![...Object.keys(data.apps), DEFAULT_APP_CONTEXT.name, SYSTEM_APP_CONTEXT.name].includes(column.appcontext))
+        column.setAppContext(null);
+      if (column.usercontext && ![...Object.keys(data.users), SYSTEM_USER_CONTEXT.name].includes(column.usercontext)) column.setUserContext(null);
     },
   });
 
@@ -165,7 +159,7 @@ export const Column = ({ column }) => {
           onChange={handleAppContext}
           disabled={!column.server}
           animateLoading={context.isLoading}
-          error={context.error}
+          error={context.error || !column.appcontext}
           filter
         >
           <Select.Heading>General</Select.Heading>
@@ -182,7 +176,7 @@ export const Column = ({ column }) => {
           onChange={handleUserContext}
           disabled={!column.server}
           animateLoading={context.isLoading}
-          error={context.error}
+          error={context.error || !column.usercontext}
           filter
         >
           <Select.Heading>General</Select.Heading>

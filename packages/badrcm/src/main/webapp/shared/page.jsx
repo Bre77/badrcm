@@ -4,9 +4,12 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
+import { compress, decompress } from "lz-string";
 
+// Shared
 import { options } from "./helpers";
 
+// Splunk UI
 import layout from "@splunk/react-page";
 import ToastMessages from "@splunk/react-toast-notifications/ToastMessages";
 import Button from "@splunk/react-ui/Button";
@@ -15,18 +18,16 @@ import Modal from "@splunk/react-ui/Modal";
 import P from "@splunk/react-ui/Paragraph";
 import { getUserTheme } from "@splunk/splunk-utils/themes";
 import variables from "@splunk/themes/variables";
-
-import { compress, decompress } from "lz-string";
-
 import Progress from "@splunk/react-ui/Progress";
 
+// Theme based background colour
 const GlobalStyle = createGlobalStyle`
     body {
         background-color: ${variables.backgroundColorPage};
-        color: blue;
     }
 `;
 
+// The disclaimer to make Splunk happy
 const Disclaimer = () => {
   const [open, setOpen] = useState(!window.localStorage.getItem("BADRCM_disclaimer"));
 
@@ -68,11 +69,13 @@ const Disclaimer = () => {
   );
 };
 
+// Global isFetching bar
 const Loading = () => {
   const isFetching = useIsFetching();
   return isFetching ? <Progress percentage={100} /> : <div style={{ height: "3px" }}></div>;
 };
 
+// Setup the query client with defaults
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -85,6 +88,7 @@ const queryClient = new QueryClient({
   },
 });
 
+// If enabled, setup LocalStorage cache with compression
 if (options.localcache) {
   persistQueryClient({
     queryClient,
@@ -98,6 +102,7 @@ if (options.localcache) {
   });
 }
 
+// Return the page
 export default (component) =>
   getUserTheme()
     .then((theme) => {

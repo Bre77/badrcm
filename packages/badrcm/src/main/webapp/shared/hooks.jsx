@@ -8,6 +8,7 @@ export const useQueryServers = (options = {}) =>
     placeholderData: [],
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    staleTime: 60000,
     ...options,
   });
 export const useQueryContext = (server, options = {}) =>
@@ -15,6 +16,7 @@ export const useQueryContext = (server, options = {}) =>
     queryKey: ["servers", server],
     queryFn: () => fetchGet("servers", { server }),
     enabled: !!server,
+    staleTime: 60000,
     ...options,
   });
 
@@ -24,6 +26,7 @@ export const useQueriesContext = (servers, options = {}) =>
       queryKey: ["servers", server],
       queryFn: () => fetchGet("servers", { server }),
       enabled: !!server,
+      staleTime: 60000,
       ...options,
     })),
   });
@@ -32,9 +35,23 @@ export const useQueryConfig = ({ server, appcontext, usercontext }, file, option
   useQuery({
     queryKey: ["configs", server, file, appcontext, usercontext],
     queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
-    enabled: !!server,
+    staleTime: 15000,
     ...options,
+    enabled: !!server && !!file && !!appcontext && !!usercontext && options.enabled,
   });
+
+/*if (app && ![...Object.keys(context.data.apps), SYSTEM_APP_CONTEXT.name].includes(app)) {
+  console.log("Resetting App Context", app, "didnt exist");
+  setApp(null);
+}
+if (user && ![...Object.keys(context.data.users), SYSTEM_USER_CONTEXT.name].includes(user)) {
+  console.log("Resetting User Context", user, "didnt exist");
+  setUser(null);
+}
+if (file && !context.data.files.includes(file)) {
+  console.log("Resetting File Context", file, "didnt exist");
+  setFile(null);
+}*/
 
 export const useQueriesConfig = (columns, files, options = {}) =>
   useQueries({
@@ -42,8 +59,9 @@ export const useQueriesConfig = (columns, files, options = {}) =>
       columns.map(({ server, appcontext, usercontext }) => ({
         queryKey: ["configs", server, file, appcontext, usercontext],
         queryFn: () => fetchGet("configs", { server, app: appcontext, user: usercontext, file }),
-        enabled: !!server,
+        staleTime: 15000,
         ...options,
+        enabled: !!server && !!file && !!appcontext && !!usercontext && options.enabled,
       }))
     ),
   });

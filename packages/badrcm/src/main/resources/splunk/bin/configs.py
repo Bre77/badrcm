@@ -42,9 +42,16 @@ class configs(common.RestHandler):
         if args["method"] == "GET":
 
             try:  # Check for required input
-                [file, app, user] = self.getInput(args, ["file", "app", "user"])
+                [server, file, app, user] = self.getInput(
+                    args, ["server", "file", "app", "user"]
+                )
             except Exception as e:
-                return self.json_error("Missing required field", 400, str(e), 400)
+                return self.json_error(
+                    "Missing one of the required fields: server, file, app, user",
+                    "Internal",
+                    str(e),
+                    400,
+                )
 
             stanza = args["query"].get("stanza", "")
 
@@ -52,18 +59,21 @@ class configs(common.RestHandler):
                 resp, content = simpleRequest(
                     f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}?output_mode=json&count=0",
                     sessionKey=token,
-                    raiseAllErrors=True,
                 )
-
+                if resp.status != 200:
+                    return self.json_error(
+                        f"Getting {stanza} on {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
+                configs = json.loads(content)["entry"]
             except Exception as e:
                 return self.json_error(
                     f"GET request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
                     e.__class__.__name__,
                     str(e),
                 )
-            return self.json_response(
-                self.handleConf(json.loads(content)["entry"], uri, token, file)
-            )
+            return self.json_response(self.handleConf(configs, uri, token, file))
 
         if args["method"] == "POST":
             try:
@@ -80,14 +90,13 @@ class configs(common.RestHandler):
                     f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}?output_mode=json",
                     sessionKey=token,
                     postargs=args["form"],
-                    raiseAllErrors=True,
                 )
-                # if resp.status not in [200, 201, 409]:
-                #    return self.json_error(
-                #        f"Setting config {uri}/servicesNS/{self.USER}/{app}/configs/conf-{file}/{stanza} failed",
-                #        resp.reason,
-                #        resp.status,
-                #    )
+                if resp.status not in [200, 201, 409]:
+                    return self.json_error(
+                        f"Modifying {stanza} on {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
                 configs = json.loads(content)["entry"]
             except Exception as e:
                 return self.json_error(
@@ -120,8 +129,13 @@ class configs(common.RestHandler):
                     f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}",
                     method="DELETE",
                     sessionKey=token,
-                    raiseAllErrors=True,
                 )
+                if resp.status not in [200, 201]:
+                    return self.json_error(
+                        f"Deleting {stanza} on {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
                 return {"payload": "true", "status": 200}
             except Exception as e:
                 return self.json_error(

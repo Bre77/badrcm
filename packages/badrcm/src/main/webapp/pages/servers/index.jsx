@@ -50,7 +50,6 @@ const ServerCard = ({ server }) => {
       }
     );
   };
-  console.log(server, isLoading, data);
   return (
     <>
       <Card.Header title={server} />
