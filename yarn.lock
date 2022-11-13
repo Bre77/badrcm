@@ -1430,17 +1430,16 @@
     remark "^13.0.0"
     unist-util-find-all-after "^3.0.2"
 
-"@tanstack/match-sorter-utils@^8.1.1":
-  version "8.5.14"
-  resolved "https://registry.npmjs.org/@tanstack/match-sorter-utils/-/match-sorter-utils-8.5.14.tgz"
-  integrity sha512-lVNhzTcOJ2bZ4IU+PeCPQ36vowBHvviJb2ZfdRFX5uhy7G0jM8N34zAMbmS5ZmVH8D2B7oU82OWo0e/5ZFzQrw==
+"@tanstack/match-sorter-utils@8.1.1":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@tanstack/match-sorter-utils/-/match-sorter-utils-8.1.1.tgz#895f407813254a46082a6bbafad9b39b943dc834"
+  integrity sha512-IdmEekEYxQsoLOR0XQyw3jD1GujBpRRYaGJYQUw1eOT1eUugWxdc7jomh1VQ1EKHcdwDLpLaCz/8y4KraU4T9A==
   dependencies:
     remove-accents "0.4.2"
 
-"@tanstack/query-core@4.13.4":
-  version "4.13.4"
-  resolved "https://registry.npmjs.org/@tanstack/query-core/-/query-core-4.13.4.tgz"
-  integrity sha512-DMIy6tgGehYoRUFyoR186+pQspOicyZNSGvBWxPc2CinHjWOQ7DPnGr9zmn/kE9xK4Zd3GXd25Nj3X20+TF6Lw==
+"@tanstack/query-core@https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/query-core":
+  version "4.15.0"
+  resolved "https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/query-core#6ee3d9530bec2d8cd671bea82b649a9f6adfa1fb"
 
 "@tanstack/query-persist-client-core@4.13.4":
   version "4.13.4"
@@ -1454,12 +1453,11 @@
   dependencies:
     "@tanstack/query-persist-client-core" "4.13.4"
 
-"@tanstack/react-query-devtools@^4.13.5":
-  version "4.13.5"
-  resolved "https://registry.npmjs.org/@tanstack/react-query-devtools/-/react-query-devtools-4.13.5.tgz"
-  integrity sha512-ItXysFt7a2WJcodeoZ52/NFoMeWUgwzSaKL3NXhHvdyDOFsX945/AN/+Q9WgXRDG+YgqDJm6f/ozYIfFaORoZQ==
+"@tanstack/react-query-devtools@https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/react-query-devtools":
+  version "4.15.0"
+  resolved "https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/react-query-devtools#89f3788a742b18204678ecfd44860699f05eff74"
   dependencies:
-    "@tanstack/match-sorter-utils" "^8.1.1"
+    "@tanstack/match-sorter-utils" "8.1.1"
     superjson "^1.10.0"
     use-sync-external-store "^1.2.0"
 
@@ -1470,12 +1468,11 @@
   dependencies:
     "@tanstack/query-persist-client-core" "4.13.4"
 
-"@tanstack/react-query@^4.13.5":
-  version "4.13.5"
-  resolved "https://registry.npmjs.org/@tanstack/react-query/-/react-query-4.13.5.tgz"
-  integrity sha512-p2HcWGuqfvG7Pz04un4phWZeXzlITD7Ue0gMXjD56g8y3rP1r5qEYC/BckffrZLf4dZtQeVPCWOa8RYAqx036g==
+"@tanstack/react-query@https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/react-query":
+  version "4.15.0"
+  resolved "https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/react-query#6e03688adcfb2fdb2c30c4714820b712331d6fe5"
   dependencies:
-    "@tanstack/query-core" "4.13.4"
+    "@tanstack/query-core" "https://pkg.csb.dev/TanStack/query/commit/e8fc0458/@tanstack/query-core"
     use-sync-external-store "^1.2.0"
 
 "@types/commonmark@^0.27.0":
