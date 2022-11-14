@@ -147,33 +147,42 @@ class servers(common.RestHandler):
 
         if args["method"] == "DELETE":
             if "server" not in args["query"]:
-                return self.json_error("Missing server field", 400, str(e), 400)
+                return self.json_error("Missing server field", "Internal", str(e), 400)
             server = args["query"]["server"]
 
             # Config
             try:
-                resp, _ = simpleRequest(
-                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/configs/conf-{self.APP_NAME}/{server}",
+                resp, content = simpleRequest(
+                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/configs/conf-badrcm/{server}",
                     method="DELETE",
                     sessionKey=self.AUTHTOKEN,
-                    raiseAllErrors=True,
                 )
+                if resp.status != 200:
+                    return self.json_error(
+                        f"Deleting {server} from {self.APP_NAME}.conf returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
             except Exception as e:
                 return self.json_error(
-                    f"DELETE request to {self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/configs/conf-{self.APP_NAME}/{server} failed",
+                    f"DELETE request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/configs/conf-badrcm/{server} failed",
                     e.__class__.__name__,
                     str(e),
                 )
 
             # Password Storage
             try:
-                resp, _ = simpleRequest(
+                resp, content = simpleRequest(
                     f"{self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/storage/passwords/{self.APP_NAME}:{server.replace(':', '_')}:",
                     sessionKey=self.AUTHTOKEN,
                     method="DELETE",
-                    raiseAllErrors=True,
                 )
-
+                if resp.status != 200:
+                    return self.json_error(
+                        f"Deleting auth token of {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
             except Exception as e:
                 return self.json_error(
                     f"DELETE request to {self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/storage/passwords failed",
