@@ -67,7 +67,6 @@ const ConfigWrite = () => {
   const debouncedInput = useCallback(
     debounce((input, config, app, stanza) => {
       setInputError(false);
-      console.log(`EFFECT Input`);
 
       const changes = input
         .split("\n")
@@ -110,12 +109,10 @@ const ConfigWrite = () => {
 
   // Handlers
   const write = useMutation({
-    mutationFn: () => {
-      console.log(config.data?.[app]?.[stanza]);
-      return config.data?.[app]?.[stanza]
+    mutationFn: () =>
+      config.data?.[app]?.[stanza]
         ? restPost("configs", { server, file, user, app, stanza }, changes)
-        : restPost("configs", { server, file, user, app, stanza: "" }, { ...changes, name: stanza });
-    },
+        : restPost("configs", { server, file, user, app, stanza: "" }, { ...changes, name: stanza }),
     onSuccess: (config) => {
       queryClient.setQueryData(["configs", server, file, app, user], (prev) =>
         Object.entries(config).reduce(

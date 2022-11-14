@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 // Shared
 import { restPost, restDelete } from "../../shared/fetch";
 import { isort0, latest, options, wrapSetValue, cloudUnsafe, useLocal } from "../../shared/helpers";
-import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, useMutateConfig } from "../../shared/hooks";
+import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, useMutateConfig, useMutateAcl } from "../../shared/hooks";
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
@@ -44,7 +44,6 @@ export default ({ apps, files, columns }) => {
   const [perpage, setPerPage] = useLocal("BADRCM_perpage", 50);
   const handlePerPage = wrapSetValue(setPerPage);
 
-  console.log("Render");
   const table = useMemo(() => {
     console.debug("Expensive Config Table", latest(contexts), latest(configs), apps, columns);
     const count = columns.length;
@@ -123,121 +122,32 @@ export default ({ apps, files, columns }) => {
       ]);
   }, [latest(contexts), latest(configs), apps, columns]);
 
-  const users = useMemo(() => {
-    return contexts.map(
-      (context) =>
-        context.data && Object.entries(context.data.users).map(([username, [realname]]) => <Select.Option key={username} label={realname} value={username} />)
-    );
-  }, [latest(contexts)]);
-
-  const roles = useMemo(() => {
-    return contexts.map((context) => context.data && context.data.roles.map((role) => <Multiselect.Option key={role} label={role} value={role} />));
-  }, [latest(contexts)]);
-
-  const handleAclChangeFactory =
-    (current, z, file, app, stanza, key) =>
-    (_, { value, values }) => {
-      const { server, usercontext, appcontext } = columns[z];
-      return restPost(
-        "acl",
-        { server, file, user: usercontext, app, stanza },
-        { sharing: current.sharing, owner: current.owner, "perms.read": current.readers, "perms.write": current.writers, [key]: value || values }
-      ).then((acls) => {
-        queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
-          console.log(prev[app][stanza].acl, acls);
-          prev[app][stanza].acl = acls;
-          return prev;
-        });
-        //queryClient.invalidateQueries(["configs", server, file, appcontext, usercontext]);
-      });
-    };
-
   //key={`${app}|${file}|${stanza}|sharing`}
   const getConfigRows = (app, file, stanza, attrs, acls) => [
     <Table.Row>
-      <TallCell align="right">Sharing</TallCell>
-
-      {acls.cols.map((acl, z) => {
-        return acl ? (
-          <ShortCell key={z}>
-            <Select
-              inline
-              disabled={!acl.change}
-              value={acl.sharing}
-              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "sharing")}
-              error={acls.diff.sharing}
-            >
-              <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
-              <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
-              <Select.Option disabled={!acl.share[2]} label="User" value="user" icon={<User />} />
-            </Select>
-          </ShortCell>
-        ) : (
-          <ShortCell key={z}></ShortCell>
-        );
-      })}
+      <TallCell align="right">{options.fullmode && acls.diff.sharing && <RedFlag screenReaderText="Values are different" />}Sharing</TallCell>
+      {acls.cols.map((acl, z) => (acl ? <ChangeAclSharing key={z} {...{ column: columns[z], app, file, stanza, acl }} /> : <ShortCell key={z}></ShortCell>))}
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|owner`}>
-      <TallCell align="right">Owner</TallCell>
-      {acls.cols.map((acl, z) => {
-        return acl ? (
-          <ShortCell key={z}>
-            <Select
-              inline
-              disabled={!acl.change}
-              value={acl.owner}
-              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "owner")}
-              error={acls.diff.owner}
-            >
-              <Select.Option label="Nobody" value="nobody" />
-              {users[z]}
-            </Select>
-          </ShortCell>
-        ) : (
-          <ShortCell key={z}></ShortCell>
-        );
-      })}
+      <TallCell align="right">{options.fullmode && acls.diff.owner && <RedFlag screenReaderText="Values are different" />}Owner</TallCell>
+      {acls.cols.map((acl, z) => (acl ? <ChangeAclOwner key={z} {...{ column: columns[z], app, file, stanza, acl }} /> : <ShortCell key={z}></ShortCell>))}
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|readers`}>
-      <TallCell align="right">Read Roles</TallCell>
+      <TallCell align="right">{options.fullmode && acls.diff.reader && <RedFlag screenReaderText="Values are different" />}Read Roles</TallCell>
 
-      {acls.cols.map((acl, z) => {
-        return acl ? (
-          <ShortCell key={z}>
-            <Multiselect
-              disabled={!acl.change}
-              values={acl.readers}
-              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.read")}
-              error={acls.diff.readers}
-            >
-              <Multiselect.Option label="Everyone" value="*" />
-              {roles[z]}
-            </Multiselect>
-          </ShortCell>
+      {acls.cols.map((acl, z) =>
+        acl ? (
+          <ChangeAclReaders key={z} {...{ column: columns[z], app, file, stanza, acl, diff: acls.diff.readers, target: "perms.read" }} />
         ) : (
           <ShortCell key={z}></ShortCell>
-        );
-      })}
+        )
+      )}
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|writers`}>
-      <TallCell align="right">Write Roles</TallCell>
-      {acls.cols.map((acl, z) => {
-        return acl ? (
-          <ShortCell key={z}>
-            <Multiselect
-              disabled={!acl.change}
-              values={acl.writers}
-              onChange={handleAclChangeFactory(acl, z, file, app, stanza, "perms.write")}
-              error={acls.diff.writers}
-            >
-              <Multiselect.Option label="Everyone" value="*" />
-              {roles[z]}
-            </Multiselect>
-          </ShortCell>
-        ) : (
-          <ShortCell key={z}></ShortCell>
-        );
-      })}
+      <TallCell align="right">{options.fullmode && acls.diff.writer && <RedFlag screenReaderText="Values are different" />}Write Roles</TallCell>
+      {acls.cols.map((acl, z) =>
+        acl ? <ChangeAclWriters key={z} {...{ column: columns[z], app, file, stanza, acl, target: "perms.write" }} /> : <ShortCell key={z}></ShortCell>
+      )}
     </Table.Row>,
     <Table.Row key={`${app}|${file}|${stanza}|break`}>
       <Table.Cell></Table.Cell>
@@ -361,7 +271,6 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
   const [internalvalue, setInternalValue] = useState(value); //
   const deboundedHandle = useCallback(debounce(change.mutate, 1000), []);
   const inputHandle = (e, { value }) => {
-    console.log(value);
     setInternalValue(value);
     text ? deboundedHandle({ [attr]: value }) : change.mutate({ [attr]: value });
   };
@@ -376,11 +285,72 @@ const ConfigInput = ({ column: { server, appcontext, usercontext }, value, text,
     </ShortCell>
   ) : (
     <ShortCell>
-      <Switch appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={!write} error={change.isError}>
+      <Switch inline={false} appearance="toggle" selected={internalvalue} value={!internalvalue} onClick={inputHandle} disabled={!write} error={change.isError}>
         {change.isLoading && <WaitSpinner />}
       </Switch>
     </ShortCell>
   ); //! Needs CSS work to avoid bumping height and keeping middle
+};
+
+const ChangeAclSharing = ({ column: { server, usercontext, appcontext }, app, file, stanza, acl }) => {
+  const change = useMutateAcl(server, usercontext, appcontext, app, file, stanza, acl, "sharing");
+  const handle = (_, { value }) => change.mutate(value);
+
+  return (
+    <ShortCell>
+      <Select inline disabled={!acl.change || change.isLoading} value={acl.sharing} onChange={handle} error={change.isError}>
+        <Select.Option disabled={!acl.share[0]} label="Global" value="global" icon={<Globe />} />
+        <Select.Option disabled={!acl.share[1]} label="App" value="app" icon={<Dashboard />} />
+        <Select.Option disabled={!acl.share[2]} label="User" value="user" icon={<User />} />
+      </Select>
+    </ShortCell>
+  );
+};
+
+const ChangeAclOwner = ({ column: { server, usercontext, appcontext }, app, file, stanza, acl }) => {
+  const change = useMutateAcl(server, usercontext, appcontext, app, file, stanza, acl, "owner");
+  const handle = (_, { value }) => change.mutate(value);
+
+  const context = useQueryContext(server);
+
+  return (
+    <ShortCell>
+      <Select inline disabled={!acl.change || change.isLoading} value={acl.owner} onChange={handle} error={change.isError}>
+        <Select.Option label="Nobody" value="nobody" />
+        {context.data && Object.entries(context.data.users).map(([username, [realname]]) => <Select.Option key={username} label={realname} value={username} />)}
+      </Select>
+    </ShortCell>
+  );
+};
+
+const ChangeAclReaders = ({ column: { server, usercontext, appcontext }, app, file, stanza, acl }) => {
+  const change = useMutateAcl(server, usercontext, appcontext, app, file, stanza, acl, "perms.read");
+  const handle = (_, { values }) => change.mutate(values);
+  const context = useQueryContext(server);
+
+  return (
+    <ShortCell>
+      <Multiselect disabled={!acl.change || change.isLoading} values={acl.readers} onChange={handle} error={change.isError}>
+        <Multiselect.Option label="Everyone" value="*" />
+        {context.data && context.data.roles.map((role) => <Multiselect.Option key={role} label={role} value={role} />)}
+      </Multiselect>
+    </ShortCell>
+  );
+};
+
+const ChangeAclWriters = ({ column: { server, usercontext, appcontext }, app, file, stanza, acl }) => {
+  const change = useMutateAcl(server, usercontext, appcontext, app, file, stanza, acl, "perms.write");
+  const handle = (_, { values }) => change.mutate(values);
+  const context = useQueryContext(server);
+
+  return (
+    <ShortCell>
+      <Multiselect disabled={!acl.change || change.isLoading} values={acl.writers} onChange={handle} error={change.isError}>
+        <Multiselect.Option label="Everyone" value="*" />
+        {context.data && context.data.roles.map((role) => <Multiselect.Option key={role} label={role} value={role} />)}
+      </Multiselect>
+    </ShortCell>
+  );
 };
 
 const CreateStanza = ({ column: { server, appcontext, usercontext }, app, file, stanza }) => {
@@ -547,10 +517,8 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
     onSuccess: (acl) => {
       dropdownRef.current.handleToggleClick();
       queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
-        console.log(prev, acl);
         prev[target][stanza] = { attr: prev[app][stanza].attr, acl };
         delete prev[app][stanza];
-        console.log(prev);
         return prev;
       });
     },

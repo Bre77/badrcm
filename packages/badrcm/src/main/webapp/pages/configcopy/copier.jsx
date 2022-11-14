@@ -73,7 +73,6 @@ export default ({ apps, files, columns }) => {
             return x;
           }
         }, {});
-      console.log(merged);
       const tasks = [];
       Object.entries(merged).forEach(([app, files]) => {
         if (!dst_context.apps[app])
@@ -103,7 +102,6 @@ export default ({ apps, files, columns }) => {
         });
       });
 
-      console.log(tasks);
       return restRaw("batch", { server: columns[1].server, user: columns[1].usercontext }, tasks);
     },
     onSuccess: () => {

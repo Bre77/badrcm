@@ -40,19 +40,6 @@ export const useQueryConfig = ({ server, appcontext, usercontext }, file, option
     enabled: !!server && !!file && !!appcontext && !!usercontext && options.enabled,
   });
 
-/*if (app && ![...Object.keys(context.data.apps), SYSTEM_APP_CONTEXT.name].includes(app)) {
-  console.log("Resetting App Context", app, "didnt exist");
-  setApp(null);
-}
-if (user && ![...Object.keys(context.data.users), SYSTEM_USER_CONTEXT.name].includes(user)) {
-  console.log("Resetting User Context", user, "didnt exist");
-  setUser(null);
-}
-if (file && !context.data.files.includes(file)) {
-  console.log("Resetting File Context", file, "didnt exist");
-  setFile(null);
-}*/
-
 export const useQueriesConfig = (columns, files, options = {}) =>
   useQueries({
     queries: files.flatMap((file) =>
@@ -83,6 +70,26 @@ export const useMutateConfig = (server, usercontext, appcontext, app, file, stan
           prev
         )
       );
+      success && success();
+    },
+  });
+};
+
+export const useMutateAcl = (server, usercontext, appcontext, app, file, stanza, acl, key, success) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (value) => {
+      return restPost(
+        "acl",
+        { server, file, user: usercontext, app, stanza },
+        { sharing: acl.sharing, owner: acl.owner, "perms.read": acl.readers, "perms.write": acl.writers, [key]: value || values }
+      );
+    },
+    onSuccess: (acl) => {
+      queryClient.setQueryData(["configs", server, file, appcontext, usercontext], (prev) => {
+        prev[app][stanza].acl = acl;
+        return prev;
+      });
       success && success();
     },
   });

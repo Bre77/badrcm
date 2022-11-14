@@ -32,7 +32,6 @@ const Disclaimer = () => {
   const [open, setOpen] = useState(!window.localStorage.getItem("BADRCM_disclaimer"));
 
   const close = () => {
-    console.log("Accepted Disclaimer");
     setOpen(false);
     window.localStorage.setItem("BADRCM_disclaimer", Date.now());
   };
@@ -45,11 +44,11 @@ const Disclaimer = () => {
           This application is offered under the Splunk general terms for third party applications avaliable at <Link to="https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party" openInNewContext>https://www.splunk.com/en_us/legal/splunk-general-terms.html#third-party</Link>
         </P>
         <P>
-          Brett Adams' Dangerous REST Configuration Manager (BADRCM) allows administrators to read, write, and modify Splunk configuration to the fullest extent
+          Brett Adams' Dangerous Remote Configuration Manager (BADRCM) allows administrators to read, write, and modify Splunk configuration to the fullest extent
           of your account and the authentication tokens it's configured with.
         </P>
         <P>
-          Changes can result in serious issues such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should
+          Changes can result in serious problems such as platform issues, data loss, or complete outages. You are responsible for the changes you make, and should
           understand the implications.
         </P>
         <P>Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to assist with major changes in Splunk Cloud.</P>
