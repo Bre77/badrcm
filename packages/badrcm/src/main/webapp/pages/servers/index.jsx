@@ -43,7 +43,6 @@ const ServerCard = ({ server }) => {
     return restDelete("servers", { server: value }).then(
       () => {
         queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server !== value));
-        queryClient.invalidateQueries(["servers"]);
       },
       () => {
         // No Catch
@@ -119,24 +118,19 @@ const AddServerCard = () => {
     setRunning(true);
     return restPost("servers", { server }, { token, share })
       .then(
-        () => {
-          // Success
-          queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
-          queryClient.invalidateQueries(["servers"]);
-          setServer(DEFAULT_SERVER);
-          setToken(DEFAULT_TOKEN);
-          setShare(DEFAULT_SHARE);
+        (data) => {
+          if (data === undefined) {
+            queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
+            queryClient.invalidateQueries(["servers"]);
+            setServer(DEFAULT_SERVER);
+            setToken(DEFAULT_TOKEN);
+            setShare(DEFAULT_SHARE);
+          } else {
+            data.class === "AuthenticationFailed" ? setTokenError("Authentication failed, check Splunk Hostname and Auth Token.") : setServerError(data.args);
+          }
         },
         (data) => {
-          if (data.status === 400) {
-            if (data.class === "AuthenticationFailed") {
-              setTokenError("Authentication failed, check Splunk Hostname and Auth Token.");
-            } else {
-              setServerError(data.args[0]);
-            }
-          } else {
-            console.error(data);
-          }
+          console.error(data);
         }
       )
       .then(setRunning(false));

@@ -67,7 +67,10 @@ class servers(common.RestHandler):
                     timeout=5,
                 )
             except (RESTException, SplunkdConnectionException) as e:
-                return self.json_issue(e)
+                # These are errors handled by the UI gracefully, so return 200 with details
+                return self.json_response(
+                    {"class": e.__class__.__name__, "args": e.args[0]}
+                )
             except Exception as e:
                 return self.json_error(
                     f"POST request to https://{self.hostport(server)}/services failed",
@@ -84,12 +87,17 @@ class servers(common.RestHandler):
 
             # Config
             try:
-                resp, _ = simpleRequest(
+                resp, content = simpleRequest(
                     f"{self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/configs/conf-{self.APP_NAME}",
                     sessionKey=self.AUTHTOKEN,
                     postargs={"name": server},
-                    raiseAllErrors=True,
                 )
+                if resp.status not in [200, 201, 409]:
+                    return self.json_error(
+                        f"Adding {server} to badrcm.conf returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
             except Exception as e:
                 return self.json_error(
                     f"POST request to {self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/configs/conf-{self.APP_NAME} failed",
@@ -99,7 +107,7 @@ class servers(common.RestHandler):
 
             # Password Storage
             try:
-                resp, _ = simpleRequest(
+                resp, content = simpleRequest(
                     f"{self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/storage/passwords",
                     sessionKey=self.AUTHTOKEN,
                     postargs={
@@ -110,11 +118,18 @@ class servers(common.RestHandler):
                 )
 
                 if resp.status == 409:  # Already exists, so update instead
-                    resp, _ = simpleRequest(
+                    resp, content = simpleRequest(
                         f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A?output_mode=json&count=1",
                         sessionKey=self.AUTHTOKEN,
                         postargs={"password": token},
                         raiseAllErrors=True,
+                    )
+
+                if resp.status not in [200, 201, 409]:
+                    return self.json_error(
+                        f"Adding authtoken for {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
                     )
             except Exception as e:
                 return self.json_error(
@@ -125,7 +140,7 @@ class servers(common.RestHandler):
 
             # Password ACL
             try:
-                resp, _ = simpleRequest(
+                resp, content = simpleRequest(
                     f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A/acl?output_mode=json",
                     sessionKey=self.AUTHTOKEN,
                     postargs={"owner": self.USER, "sharing": sharing},
@@ -134,7 +149,7 @@ class servers(common.RestHandler):
                     return self.json_error(
                         "Failed to update auth token access control",
                         resp.status,
-                        resp.reason,
+                        json.loads(content)["messages"][0]["text"],
                     )
             except Exception as e:
                 return self.json_error(

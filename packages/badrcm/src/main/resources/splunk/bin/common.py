@@ -56,15 +56,6 @@ class RestHandler(PersistentServerConnectionApplication):
             "headers": {"Content-Type": "application/json"},
         }
 
-    def json_issue(self, e, status=400):
-        return {
-            "payload": json.dumps(
-                {"class": e.__class__.__name__, "args": e.args}, separators=(",", ":")
-            ),
-            "status": status,
-            "headers": {"Content-Type": "application/json"},
-        }
-
     def gettoken(self, server):  # This function cannot actually fail successfully
         try:
             resp, content = simpleRequest(
