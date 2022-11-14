@@ -20,7 +20,6 @@ export default ({ apps, files, columns }) => {
   const configs = useQueriesConfig(columns, files);
 
   const table = useMemo(() => {
-    console.debug("Expensive Config Table");
     const count = columns.length;
     const x = configs.reduce((x, { data }, y) => {
       if (!data) return x;

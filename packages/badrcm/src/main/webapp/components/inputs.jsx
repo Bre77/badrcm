@@ -73,7 +73,6 @@ export const Apps = ({ apps, setApps, servers }) => {
   const handleApp = wrapSetValues(setApps);
 
   const appoptions = useMemo(() => {
-    console.debug("MEMO APPS");
     return Map(
       results
         .filter((result) => result.data)

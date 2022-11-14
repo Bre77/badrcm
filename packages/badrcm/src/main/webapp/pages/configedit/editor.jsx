@@ -45,7 +45,6 @@ export default ({ apps, files, columns }) => {
   const handlePerPage = wrapSetValue(setPerPage);
 
   const table = useMemo(() => {
-    console.debug("Expensive Config Table", latest(contexts), latest(configs), apps, columns);
     const count = columns.length;
     const x = configs.reduce((x, { data }, y) => {
       if (!data) return x;

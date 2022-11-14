@@ -115,8 +115,6 @@ export default ({ apps, files, columns }) => {
 
   // Memo
   const table = useMemo(() => {
-    console.debug("EFFECT Config Merge");
-
     const configdict = files.reduce((x, file, z) => {
       if (!x[file] || !dst_config[file]) {
         delete x[file];
