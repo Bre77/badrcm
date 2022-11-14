@@ -33,10 +33,13 @@ class servers(common.RestHandler):
                         self.getserver(self.LOCAL_URI, self.AUTHTOKEN)
                     )
 
+                token = self.gettoken(server)
+                if type(token) is dict:
+                    return token
                 return self.json_response(
                     self.getserver(
                         f"https://{self.hostport(server)}",
-                        self.gettoken(server),
+                        token,
                     )
                 )
 
@@ -49,7 +52,12 @@ class servers(common.RestHandler):
                     args, ["server"], ["token", "share"]
                 )
             except Exception as e:
-                return self.json_error("Missing required field", 400, str(e), 400)
+                return self.json_error(
+                    "Missing one of the required fields: server, token, share",
+                    "Internal",
+                    str(e),
+                    400,
+                )
 
             try:
                 resp, _ = simpleRequest(
@@ -138,10 +146,8 @@ class servers(common.RestHandler):
             return self.json_response({}, 204)
 
         if args["method"] == "DELETE":
-            for field in ["server"]:
-                if not field in args["query"]:
-                    return self.json_error(f"Missing {field} field", "args", args)
-
+            if "server" not in args["query"]:
+                return self.json_error("Missing server field", 400, str(e), 400)
             server = args["query"]["server"]
 
             # Config

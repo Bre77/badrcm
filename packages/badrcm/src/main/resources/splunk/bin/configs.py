@@ -28,7 +28,7 @@ class configs(common.RestHandler):
 
         # Ensure server is specified, as its required by every method here
         if "server" not in args["query"]:
-            return self.json_error(f"Missing server field", "args", args)
+            return self.json_error("Missing server field", 400, str(e), 400)
 
         # Get the relevant uri and token for the server specified
         if args["query"]["server"] == "local":
@@ -37,6 +37,8 @@ class configs(common.RestHandler):
         else:
             uri = f"https://{self.hostport(args['query']['server'])}"
             token = self.gettoken(args["query"]["server"])
+        if type(token) is dict:
+            return token
 
         # GET
         if args["method"] == "GET":
@@ -77,11 +79,16 @@ class configs(common.RestHandler):
 
         if args["method"] == "POST":
             try:
-                [file, user, app, stanza] = self.getInput(
-                    args, ["file", "user", "app", "stanza"]
+                [server, file, user, app, stanza] = self.getInput(
+                    args, ["server", "file", "user", "app", "stanza"]
                 )
             except Exception as e:
-                return self.json_error("Missing required field", 400, str(e), 400)
+                return self.json_error(
+                    "Missing one of the required fields: server, file, user, app, stanza",
+                    "Internal",
+                    str(e),
+                    400,
+                )
 
             stanza = urllib.parse.quote(stanza, safe="")
 
@@ -117,11 +124,16 @@ class configs(common.RestHandler):
 
         if args["method"] == "DELETE":
             try:
-                [user, app, file, stanza] = self.getInput(
-                    args, ["user", "app", "file", "stanza"]
+                [server, user, app, file, stanza] = self.getInput(
+                    args, ["server", "user", "app", "file", "stanza"]
                 )
             except Exception as e:
-                return self.json_error(str(e), "args", args)
+                return self.json_error(
+                    "Missing one of the required fields: server, file, user, app, stanza",
+                    "Internal",
+                    str(e),
+                    400,
+                )
 
             try:
                 stanza = urllib.parse.quote(stanza, safe="")
@@ -148,12 +160,17 @@ class configs(common.RestHandler):
     def handleConf(self, configs, uri, token, file):
         defaults = {}
         try:
-            _, resDefault = simpleRequest(
+            resp, content = simpleRequest(
                 f"{uri}/services/properties/{file}/default?output_mode=json&count=0",
                 sessionKey=token,
-                raiseAllErrors=True,
             )
-            for default in json.loads(resDefault)["entry"]:
+            if resp.status != 200:
+                return self.json_error(
+                    f"Getting {file}.conf defaults from {uri} returned {resp.status}",
+                    resp.status,
+                    json.loads(content)["messages"][0]["text"],
+                )
+            for default in json.loads(content)["entry"]:
                 defaults[default["name"]] = self.fixbool(default["content"])
         except Exception as e:
             self.logger.error(

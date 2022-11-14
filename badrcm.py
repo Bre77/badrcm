@@ -274,7 +274,7 @@ class badrcm(PersistentServerConnectionApplication):
         else:
             uri = f"https://{host}:{port}"
             token = self.gettoken(form['server'])
-            
+        
 
         # Get config of a single server
         if form['a'] == "getconf":

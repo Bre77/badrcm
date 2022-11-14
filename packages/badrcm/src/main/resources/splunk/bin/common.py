@@ -65,14 +65,19 @@ class RestHandler(PersistentServerConnectionApplication):
             "headers": {"Content-Type": "application/json"},
         }
 
-    def gettoken(self, server):
+    def gettoken(self, server):  # This function cannot actually fail successfully
         try:
-            _, resPasswords = simpleRequest(
+            resp, content = simpleRequest(
                 f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A?output_mode=json&count=1",
                 sessionKey=self.AUTHTOKEN,
-                raiseAllErrors=True,
             )
-            return json.loads(resPasswords)["entry"][0]["content"]["clear_password"]
+            if resp.status != 200:
+                return self.json_error(
+                    f"Getting auth token for {server} returned {resp.status}",
+                    resp.status,
+                    json.loads(content)["messages"][0]["text"],
+                )
+            return json.loads(content)["entry"][0]["content"]["clear_password"]
         except Exception as e:
             return self.json_error(
                 f"GET request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A failed",

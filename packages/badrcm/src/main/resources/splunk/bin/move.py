@@ -19,7 +19,7 @@ class move(common.RestHandler):
 
         # Ensure server is specified, as its required by every method here
         if "server" not in args["query"]:
-            return self.json_error(f"Missing server field", "args", args)
+            return self.json_error("Missing server field", 400, str(e), 400)
 
         # Get the relevant uri and token for the server specified
         if args["query"]["server"] == "local":
@@ -28,15 +28,20 @@ class move(common.RestHandler):
         else:
             uri = f"https://{self.hostport(args['query']['server'])}"
             token = self.gettoken(args["query"]["server"])
+        if type(token) is dict:
+            return token
 
         if args["method"] == "POST":
             try:
-                [file, user, app, stanza] = self.getInput(
-                    args, ["file", "user", "app", "stanza"]
+                [server, file, user, app, stanza] = self.getInput(
+                    args, ["server", "file", "user", "app", "stanza"]
                 )
             except Exception as e:
                 return self.json_error(
-                    "Missing required field", e.__class__.__name__, str(e), 400
+                    "Missing one of the required fields: server, file, user, app, stanza",
+                    "Internal",
+                    str(e),
+                    400,
                 )
 
             stanza = urllib.parse.quote(stanza, safe="")
@@ -46,8 +51,13 @@ class move(common.RestHandler):
                     f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}/move?output_mode=json",
                     sessionKey=token,
                     postargs=args["form"],
-                    raiseAllErrors=True,
                 )
+                if resp.status != 200:
+                    return self.json_error(
+                        f"Moving {stanza} in {app}/{file}.conf on {server} returned {resp.status}",
+                        resp.status,
+                        json.loads(content)["messages"][0]["text"],
+                    )
                 s = json.loads(content)["entry"][0]
             except Exception as e:
                 return self.json_error(

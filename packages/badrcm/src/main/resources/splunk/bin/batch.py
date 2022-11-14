@@ -29,7 +29,7 @@ class batch(common.RestHandler):
 
         # Ensure server is specified, as its required by every method here
         if "server" not in args["query"]:
-            return self.json_error(f"Missing server field", "args", args)
+            return self.json_error("Missing server field", 400, str(e), 400)
 
         # Get the relevant uri and token for the server specified
         if args["query"]["server"] == "local":
@@ -38,6 +38,8 @@ class batch(common.RestHandler):
         else:
             uri = f"https://{self.hostport(args['query']['server'])}"
             token = self.gettoken(args["query"]["server"])
+        if type(token) is dict:
+            return token
 
         if args["method"] == "POST":
             try:
