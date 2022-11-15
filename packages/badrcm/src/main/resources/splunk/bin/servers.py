@@ -1,4 +1,3 @@
-from splunk.clilib.cli_common import getMergedConf
 from splunk.rest import simpleRequest
 from splunk import RESTException, SplunkdConnectionException
 import json
@@ -18,47 +17,43 @@ class servers(common.RestHandler):
             raise Exception("CRASH")
 
         if args["method"] == "GET":
-
-            config = getMergedConf(self.APP_NAME)
-            config.pop("default")
-            config = {
-                k: v for (k, v) in config.items() if not self.makebool(v["disabled"])
-            }
-
-            # If a specific server is requested, return details
-            if "server" in args["query"]:
-                server = args["query"]["server"]
-                if server == "local":
-                    return self.json_response(
-                        self.getserver(self.LOCAL_URI, self.AUTHTOKEN)
-                    )
-
-                token = self.gettoken(server)
-                if type(token) is dict:
-                    return token
-                return self.json_response(
-                    self.getserver(
-                        f"https://{self.hostport(server)}",
-                        token,
-                    )
-                )
-
-            # Just return all avaliable servers as an array
-            return self.json_response([*config])
-
-        if args["method"] == "POST":
             try:  # Check for required input
-                [server, token, share] = self.getInput(
-                    args, ["server"], ["token", "share"]
-                )
+                [server] = self.getInput(args, ["server"], [])
             except Exception as e:
                 return self.json_error(
-                    "Missing one of the required fields: server, token, share",
+                    "Missing server field",
                     "Internal",
                     str(e),
                     400,
                 )
 
+            if server == "local":
+                return self.json_response(
+                    self.getserver(self.LOCAL_URI, self.AUTHTOKEN)
+                )
+
+            token = self.gettoken(server)
+            if type(token) is dict:
+                return token
+            return self.json_response(
+                self.getserver(
+                    f"https://{self.hostport(server)}",
+                    token,
+                )
+            )
+
+        if args["method"] == "POST":
+            try:  # Check for required input
+                [server, token] = self.getInput(args, ["server"], ["token"])
+            except Exception as e:
+                return self.json_error(
+                    "Missing one of the required fields: server, token",
+                    "Internal",
+                    str(e),
+                    400,
+                )
+
+            # Test the server and token work
             try:
                 resp, _ = simpleRequest(
                     f"https://{self.hostport(server)}/services",
@@ -66,29 +61,23 @@ class servers(common.RestHandler):
                     raiseAllErrors=True,
                     timeout=5,
                 )
-            except (RESTException, SplunkdConnectionException) as e:
+            except (
+                RESTException,
+                SplunkdConnectionException,
+                Exception,
+            ) as e:
                 # These are errors handled by the UI gracefully, so return 200 with details
                 return self.json_response(
                     {"class": e.__class__.__name__, "args": e.args[0]}
                 )
-            except Exception as e:
-                return self.json_error(
-                    f"POST request to https://{self.hostport(server)}/services failed",
-                    e.__class__.__name__,
-                    str(e),
-                )
 
             # Add Server
-            user_context = "nobody" if share == "true" else self.USER
-            sharing = "app" if share == "true" else "user"
-            self.logger.info(
-                f"Adding {server} for app {self.APP_NAME} user {user_context}"
-            )
+            self.logger.info(f"Adding {server} for user {self.USER}")
 
             # Config
             try:
                 resp, content = simpleRequest(
-                    f"{self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/configs/conf-{self.APP_NAME}",
+                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/configs/conf-{self.APP_NAME}",
                     sessionKey=self.AUTHTOKEN,
                     postargs={"name": server},
                 )
@@ -100,7 +89,7 @@ class servers(common.RestHandler):
                     )
             except Exception as e:
                 return self.json_error(
-                    f"POST request to {self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/configs/conf-{self.APP_NAME} failed",
+                    f"POST request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/configs/conf-{self.APP_NAME} failed",
                     e.__class__.__name__,
                     str(e),
                 )
@@ -108,24 +97,24 @@ class servers(common.RestHandler):
             # Password Storage
             try:
                 resp, content = simpleRequest(
-                    f"{self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/storage/passwords",
+                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords?output_mode=json",
                     sessionKey=self.AUTHTOKEN,
                     postargs={
-                        "realm": self.APP_NAME,
-                        "name": server.replace(":", "_"),
+                        "realm": server.replace(":", "_"),
+                        "name": self.USER,
                         "password": token,
                     },
                 )
 
                 if resp.status == 409:  # Already exists, so update instead
                     resp, content = simpleRequest(
-                        f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A?output_mode=json&count=1",
+                        f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{server.replace(':','_')}:{self.USER}:?output_mode=json",
                         sessionKey=self.AUTHTOKEN,
                         postargs={"password": token},
                         raiseAllErrors=True,
                     )
 
-                if resp.status not in [200, 201, 409]:
+                if resp.status not in [200, 201]:
                     return self.json_error(
                         f"Adding authtoken for {server} returned {resp.status}",
                         resp.status,
@@ -133,27 +122,7 @@ class servers(common.RestHandler):
                     )
             except Exception as e:
                 return self.json_error(
-                    f"POST request to {self.LOCAL_URI}/servicesNS/{user_context}/{self.APP_NAME}/storage/passwords failed",
-                    e.__class__.__name__,
-                    e,
-                )
-
-            # Password ACL
-            try:
-                resp, content = simpleRequest(
-                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A/acl?output_mode=json",
-                    sessionKey=self.AUTHTOKEN,
-                    postargs={"owner": self.USER, "sharing": sharing},
-                )
-                if resp.status not in [200, 201]:
-                    return self.json_error(
-                        "Failed to update auth token access control",
-                        resp.status,
-                        json.loads(content)["messages"][0]["text"],
-                    )
-            except Exception as e:
-                return self.json_error(
-                    f"POST request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{self.APP_NAME}%3A{server.replace(':','_')}%3A/acl failed",
+                    f"POST request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords failed",
                     e.__class__.__name__,
                     e,
                 )
@@ -188,7 +157,7 @@ class servers(common.RestHandler):
             # Password Storage
             try:
                 resp, content = simpleRequest(
-                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/storage/passwords/{self.APP_NAME}:{server.replace(':', '_')}:",
+                    f"{self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords/{server.replace(':','_')}:{self.USER}:",
                     sessionKey=self.AUTHTOKEN,
                     method="DELETE",
                 )
@@ -200,7 +169,7 @@ class servers(common.RestHandler):
                     )
             except Exception as e:
                 return self.json_error(
-                    f"DELETE request to {self.LOCAL_URI}/servicesNS/{self.USER}/badrcm/storage/passwords failed",
+                    f"DELETE request to {self.LOCAL_URI}/servicesNS/{self.USER}/{self.APP_NAME}/storage/passwords failed",
                     e.__class__.__name__,
                     str(e),
                 )

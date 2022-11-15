@@ -6,7 +6,6 @@ import { defaultFetchInit } from "@splunk/splunk-utils/fetch";
 import { TOAST_TYPES } from "@splunk/react-toast-notifications/ToastConstants";
 import Toaster, { makeCreateToast } from "@splunk/react-toast-notifications/Toaster";
 
-
 // Helpers
 const Toast = makeCreateToast(Toaster);
 
@@ -22,7 +21,7 @@ const makeBody = (data) => {
   }, new URLSearchParams());
 };
 
-const handleRes = (res) => {
+export const handleRes = (res) => {
   return res.status === 204
     ? Promise.resolve()
     : res.json().then((data) => {

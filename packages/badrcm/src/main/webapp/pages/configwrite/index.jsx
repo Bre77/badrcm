@@ -134,8 +134,8 @@ const ConfigWrite = () => {
         <ColumnLayout.Column>
           <ControlGroup label="Server" labelPosition="left">
             <Select inline appearance="primary" value={server} onChange={handleServer} animateLoading={servers.data.length === 0} error={!server}>
-              {servers.data.map((s) => (
-                <Select.Option key={s} label={s} value={s} />
+              {servers.data.map(({ name }) => (
+                <Select.Option key={name} label={name} value={name} />
               ))}
             </Select>
           </ControlGroup>

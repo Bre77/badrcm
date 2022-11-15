@@ -8,8 +8,8 @@ import CardLayout from "@splunk/react-ui/CardLayout";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
 import DL from "@splunk/react-ui/DefinitionList";
 import Link from "@splunk/react-ui/Link";
-import RadioBar from "@splunk/react-ui/RadioBar";
 import Text from "@splunk/react-ui/Text";
+import Tooltip from "@splunk/react-ui/Tooltip";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 // Shared
@@ -19,12 +19,13 @@ import Page from "../../shared/page";
 
 const Servers = () => {
   const { data } = useQueryServers();
+  console.log(data);
 
   return (
     <CardLayout cardMinWidth={400} wrapCards>
-      {data.map((server) => (
-        <Card key={server}>
-          <ServerCard server={server} key={server} />
+      {data.map(({ name }) => (
+        <Card key={name}>
+          <ServerCard server={name} key={name} />
         </Card>
       ))}
       <Card>
@@ -40,14 +41,10 @@ const ServerCard = ({ server }) => {
   const { isLoading, data } = useQueryContext(server);
 
   const removeServer = (e, { value }) => {
-    return restDelete("servers", { server: value }).then(
-      () => {
-        queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server !== value));
-      },
-      () => {
-        // No Catch
-      }
-    );
+    //This could be improved with useMutation
+    return restDelete("servers", { server: value }).then(() => {
+      queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server.name !== value));
+    });
   };
   return (
     <>
@@ -84,15 +81,13 @@ const ServerCard = ({ server }) => {
 // Seperate out the add server card here
 const AddServerCard = () => {
   const queryClient = useQueryClient();
-  const { data: servers } = useQueryServers();
+  const { data } = useQueryServers();
 
   const DEFAULT_SERVER = "";
   const DEFAULT_TOKEN = "";
-  const DEFAULT_SHARE = false;
 
   const [server, setServer] = useState(DEFAULT_SERVER);
   const [token, setToken] = useState(DEFAULT_TOKEN);
-  const [share, setShare] = useState(DEFAULT_SHARE);
   const [servererror, setServerError] = useState();
   const [tokenerror, setTokenError] = useState();
   const [running, setRunning] = useState(false);
@@ -110,27 +105,26 @@ const AddServerCard = () => {
 
   async function addServer() {
     setTokenError();
-    if (servers.includes(server)) {
+    if (data.find(({ name }) => name == server)) {
       setServerError("Already exists, please delete existing server first.");
       return Promise.resolve();
     }
     setServerError();
     setRunning(true);
-    return restPost("servers", { server }, { token, share })
+    return restPost("servers", { server }, { token })
       .then(
-        (data) => {
-          if (data === undefined) {
+        (resp) => {
+          if (resp === undefined) {
             queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
             queryClient.invalidateQueries(["servers"]);
             setServer(DEFAULT_SERVER);
             setToken(DEFAULT_TOKEN);
-            setShare(DEFAULT_SHARE);
           } else {
-            data.class === "AuthenticationFailed" ? setTokenError("Authentication failed, check Splunk Hostname and Auth Token.") : setServerError(data.args);
+            resp.class === "AuthenticationFailed" ? setTokenError("Authentication failed, check Splunk Hostname and Auth Token.") : setServerError(resp.args);
           }
         },
-        (data) => {
-          console.error(data);
+        (resp) => {
+          console.error(resp);
         }
       )
       .then(setRunning(false));
@@ -138,19 +132,15 @@ const AddServerCard = () => {
 
   return (
     <>
-      <Card.Header title="Add New Server" />
+      <Card.Header title="Add New Server">
+        <Tooltip content="Will not be shared with other users." />
+      </Card.Header>
       <Card.Body>
         <ControlGroup label="Splunk Hostname" help={servererror || serverhelp} error={!!servererror}>
           <Text placeholder="stack.splunkcloud.com[:8089]" value={server} onChange={(e, { value }) => setServer(value)} />
         </ControlGroup>
         <ControlGroup label="Auth Token" help={tokenerror || authhelp} error={!!tokenerror}>
           <Text value={token} onChange={(e, { value }) => setToken(value)} passwordVisibilityToggle />
-        </ControlGroup>
-        <ControlGroup label="Sharing">
-          <RadioBar onChange={(e, { value }) => setShare(value)} value={share}>
-            <RadioBar.Option value={false} label="Private" />
-            <RadioBar.Option value label="Shared" />
-          </RadioBar>
         </ControlGroup>
       </Card.Body>
       <Card.Footer showBorder={false}>

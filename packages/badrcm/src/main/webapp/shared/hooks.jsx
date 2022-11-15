@@ -1,16 +1,25 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchGet, restPost } from "./fetch";
+import { fetchGet, restPost, handleRes } from "./fetch";
+import { splunkdPath, username } from "@splunk/splunk-utils/config";
+import { defaultFetchInit } from "@splunk/splunk-utils/fetch";
 
 //const BASE_CONTEXT = { apps: {}, files: [], realname: null, roles: [], username: null, users: {} };
 
 export const useQueryServers = (options = {}) =>
-  useQuery(["servers"], () => fetchGet("servers"), {
-    placeholderData: [],
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 60000,
-    ...options,
-  });
+  useQuery(
+    ["servers"],
+    () =>
+      fetch(`${splunkdPath}/servicesNS/${username}/badrcm/configs/conf-badrcm?output_mode=json&count=0&search=disabled%3Dfalse`, defaultFetchInit)
+        .then(handleRes)
+        .then((data) => data.entry.map((x) => ({ name: x.name, author: x.author }))),
+    {
+      placeholderData: [],
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+      ...options,
+    }
+  );
 export const useQueryContext = (server, options = {}) =>
   useQuery({
     queryKey: ["servers", server],

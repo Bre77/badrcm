@@ -144,8 +144,8 @@ export const Column = ({ column }) => {
           animateLoading={servers.isLoading}
           error={!servers.data || servers.error}
         >
-          {servers.data.map((s) => (
-            <Select.Option key={s} label={s} value={s} />
+          {servers.data.map(({ name }) => (
+            <Select.Option key={name} label={name} value={name} />
           ))}
           <Select.Divider />
           <Select.Option label="None" value={false} />

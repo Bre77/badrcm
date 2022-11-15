@@ -53,8 +53,7 @@ const Disclaimer = () => {
         </P>
         <P>Splunk are not responsible for outages you cause, and you should always engage Splunk Cloud Support to assist with major changes in Splunk Cloud.</P>
         <P>
-          By default all users with the admin or sc_admin role on this Search Head have access to this application, it's tokens, and the level of access they
-          provide.
+          By default all users with the admin or sc_admin role on this Search Head have access to this application, but any servers and auth tokens you configure are not shared.
         </P>
         <P>
           The <Link to="https://bre77.au/" openInNewContext>developer of this application</Link> accepts no responsibility or liability for damages or downtime that you may incur of any kind.
