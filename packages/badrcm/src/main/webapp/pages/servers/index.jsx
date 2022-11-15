@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 
 // Components
 import Button from "@splunk/react-ui/Button";
@@ -38,14 +38,13 @@ const Servers = () => {
 const ServerCard = ({ server }) => {
   const queryClient = useQueryClient();
 
-  const { isLoading, data } = useQueryContext(server);
+  const { isLoading, data } = useQueryContext(server, { notifyOnChangeProps: ["isLoading", "data"] });
+  const remove = useMutation({
+    mutationFn: () => restDelete("servers", { server }),
+    onSuccess: () => queryClient.setQueryData(["servers"], (prev) => prev.filter((x) => x.name !== server)),
+    notifyOnChangeProps: ["isLoading", "isError"],
+  });
 
-  const removeServer = (e, { value }) => {
-    //This could be improved with useMutation
-    return restDelete("servers", { server: value }).then(() => {
-      queryClient.setQueryData(["servers"], (prev) => prev.filter((server) => server.name !== value));
-    });
-  };
   return (
     <>
       <Card.Header title={server} />
@@ -71,7 +70,7 @@ const ServerCard = ({ server }) => {
       </Card.Body>
       {server === "local" ? null : (
         <Card.Footer showBorder={false}>
-          <Button label="Remove" appearance="default" onClick={removeServer} value={server} />
+          <Button label="Remove" appearance="default" onClick={remove.mutate} value={server} disabled={remove.isLoading} error={remove.isError} />
         </Card.Footer>
       )}
     </>
@@ -103,7 +102,9 @@ const AddServerCard = () => {
   );
   const serverhelp = <span>Include splunkd port if it's not :8089.</span>;
 
+  // This is intentionally not useMutation due to its extra complexity
   async function addServer() {
+    console.log(1, running);
     setTokenError();
     if (data.find(({ name }) => name == server)) {
       setServerError("Already exists, please delete existing server first.");
@@ -111,9 +112,11 @@ const AddServerCard = () => {
     }
     setServerError();
     setRunning(true);
+    console.log(2, running);
     return restPost("servers", { server }, { token })
       .then(
         (resp) => {
+          console.log(3, running);
           if (resp === undefined) {
             queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
             queryClient.invalidateQueries(["servers"]);
@@ -127,7 +130,10 @@ const AddServerCard = () => {
           console.error(resp);
         }
       )
-      .then(setRunning(false));
+      .then(() => {
+        console.log(4, running);
+        setRunning(false);
+      });
   }
 
   return (
@@ -144,7 +150,9 @@ const AddServerCard = () => {
         </ControlGroup>
       </Card.Body>
       <Card.Footer showBorder={false}>
-        <Button label="Add" appearance="primary" onClick={addServer} disabled={running || server.length < 3 || token.length < 100} />
+        <Button appearance="primary" onClick={addServer} disabled={running || server.length < 3 || token.length < 100}>
+          {running ? <WaitSpinner /> : "Add"}
+        </Button>
       </Card.Footer>
     </>
   );
