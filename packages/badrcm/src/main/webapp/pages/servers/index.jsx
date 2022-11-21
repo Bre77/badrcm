@@ -104,7 +104,6 @@ const AddServerCard = () => {
 
   // This is intentionally not useMutation due to its extra complexity
   async function addServer() {
-    console.log(1, running);
     setTokenError();
     if (data.find(({ name }) => name == server)) {
       setServerError("Already exists, please delete existing server first.");
@@ -112,11 +111,9 @@ const AddServerCard = () => {
     }
     setServerError();
     setRunning(true);
-    console.log(2, running);
     return restPost("servers", { server }, { token })
       .then(
         (resp) => {
-          console.log(3, running);
           if (resp === undefined) {
             queryClient.setQueryData(["servers"], (prev) => prev.concat([server]));
             queryClient.invalidateQueries(["servers"]);
@@ -131,7 +128,6 @@ const AddServerCard = () => {
         }
       )
       .then(() => {
-        console.log(4, running);
         setRunning(false);
       });
   }

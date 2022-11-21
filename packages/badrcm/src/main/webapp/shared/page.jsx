@@ -81,6 +81,7 @@ const queryClient = new QueryClient({
       retry: false, //process.env.NODE_ENV === "production",
       refetchOnMount: true,
       staleTime: 15000,
+      //notifyOnChangeProps: "tracked",
       //refetchOnWindowFocus: process.env.NODE_ENV === "production",
     },
   },

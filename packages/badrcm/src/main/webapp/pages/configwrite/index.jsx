@@ -1,7 +1,7 @@
 /* eslint-disable */
 import debounce from "lodash.debounce";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 // Shared
 import { restPost } from "../../shared/fetch";
@@ -23,7 +23,6 @@ import Typography from "@splunk/react-ui/Typography";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 
 import { username } from "@splunk/splunk-utils/config";
-import { useMutation } from "@tanstack/react-query";
 
 const ConfigWrite = () => {
   const queryClient = useQueryClient();
