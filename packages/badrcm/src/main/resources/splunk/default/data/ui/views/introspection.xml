@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<view template="badrcm:/templates/introspection.html" type="html">
+	<label>Introspection</label>
+</view>
