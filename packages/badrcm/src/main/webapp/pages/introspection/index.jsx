@@ -71,11 +71,19 @@ const IntrospectionColumn = ({ server }) => {
     ...options,
   });
   const search = searchquery.data?.["scheduler-statistics"];
-  const queues = useQuery({
+  const queuesquery = useQuery({
     queryKey: ["introspection", "queues", server],
     queryFn: () => fetchGet("proxy", { server, path: "server/introspection/queues" }),
     ...options,
   });
+  const queues = queuesquery.data;
+
+  const resourcesquery = useQuery({
+    queryKey: ["introspection", "resources", server],
+    queryFn: () => fetchGet("proxy", { server, path: "server/status/resource-usage/hostwide" }),
+    ...options,
+  });
+  const resources = resourcesquery.data?.result;
 
   return (
     <>
@@ -104,6 +112,17 @@ const IntrospectionColumn = ({ server }) => {
         <DL.Term>Health</DL.Term>
         <DL.Description>{info?.health_info && <Chip appearance={health[info?.health_info]}>{info?.health_info}</Chip>}</DL.Description>
       </DL>
+      <Heading level={2}>Resources</Heading>
+      <DL termWidth={150}>
+        <DL.Term>CPU</DL.Term>
+        <DL.Description>{Math.round(100 - resources?.cpu_idle_pct)}%</DL.Description>
+        <DL.Term>Memory</DL.Term>
+        <DL.Description>{Math.round((resources?.mem_used / resources?.mem) * 100)}%</DL.Description>
+        <DL.Term>Swap</DL.Term>
+        <DL.Description>{Math.round((resources?.swap_used / resources?.swap) * 100)}%</DL.Description>
+        <DL.Term>Forks</DL.Term>
+        <DL.Description>{resources?.forks}</DL.Description>
+      </DL>
       <Heading level={2}>Search</Heading>
       <DL termWidth={150}>
         <DL.Term>Concurrent</DL.Term>
@@ -116,20 +135,20 @@ const IntrospectionColumn = ({ server }) => {
         <DL.Description>{search?.searches_skipped}</DL.Description>
       </DL>
       <Heading level={2}>Queue Averages</Heading>
-      {queues.data && (
+      {queues && (
         <DL termWidth={150}>
           <DL.Term>TCP In</DL.Term>
-          <DL.Description>{queue(queues.data.tcpin_queue)}%</DL.Description>
+          <DL.Description>{queue(queues.tcpin_queue)}%</DL.Description>
           <DL.Term>Parsing</DL.Term>
-          <DL.Description>{queue(queues.data.parsingQueue)}%</DL.Description>
+          <DL.Description>{queue(queues.parsingQueue)}%</DL.Description>
           <DL.Term>Aggregation</DL.Term>
-          <DL.Description>{queue(queues.data.aggQueue)}%</DL.Description>
+          <DL.Description>{queue(queues.aggQueue)}%</DL.Description>
           <DL.Term>Typing</DL.Term>
-          <DL.Description>{queue(queues.data.typingQueue)}%</DL.Description>
+          <DL.Description>{queue(queues.typingQueue)}%</DL.Description>
           <DL.Term>Ruleset</DL.Term>
-          <DL.Description>{queue(queues.data.rulesetQueue)}%</DL.Description>
+          <DL.Description>{queue(queues.rulesetQueue)}%</DL.Description>
           <DL.Term>Indexing</DL.Term>
-          <DL.Description>{queue(queues.data.indexQueue)}%</DL.Description>
+          <DL.Description>{queue(queues.indexQueue)}%</DL.Description>
         </DL>
       )}
     </>
