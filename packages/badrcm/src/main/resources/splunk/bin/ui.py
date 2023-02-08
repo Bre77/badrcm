@@ -7,6 +7,14 @@ import urllib.parse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import common
 
+ATTR_BLACKLIST = [
+    "eai:acl",
+    "eai:appName",
+    "eai:userName",
+    "eai:type",
+    "rootNode",
+    "disabled",
+]
 
 class ui(common.RestHandler):
     # MAIN HANDLE
@@ -50,7 +58,7 @@ class ui(common.RestHandler):
 
             try:
                 resp, content = simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/data/ui/{file}?output_mode=json&count=0",
+                    f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}?output_mode=json&count=0",
                     sessionKey=token,
                 )
                 if resp.status != 200:
@@ -62,11 +70,11 @@ class ui(common.RestHandler):
                 uis = json.loads(content)["entry"]
             except Exception as e:
                 return self.json_error(
-                    f"GET request to {uri}/servicesNS/{user}/{app}/data/ui/{file} failed",
+                    f"GET request to {uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file} failed",
                     e.__class__.__name__,
                     str(e),
                 )
-            return self.json_response(self.handleConf(uis, uri, token, file))
+            return self.json_response(self.handleUI(uis))
 
         if args["method"] == "POST":
             try:
@@ -75,17 +83,17 @@ class ui(common.RestHandler):
                 )
             except Exception as e:
                 return self.json_error(
-                    "Missing one of the required fields: server, file, user, app, stanza",
+                    "Missing one of the required fields: server, folder, file, user, app",
                     "Internal",
                     str(e),
                     400,
                 )
 
-            stanza = urllib.parse.quote(stanza, safe="")
+            file = urllib.parse.quote(file, safe="")
 
             try:
                 resp, content = simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}?output_mode=json",
+                    f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}?output_mode=json",
                     sessionKey=token,
                     postargs=args["form"],
                 )
@@ -98,79 +106,61 @@ class ui(common.RestHandler):
                 configs = json.loads(content)["entry"]
             except Exception as e:
                 return self.json_error(
-                    f"POST request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
+                    f"POST request to {uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file} failed",
                     e.__class__.__name__,
                     str(e),
                 )
             # Reload
             try:
                 simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/_reload",
+                    f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}/_reload",
                     method="POST",
                     sessionKey=token,
                 )
             except Exception:
                 pass
-            return self.json_response(self.handleConf(configs, uri, token, file), 201)
+            return self.json_response(self.handleUI(uri), 201)
 
         if args["method"] == "DELETE":
             try:
-                [server, user, app, file, stanza] = self.getInput(
-                    args, ["server", "user", "app", "file", "stanza"]
+                [server, user, app, folder, file] = self.getInput(
+                    args, ["server", "user", "app", "folder", "file"]
                 )
             except Exception as e:
                 return self.json_error(
-                    "Missing one of the required fields: server, file, user, app, stanza",
+                    "Missing one of the required fields: server, folder, file, user, app",
                     "Internal",
                     str(e),
                     400,
                 )
 
             try:
-                stanza = urllib.parse.quote(stanza, safe="")
+                file = urllib.parse.quote(file, safe="")
                 simpleRequest(
-                    f"{uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza}",
+                    f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}",
                     method="DELETE",
                     sessionKey=token,
                 )
                 if resp.status not in [200, 201]:
                     return self.json_error(
-                        f"Deleting {stanza} on {server} returned {resp.status}",
+                        f"Deleting {file} on {server} returned {resp.status}",
                         resp.status,
                         json.loads(content)["messages"][0]["text"],
                     )
                 return {"payload": "true", "status": 200}
             except Exception as e:
                 return self.json_error(
-                    f"DELETE request to {uri}/servicesNS/{user}/{app}/configs/conf-{file}/{stanza} failed",
+                    f"DELETE request to {uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file} failed",
                     e,
                 )
 
         return self.json_error("Method Not Allowed", 405)
 
-    def handleConf(self, configs, uri, token, file):
-        defaults = {}
-        try:
-            resp, content = simpleRequest(
-                f"{uri}/services/properties/{file}/default?output_mode=json&count=0",
-                sessionKey=token,
-            )
-            if resp.status != 200:
-                return self.json_error(
-                    f"Getting {file}.conf defaults from {uri} returned {resp.status}",
-                    resp.status,
-                    json.loads(content)["messages"][0]["text"],
-                )
-            for default in json.loads(content)["entry"]:
-                defaults[default["name"]] = self.fixbool(default["content"])
-        except Exception as e:
-            self.logger.error(
-                f"Request to {uri}/services/properties/{file}/default threw error {e}"
-            )
+    def handleUI(self, uis):
 
         output = {}
 
-        for s in configs:
+        for s in uis:
             app = s["acl"]["app"]
 
             if app not in output:
@@ -199,14 +189,7 @@ class ui(common.RestHandler):
                 value = s["content"][attr]
                 if attr in ATTR_BLACKLIST:
                     continue
-                value = self.fixbool(value)
-                if attr in defaults:
-                    if (
-                        type(defaults[attr]) is bool
-                    ):  # If the default was "true" or "false", assume the value should also be boolean
-                        value = self.makebool(value)
-                    if value == defaults[attr]:
-                        continue
+                #value = self.fixbool(value)
                 output[app][s["name"]]["attr"][attr] = value
 
         return output

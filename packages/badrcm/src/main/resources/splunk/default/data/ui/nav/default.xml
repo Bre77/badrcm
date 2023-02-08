@@ -4,6 +4,7 @@
   <view name="configedit"/>
   <view name="configcopy"/>
   <view name="configwrite"/>
+  <view name="uicopy"/>
   <view name="apps"/>
   <view name="indexes"/>
   <view name="introspection"/>

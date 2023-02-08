@@ -62,6 +62,19 @@ export const useQueriesConfig = (columns, files, options = {}) =>
     ),
   });
 
+export const useQueriesUi = (columns, folders, options = {}) =>
+  useQueries({
+    queries: folders.flatMap((folder) =>
+      columns.map(({ server, appcontext, usercontext }) => ({
+        queryKey: ["uis", server, folder, appcontext, usercontext],
+        queryFn: () => fetchGet("ui", { server, app: appcontext, user: usercontext, folder }),
+        staleTime: 15000,
+        ...options,
+        enabled: !!server && !!folder && !!appcontext && !!usercontext && options.enabled,
+      }))
+    ),
+  });
+
 export const useMutateConfig = (server, usercontext, appcontext, app, file, stanza, success) => {
   const queryClient = useQueryClient();
   return useMutation({

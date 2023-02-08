@@ -17,13 +17,14 @@ import { useQueryContext, useQueriesContext, useQueryServers } from "../shared/h
 // Local
 import { MAX_COLUMNS } from "../pages/configedit/const";
 
-export default ({ files, setFiles, apps, setApps, count, setCount, columns }) => {
+export default ({ files, setFiles, uifolders, setUiFolders, apps, setApps, count, setCount, columns }) => {
   const servers = [...new Set(columns.map((column) => column?.server).filter((server) => server))];
   return (
     <ColumnLayout divider="vertical">
       <ColumnLayout.Row>
         <ColumnLayout.Column>
           {setFiles && <Files {...{ files, setFiles, servers }} />}
+          {setUiFolders && <UiFolders {...{ uifolders, setUiFolders }} />}
           {setApps && <Apps {...{ apps, setApps, servers }} />}
           {setCount && <Count {...{ count, setCount }} />}
         </ColumnLayout.Column>
@@ -61,6 +62,20 @@ export const Files = ({ files, setFiles, servers }) => {
 
         <Select.Heading>All Files</Select.Heading>
         {fileoptions.map((file) => (
+          <Multiselect.Option key={file} label={file} value={file} />
+        ))}
+      </Multiselect>
+    </ControlGroup>
+  );
+};
+
+export const UiFolders = ({ uifolders, setUiFolders }) => {
+  const handleUiFolders = wrapSetValues(setUiFolders);
+
+  return (
+    <ControlGroup label="UI Component" labelPosition="left">
+      <Multiselect inline values={uifolders} onChange={handleUiFolders} placeholder={`You must select 1 or more component`} error={!uifolders.length}>
+        {["nav", "views"].map((file) => (
           <Multiselect.Option key={file} label={file} value={file} />
         ))}
       </Multiselect>

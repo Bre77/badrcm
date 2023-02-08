@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import common
 
 
-class batch(common.RestHandler):
+class uibatch(common.RestHandler):
     # MAIN HANDLE
     def handle(self, in_string):
         args = self.getArgs(in_string)
@@ -67,67 +67,45 @@ class batch(common.RestHandler):
                             str(e),
                         )
                     continue
-                if l == 3:  # Create Stanza
-                    [app, conf, data] = task
+                if l == 3:  # Create UI File
+                    [app, folder, data] = task
                     try:
                         resp, content = simpleRequest(
-                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}?output_mode=json",
+                            f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}?output_mode=json",
                             sessionKey=token,
                             postargs=data,
                         )
                         if resp.status not in [200, 201, 409]:
                             return self.json_error(
-                                f"Adding {stanza} to {app}/{conf}.conf on {server} returned {resp.status}",
+                                f"Adding data/ui/{folder}/{data.name} on {server} returned {resp.status}",
                                 resp.status,
                                 json.loads(content)["messages"][0]["text"],
                             )
                     except Exception as e:
                         return self.json_error(
-                            f"Adding {stanza} to {app}/{conf}.conf on {server} failed",
+                            f"Adding data/ui/{folder}/{data.name} on {server} failed",
                             e.__class__.__name__,
                             str(e),
                         )
                     continue
-                if l == 4:  # Create/Change Attributes
-                    [app, conf, stanza, data] = task
+                if l == 4:  # Change UI File
+                    [app, folder, file, data] = task
                     stanza = urllib.parse.quote(stanza, safe="")
                     try:
                         resp, content = simpleRequest(
-                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
+                            f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}?output_mode=json",
                             sessionKey=token,
                             postargs=data,
                         )
                         if resp.status not in [200, 201, 409]:
                             return self.json_error(
-                                f"Adding attributes to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
+                                f"Changing data/ui/{folder}/{data.name} on {server} returned {resp.status}",
                                 resp.status,
                                 json.loads(content)["messages"][0]["text"],
                             )
                     except Exception as e:
                         return self.json_error(
-                            f"Adding attributes to {app}/{conf}.conf [{stanza}] on {server} failed",
-                            e.__class__.__name__,
-                            str(e),
-                        )
-                    continue
-                if l == 5:  # Create/Change Attribute
-                    [app, conf, stanza, attr, value] = task
-                    stanza = urllib.parse.quote(stanza, safe="")
-                    try:
-                        resp, content = simpleRequest(
-                            f"{uri}/servicesNS/{user}/{app}/configs/conf-{conf}/{stanza}?output_mode=json",
-                            sessionKey=token,
-                            postargs={attr: value},
-                        )
-                        if resp.status not in [200, 201, 409]:
-                            return self.json_error(
-                                f"Adding {attr} to {app}/{conf}.conf [{stanza}] on {server} returned {resp.status}",
-                                resp.status,
-                                str(content),
-                            )
-                    except Exception as e:
-                        return self.json_error(
-                            f"Adding {attr} to {app}/{conf}.conf [{stanza}] on {server} failed",
+                            f"Changing data/ui/{folder}/{data.name} on {server} failed",
                             e.__class__.__name__,
                             str(e),
                         )

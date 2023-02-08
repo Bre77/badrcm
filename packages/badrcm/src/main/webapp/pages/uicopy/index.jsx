@@ -2,7 +2,7 @@ import React from "react";
 
 // Shared
 import Inputs from "../../components/inputs";
-import Copier from "./copier";
+import Copier from "./ui_copier";
 import { DEFAULT_APP_CONTEXT, SYSTEM_USER_CONTEXT } from "../../shared/const";
 import { useLocal } from "../../shared/helpers";
 import Page from "../../shared/page";
@@ -10,7 +10,7 @@ import { StyledContainer } from "../../shared/styles";
 
 const ViewCopy = () => {
   // State - Page Selectors
-  const [files, setFiles] = useLocal("BADRCM_editfilefilter", ["props", "transforms"]); //
+  const [uifolders, setUiFolders] = useLocal("BADRCM_edituifilter", ["nav", "views"]); //
   const [apps, setApps] = useLocal("BADRCM_editappfilter", ["search"]);
 
   const columns = [0, 1].map((z) => {
@@ -31,9 +31,9 @@ const ViewCopy = () => {
   // Table Expansion
   return (
     <StyledContainer>
-      <Inputs {...{ files, setFiles, apps, setApps, count: 2, setCount: false, columns }} />
+      <Inputs {...{ uifolders, setUiFolders, apps, setApps, count: 2, setCount: false, columns }} />
       <br />
-      <Copier {...{ apps, files, columns }} />
+      <Copier {...{ apps, uifolders, columns }} />
     </StyledContainer>
   );
 };
