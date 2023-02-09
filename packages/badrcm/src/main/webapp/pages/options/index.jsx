@@ -3,7 +3,6 @@ import React, { useReducer } from "react";
 // Components
 import Card from "@splunk/react-ui/Card";
 import CardLayout from "@splunk/react-ui/CardLayout";
-import Button from "@splunk/react-ui/Button";
 import Switch from "@splunk/react-ui/Switch";
 import Tooltip from "@splunk/react-ui/Tooltip";
 import Link from "@splunk/react-ui/Link";

@@ -89,11 +89,11 @@ class uibatch(common.RestHandler):
                         )
                     continue
                 if l == 4:  # Change UI File
-                    [app, folder, file, data] = task
-                    stanza = urllib.parse.quote(stanza, safe="")
+                    [app, folder, xmlfile, data] = task
+                    xmlfile = urllib.parse.quote(xmlfile, safe="")
                     try:
                         resp, content = simpleRequest(
-                            f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{file}?output_mode=json",
+                            f"{uri}/servicesNS/{user}/{app}/data/ui/{folder}/{xmlfile}?output_mode=json",
                             sessionKey=token,
                             postargs=data,
                         )

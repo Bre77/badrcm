@@ -1,5 +1,4 @@
 /* eslint-disable */
-import { smartTrim } from "@splunk/ui-utils/format";
 import { Set } from "immutable";
 import React, { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +14,6 @@ import { restRaw } from "../../shared/fetch";
 import Button from "@splunk/react-ui/Button";
 import Switch from "@splunk/react-ui/Switch";
 import Table from "@splunk/react-ui/Table";
-import Typography from "@splunk/react-ui/Typography";
 import WaitSpinner from "@splunk/react-ui/WaitSpinner";
 import Code from "@splunk/react-ui/Code";
 
@@ -87,7 +85,7 @@ export default ({ apps, uifolders, columns }) => {
           ]);
         Object.entries(folders).forEach(([folder, files]) => {
           files.forEach((file) => {
-            data = { "eai:data": src_uifolders[folder][app][file].attr["eai:data"] };
+            let data = { "eai:data": src_uifolders[folder][app][file].attr["eai:data"] };
             if (!dst_uifolders?.[folder]?.[app]?.[file]) {
               data.name = file;
               tasks.push([app, folder, data]);
@@ -102,7 +100,7 @@ export default ({ apps, uifolders, columns }) => {
     },
     onSuccess: () => {
       setSelected(Set());
-      queryClient.invalidateQueries(["servers", columns[1].server]);
+      //queryClient.invalidateQueries(["servers", columns[1].server]);
       uifolders.forEach((folder) => {
         queryClient.invalidateQueries(["uis", columns[1].server, folder, columns[1].appcontext, columns[1].usercontext]);
       });
@@ -110,10 +108,9 @@ export default ({ apps, uifolders, columns }) => {
   });
 
   // Memo
-  const table = useMemo(() => {
-    //? Need to add the destination keys, but for time I am ignoring this for now
-
-    return (
+  //? Need to add the destination keys, but for time I am ignoring this for now
+  const table = useMemo(
+    () =>
       Object.entries(src_uifolders)
         //.map(([folder, folderapps], z) => [folder, folderapps, z])
         .flatMap(([folder, folderapps]) =>
@@ -129,9 +126,9 @@ export default ({ apps, uifolders, columns }) => {
                 ])
             : []
         )
-        .sort(sort)
-    );
-  }, [latest(contexts), latest(folders), apps, columns]);
+        .sort(sort),
+    [latest(contexts), latest(folders), apps, columns]
+  );
 
   // Methods
   const k = (a) => a.join("|");
@@ -199,9 +196,7 @@ export default ({ apps, uifolders, columns }) => {
                   <ShortCell>
                     <Switch appearance="toggle" onClick={toggleFolder} value={[app, folder]} selected={selected.has(k([app, folder]))} />
                   </ShortCell>
-                  <Table.Cell>
-                    {dst_context.apps?.[app]?.[0]} {dst_context.apps?.[app]?.[2]}
-                  </Table.Cell>
+                  <Table.Cell>{dst_context.apps?.[app] ? dst_context.apps[app]?.[0] + " " + dst_context.apps[app]?.[2] : "App will be created!"}</Table.Cell>
                 </Table.Row>,
                 ...files.map(([file, src, dst]) => {
                   const key = k([app, folder, file]);
