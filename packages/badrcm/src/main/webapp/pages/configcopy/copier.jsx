@@ -146,9 +146,10 @@ export default ({ apps, files, columns }) => {
                 stanza,
                 Object.entries(content.attr)
                   .sort(sort)
-                  .map(([attr, value]) => [attr, src_config[file]?.[app]?.[stanza]?.attr?.[attr], dst_config[file]?.[app]?.[stanza]?.attr?.[attr]]),
-              ]),
-          ]);
+                  .map(([attr, value]) => [attr, src_config[file]?.[app]?.[stanza]?.attr?.[attr], dst_config[file]?.[app]?.[stanza]?.attr?.[attr]])
+                  .filter(([attr,src,dst]) => src && src!=dst), //Only when presentdifferences
+              ]).filter(([stanza, attrs])=>attrs.length),
+          ]).filter(([app, stanzas])=>stanzas.length);
       });
   }, [latest(contexts), latest(configs), apps, columns]);
 

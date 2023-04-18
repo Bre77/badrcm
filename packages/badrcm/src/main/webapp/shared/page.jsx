@@ -4,7 +4,6 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
-import { compress, decompress } from "lz-string";
 
 // Shared
 import { options } from "./helpers";
@@ -80,7 +79,7 @@ const queryClient = new QueryClient({
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
       retry: false, //process.env.NODE_ENV === "production",
       refetchOnMount: true,
-      staleTime: 15000,
+      staleTime: 60000,
       //notifyOnChangeProps: "tracked",
       //refetchOnWindowFocus: process.env.NODE_ENV === "production",
     },
@@ -95,8 +94,33 @@ if (options.localcache) {
       storage: window.localStorage,
       key: "BADRCM_cache",
       retry: removeOldestQuery,
-      serialize: (data) => compress(JSON.stringify(data)),
-      deserialize: (data) => JSON.parse(decompress(data)),
+      /*serialize: (data) => {
+        console.time("Compressing");
+        let z = compress(JSON.stringify(data));
+        console.timeEnd("Compressing");
+        return z;
+      },
+      deserialize: (data) => {
+        console.time("Decompressing");
+        let z = JSON.parse(decompress(data));
+        console.timeEnd("Decompressing");
+        return z;
+      },*/
+      serialize: (data) => {
+        //console.time("Cache Compressing");
+        let z = JSON.stringify(data);
+        //console.timeEnd("Cache Compressing");
+        return z;
+      },
+      deserialize: (data) => {
+        //console.time("Cache Decompressing");
+        let z = {};
+        try {
+          z = JSON.parse(data);
+        } catch {}
+        //console.timeEnd("Cache Decompressing");
+        return z;
+      },
     }),
   });
 }
