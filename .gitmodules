@@ -1,6 +1,3 @@
-[submodule "SplunkUI-devcontainer"]
-	path = .devcontainer
-	url = https://github.com/Bre77/SplunkUI-devcontainer
 [submodule ".devcontainer"]
 	path = .devcontainer
 	url = git@github.com:Bre77/SplunkUI-devcontainer.git
