@@ -83,7 +83,7 @@ const IntrospectionColumn = ({ server }) => {
 
   return (
     <>
-      <Heading level={1}>{server} TEST</Heading>
+      <Heading level={1}>{server}</Heading>
       {info?.serverName}
       <Heading level={2}>Server</Heading>
       <DL termWidth={150}>
