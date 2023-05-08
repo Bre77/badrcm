@@ -1,9 +1,0 @@
-FROM splunk/splunk as splunk
-FROM mcr.microsoft.com/devcontainers/javascript-node:14
-COPY --from=splunk --chown=node /opt/splunk /opt/splunk
-COPY --from=splunk --chown=node /opt/splunk-etc /opt/splunk/etc
-RUN echo '\nOPTIMISTIC_ABOUT_FILE_LOCKING = 1' >> /opt/splunk/etc/splunk-launch.conf
-VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
-USER node
-ENV SPLUNK_HOME=/opt/splunk
-RUN /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt --seed-passwd devcontainer && /opt/splunk/bin/splunk stop
