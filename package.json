@@ -11,7 +11,8 @@
     "lint": "yarn run eslint && yarn run stylelint",
     "lint:ci": "yarn run eslint:ci && yarn run stylelint",
     "start": "webpack --watch",
-    "stylelint": "stylelint \"src/**/*.{js,jsx}\" --config stylelint.config.js"
+    "stylelint": "stylelint \"src/**/*.{js,jsx}\" --config stylelint.config.js",
+    "package": "./make.sh dist/badrcm.spl"
   },
   "dependencies": {
     "@splunk/react-toast-notifications": "^0.11.0",
