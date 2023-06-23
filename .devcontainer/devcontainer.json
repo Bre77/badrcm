@@ -1,5 +1,5 @@
 {
-  "build": { "dockerfile": "dockerfile" },
+  "image": "ghcr.io/bre77/splunkui-devcontainer:main",
   "postCreateCommand": "./.devcontainer/setup.sh",
   "postStartCommand": "./.devcontainer/start.sh",
   "forwardPorts": [8000]
