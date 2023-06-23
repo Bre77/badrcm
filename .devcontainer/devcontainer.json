@@ -1,0 +1,6 @@
+{
+  "build": { "dockerfile": "dockerfile" },
+  "postCreateCommand": "./.devcontainer/setup.sh",
+  "postStartCommand": "./.devcontainer/start.sh",
+  "forwardPorts": [8000]
+}
