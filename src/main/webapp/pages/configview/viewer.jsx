@@ -105,7 +105,7 @@ export default ({ apps, files, columns }) => {
   };
 
   return (
-    <>
+
       <ColumnLayout>
         <ColumnLayout.Row>
           <ColumnLayout.Column></ColumnLayout.Column>
@@ -117,11 +117,10 @@ export default ({ apps, files, columns }) => {
             </ColumnLayout.Column>
           ))}
         </ColumnLayout.Row>
-      </ColumnLayout>
-      <br />
+
       {table.map(([key, app, file, cols]) => (
-        <CollapsiblePanel key={key} title={`${app} / ${file}.conf`}>
-          <ColumnLayout>
+        
+
             <ColumnLayout.Row>
               <ColumnLayout.Column></ColumnLayout.Column>
               {cols.map((col, z) => (
@@ -132,9 +131,8 @@ export default ({ apps, files, columns }) => {
                 </ColumnLayout.Column>
               ))}
             </ColumnLayout.Row>
-          </ColumnLayout>
-        </CollapsiblePanel>
+          
       ))}
-    </>
+      </ColumnLayout>
   );
 };

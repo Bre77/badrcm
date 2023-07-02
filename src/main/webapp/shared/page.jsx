@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { createGlobalStyle } from "styled-components";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClient, QueryClientProvider, useIsFetching } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient, removeOldestQuery } from "@tanstack/react-query-persist-client";
+import React, { useState } from "react";
+import { createGlobalStyle } from "styled-components";
 
 // Shared
 import { options } from "./helpers";
@@ -15,9 +15,9 @@ import Button from "@splunk/react-ui/Button";
 import Link from "@splunk/react-ui/Link";
 import Modal from "@splunk/react-ui/Modal";
 import P from "@splunk/react-ui/Paragraph";
+import Progress from "@splunk/react-ui/Progress";
 import { getUserTheme } from "@splunk/splunk-utils/themes";
 import variables from "@splunk/themes/variables";
-import Progress from "@splunk/react-ui/Progress";
 
 // Theme based background colour
 const GlobalStyle = createGlobalStyle`
@@ -76,10 +76,10 @@ const Loading = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+      cacheTime: 300000, // 5 minutes
       retry: false, //process.env.NODE_ENV === "production",
       refetchOnMount: true,
-      staleTime: 60000,
+      staleTime: 300000,
       //notifyOnChangeProps: "tracked",
       //refetchOnWindowFocus: process.env.NODE_ENV === "production",
     },
