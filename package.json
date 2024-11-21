@@ -1,6 +1,6 @@
 {
   "name": "badrcm",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "https://cdn.splunkbase.splunk.com/static/misc/eula.html",
   "splunkbaseid": 6277,
   "scripts": {
