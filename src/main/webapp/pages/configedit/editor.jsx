@@ -1,6 +1,6 @@
 import { smartTrim } from "@splunk/ui-utils/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { debounce } from "lodash";
+import debounce from "lodash.debounce";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Shared
@@ -10,14 +10,14 @@ import { useQueryConfig, useQueriesConfig, useQueryContext, useQueriesContext, u
 import { Actions, AttributeSpan, CreateLink, RedFlag, ShortCell, StanzaSpan, StyledContainer, TallCell, TextSpinner } from "../../shared/styles";
 
 // Splunk UI
-import Dashboard from "@splunk/react-icons/Dashboard";
-import Download from "@splunk/react-icons/Download";
-import External from "@splunk/react-icons/External";
-import Globe from "@splunk/react-icons/Globe";
-import Plus from "@splunk/react-icons/Plus";
-import Remove from "@splunk/react-icons/Remove";
-import User from "@splunk/react-icons/User";
-import Warning from "@splunk/react-icons/Warning";
+import Dashboard from "@splunk/react-icons/enterprise/Dashboard";
+import Download from "@splunk/react-icons/enterprise/Download";
+import External from "@splunk/react-icons/enterprise/External";
+import Globe from "@splunk/react-icons/enterprise/Globe";
+import Plus from "@splunk/react-icons/enterprise/Plus";
+import Remove from "@splunk/react-icons/enterprise/Remove";
+import User from "@splunk/react-icons/enterprise/User";
+import Warning from "@splunk/react-icons/enterprise/Warning";
 import Button from "@splunk/react-ui/Button";
 import Clickable from "@splunk/react-ui/Clickable";
 import ControlGroup from "@splunk/react-ui/ControlGroup";
