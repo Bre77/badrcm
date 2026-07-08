@@ -401,11 +401,11 @@ const ActionAddStanza = ({ column: { server, appcontext, usercontext }, app, fil
               {app}/{file}.conf
             </b>
           </P>
-          <ControlGroup label="Stanza" labelWidth={60}>
+          <ControlGroup label="Stanza" labelPosition="left" labelWidth={60}>
             <Text value={stanza} onChange={handleStanza} error={change.isError} />
           </ControlGroup>
-          <ControlGroup label="" labelWidth={60} help={change.error}>
-            <Button disabled={!stanza} onClick={handleClick} error={change.isError}>
+          <ControlGroup label="" labelPosition="left" labelWidth={60} help={change.error}>
+            <Button disabled={!stanza} onClick={handleClick} appearance={change.isError ? "destructive" : "default"}>
               {change.isLoading ? <WaitSpinner /> : "Create Stanza"}
             </Button>
           </ControlGroup>
@@ -484,14 +484,14 @@ const ActionAddAttr = ({ column: { server, usercontext, appcontext }, app, file,
               {app}/{file}.conf
             </b>
           </P>
-          <ControlGroup label="Attribute" labelWidth={60}>
+          <ControlGroup label="Attribute" labelPosition="left" labelWidth={60}>
             <Text value={attr} onChange={handleAttr} error={change.isError} />
           </ControlGroup>
-          <ControlGroup label="Value" labelWidth={60}>
+          <ControlGroup label="Value" labelPosition="left" labelWidth={60}>
             <Text value={value} onChange={handleValue} error={change.isError} />
           </ControlGroup>
-          <ControlGroup label="" labelWidth={60} help={change.error}>
-            <Button disabled={!attr || !value || change.isLoading} onClick={handleButton} error={change.isError}>
+          <ControlGroup label="" labelPosition="left" labelWidth={60} help={change.error}>
+            <Button disabled={!attr || !value || change.isLoading} onClick={handleButton} appearance={change.isError ? "destructive" : "default"}>
               {change.isLoading ? <WaitSpinner /> : "Add"}
             </Button>
           </ControlGroup>
@@ -535,13 +535,13 @@ const ActionMoveStanza = ({ column: { server, usercontext, appcontext }, app, fi
           <P>
             Move <StanzaSpan>[{stanza}]</StanzaSpan> from <b>{target}</b> to:
           </P>
-          <ControlGroup label="App" labelWidth={60}>
+          <ControlGroup label="App" labelPosition="left" labelWidth={60}>
             <Select onChange={handleTarget} error={change.isError} value={target}>
               {data && Object.entries(data.apps).map(([name, [label]]) => <Select.Option key={name} label={label} value={name} />)}
             </Select>
           </ControlGroup>
-          <ControlGroup label=" " labelWidth={60} help={change.error}>
-            <Button disabled={target === app} onClick={change.mutate} error={change.isError}>
+          <ControlGroup label=" " labelPosition="left" labelWidth={60} help={change.error}>
+            <Button disabled={target === app} onClick={change.mutate} appearance={change.isError ? "destructive" : "default"}>
               {change.isLoading ? <WaitSpinner /> : "Move"}
             </Button>
           </ControlGroup>
@@ -580,7 +580,7 @@ const ActionDeleteStanza = ({ column: { server, usercontext, appcontext }, app, 
           <P>
             Are you sure you want to delete stanza <StanzaSpan>[{stanza}]</StanzaSpan>?
           </P>
-          <Button onClick={change.mutate} disabled={change.isLoading} error={change.isError}>
+          <Button onClick={change.mutate} disabled={change.isLoading} appearance={change.isError ? "destructive" : "default"}>
             Delete
           </Button>
         </StyledContainer>

@@ -69,8 +69,8 @@ const ServerCard = ({ server }) => {
         )}
       </Card.Body>
       {server === "local" ? null : (
-        <Card.Footer showBorder={false}>
-          <Button label="Remove" appearance="default" onClick={remove.mutate} value={server} disabled={remove.isLoading} error={remove.isError} />
+        <Card.Footer>
+          <Button label="Remove" appearance={remove.isError ? "destructive" : "default"} onClick={remove.mutate} value={server} disabled={remove.isLoading} />
         </Card.Footer>
       )}
     </>
@@ -138,14 +138,14 @@ const AddServerCard = () => {
         <Tooltip content="Will not be shared with other users." />
       </Card.Header>
       <Card.Body>
-        <ControlGroup label="Splunk Hostname" help={servererror || serverhelp} error={!!servererror}>
+        <ControlGroup label="Splunk Hostname" labelPosition="left" help={servererror || serverhelp} error={!!servererror}>
           <Text placeholder="stack.splunkcloud.com[:8089]" value={server} onChange={(e, { value }) => setServer(value)} />
         </ControlGroup>
-        <ControlGroup label="Auth Token" help={tokenerror || authhelp} error={!!tokenerror}>
+        <ControlGroup label="Auth Token" labelPosition="left" help={tokenerror || authhelp} error={!!tokenerror}>
           <Text value={token} onChange={(e, { value }) => setToken(value)} passwordVisibilityToggle />
         </ControlGroup>
       </Card.Body>
-      <Card.Footer showBorder={false}>
+      <Card.Footer>
         <Button appearance="primary" onClick={addServer} disabled={running || server.length < 3 || token.length < 100}>
           {running ? <WaitSpinner /> : "Add"}
         </Button>

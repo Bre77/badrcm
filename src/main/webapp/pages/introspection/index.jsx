@@ -27,7 +27,7 @@ const Introspection = () => {
   // Render
   return (
     <>
-      <Multiselect inline={false} appearance="primary" values={columns} onChange={handleColumns} animateLoading={servers.isLoading} error={servers.error}>
+      <Multiselect inline={false} values={columns} onChange={handleColumns} animateLoading={servers.isLoading} error={servers.error}>
         {servers.data.map(({ name }) => (
           <Multiselect.Option key={name} label={name} value={name} />
         ))}
