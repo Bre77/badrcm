@@ -14,6 +14,11 @@ The `@splunk/*` frontend stack must move as one unit. `@splunk/react-page` pins 
 
 - The stack stays on React 16 and styled-components 5: no published `@splunk/react-ui` accepts React 19, and `react-ui` still peers styled-components `^5.3.10`. React 16->18 and styled-components 6 are separate, independent efforts.
 
+## Release
+
+- Version lives in two places, kept in sync: `package.json` `version` and `src/main/resources/splunk/default/app.conf` (`[id]` and `[launcher]` stanzas). Splunkbase republish requires bumping past the last published version.
+- `.github/workflows/validate.yml` runs `./.build.sh` (writes `badrcm.spl` to repo root) via `Bre77/splunk_nats`'s reusable build+AppInspect workflow, gated on `fail_on: errors`. No publish step or secrets live in CI; publishing to Splunkbase is a separate manual step.
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.
